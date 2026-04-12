@@ -155,11 +155,11 @@ const normalizeMessage = (message: Message) => {
   const contentParts = ensureArray(message.content).map(normalizeContentPart);
 
   // If there's only text content, collapse to a single string for compatibility
-  if (contentParts.length === 1 && contentParts[0].type === "text") {
+  if (contentParts.length === 1 && contentParts[0]?.type === "text") {
     return {
       role,
       name,
-      content: contentParts[0].text,
+      content: (contentParts[0] as TextContent).text,
     };
   }
 
@@ -193,9 +193,12 @@ const normalizeToolChoice = (
       );
     }
 
+    const firstTool = tools[0];
+    if (!firstTool) throw new Error("Unexpected: tools array is empty");
+
     return {
       type: "function",
-      function: { name: tools[0].function.name },
+      function: { name: firstTool.function.name },
     };
   }
 
