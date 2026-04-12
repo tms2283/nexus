@@ -37,15 +37,25 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
+/** Read the CSRF token from the cookie set by the server */
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
       fetch(input, init) {
+        const csrfToken = getCsrfToken();
+        const headers = new Headers((init?.headers as HeadersInit) ?? {});
+        if (csrfToken) headers.set("x-csrf-token", csrfToken);
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
+          headers,
         });
       },
     }),
