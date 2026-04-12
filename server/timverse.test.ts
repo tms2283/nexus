@@ -120,7 +120,7 @@ describe("router structure", () => {
     expect(keys).toContain("ai.generateGreeting");
     expect(keys).toContain("ai.generateQuiz");
     expect(keys).toContain("ai.chat");
-    expect(keys).toContain("ai.explainCodex");
+    expect(keys).toContain("ai.explainConcept");
     expect(keys).toContain("ai.composeMessage");
   });
 
