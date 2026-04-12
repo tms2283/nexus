@@ -1,0 +1,95 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ─── 1. Checkout ─────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ─── 2. Setup Node.js ────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ─── 3. Install pnpm ─────────────────────────────────────────────────
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      # ─── 4. Install dependencies ─────────────────────────────────────────
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ─── 5. Type check ───────────────────────────────────────────────────
+      - name: TypeScript check
+        run: pnpm check
+
+      # ─── 6. Build ────────────────────────────────────────────────────────
+      - name: Build
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          VITE_APP_ID: nexus
+
+      # ─── 7. Deploy to VPS via SSH ─────────────────────────────────────────
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -e
+            echo "=== Nexus Deploy $(date) ==="
+
+            # Pull latest code
+            cd /var/www/nexus
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Install dependencies (production only)
+            export PNPM_HOME="$HOME/.local/share/pnpm"
+            export PATH="$PNPM_HOME:$PATH"
+            pnpm install --frozen-lockfile --prod=false
+
+            # Build
+            NODE_ENV=production pnpm build
+
+            # Run any new database migrations
+            if [ -f "scripts/migrate-v4.mjs" ]; then
+              node scripts/migrate-v4.mjs || echo "Migration already applied"
+            fi
+
+            # Restart Node.js app via PM2
+            pm2 reload nexus --update-env || pm2 start ecosystem.config.cjs --env production
+
+            # Restart Python research service if it exists
+            if systemctl is-active --quiet nexus-research; then
+              sudo systemctl restart nexus-research
+            fi
+
+            # Health check — wait up to 30s for the app to respond
+            for i in {1..6}; do
+              sleep 5
+              if curl -sf http://localhost:3000/api/trpc/system.health > /dev/null 2>&1; then
+                echo "=== Health check passed ==="
+                exit 0
+              fi
+              echo "Waiting for app to start... ($i/6)"
+            done
+            echo "WARNING: Health check did not pass within 30s"
+            pm2 logs nexus --nostream --lines 20

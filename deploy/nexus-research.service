@@ -1,0 +1,51 @@
+# /etc/systemd/system/nexus-research.service
+# Systemd unit for the Nexus Python research microservice (FastAPI/uvicorn)
+#
+# Install:
+#   sudo cp deploy/nexus-research.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable nexus-research
+#   sudo systemctl start nexus-research
+#
+# Logs: journalctl -u nexus-research -f
+
+[Unit]
+Description=Nexus Research Pipeline (FastAPI)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/nexus-research/backend
+
+# Activate the virtual environment and run uvicorn
+ExecStart=/var/www/nexus-research/backend/venv/bin/uvicorn \
+    app.main:app \
+    --host 127.0.0.1 \
+    --port 8001 \
+    --workers 2 \
+    --log-level warning
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+# Environment (database and API keys go in .env, loaded by python-dotenv)
+EnvironmentFile=/var/www/nexus-research/backend/.env
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/www/nexus-research/backend/data
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target
