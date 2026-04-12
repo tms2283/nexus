@@ -8,6 +8,7 @@ import {
   json,
   boolean,
   float,
+  index,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
@@ -59,7 +60,10 @@ export const chatMessages = mysqlTable("chat_messages", {
   role: mysqlEnum("role", ["user", "assistant"]).notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx: index("chat_messages_cookieId_idx").on(t.cookieId),
+  createdAtIdx: index("chat_messages_createdAt_idx").on(t.createdAt),
+}));
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 
@@ -152,7 +156,9 @@ export const researchSessions = mysqlTable("research_sessions", {
   tags: json("tags").$type<string[]>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx: index("research_sessions_cookieId_idx").on(t.cookieId),
+}));
 export type ResearchSession = typeof researchSessions.$inferSelect;
 
 // ─── Flashcard Decks ──────────────────────────────────────────────────────────
@@ -163,11 +169,13 @@ export const flashcardDecks = mysqlTable("flashcard_decks", {
   title: varchar("title", { length: 512 }).notNull(),
   description: text("description"),
   sourceType: mysqlEnum("sourceType", ["research", "manual", "ai_generated"]).default("ai_generated").notNull(),
-  sourceId: int("sourceId"), // researchSession id if applicable
+  sourceId: int("sourceId"),
   cardCount: int("cardCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx: index("flashcard_decks_cookieId_idx").on(t.cookieId),
+}));
 export type FlashcardDeck = typeof flashcardDecks.$inferSelect;
 
 // ─── Flashcards ───────────────────────────────────────────────────────────────
@@ -176,14 +184,18 @@ export const flashcards = mysqlTable("flashcards", {
   deckId: int("deckId").notNull(),
   front: text("front").notNull(),
   back: text("back").notNull(),
-  // SM-2 algorithm fields
-  interval: int("interval").default(1).notNull(),       // days until next review
-  easeFactor: float("easeFactor").default(2.5).notNull(), // difficulty multiplier
+  interval: int("interval").default(1).notNull(),
+  easeFactor: float("easeFactor").default(2.5).notNull(),
   repetitions: int("repetitions").default(0).notNull(),
   dueDate: timestamp("dueDate").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  // Most critical: getSdueFlashcards filters by deckId + dueDate on every review session
+  deckIdIdx: index("flashcards_deckId_idx").on(t.deckId),
+  dueDateIdx: index("flashcards_dueDate_idx").on(t.dueDate),
+  deckDueIdx: index("flashcards_deckId_dueDate_idx").on(t.deckId, t.dueDate),
+}));
 export type Flashcard = typeof flashcards.$inferSelect;
 
 // ─── Flashcard Reviews ────────────────────────────────────────────────────────
@@ -194,7 +206,10 @@ export const flashcardReviews = mysqlTable("flashcard_reviews", {
   cookieId: varchar("cookieId", { length: 128 }).notNull(),
   rating: mysqlEnum("rating", ["again", "hard", "good", "easy"]).notNull(),
   reviewedAt: timestamp("reviewedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  deckIdIdx: index("flashcard_reviews_deckId_idx").on(t.deckId),
+  cookieIdIdx: index("flashcard_reviews_cookieId_idx").on(t.cookieId),
+}));
 export type FlashcardReview = typeof flashcardReviews.$inferSelect;
 
 // ─── AI Provider Settings ─────────────────────────────────────────────────────
@@ -219,7 +234,9 @@ export const mindMaps = mysqlTable("mind_maps", {
   nodesJson: json("nodesJson").$type<MindMapNode[]>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx: index("mind_maps_cookieId_idx").on(t.cookieId),
+}));
 export type MindMap = typeof mindMaps.$inferSelect;
 
 // ─── Library Resources ────────────────────────────────────────────────────────
@@ -267,7 +284,10 @@ export const testResults = mysqlTable("test_results", {
   answers: json("answers").$type<Record<string, number>>().notNull(),
   timeTakenSeconds: int("timeTakenSeconds"),
   completedAt: timestamp("completedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx: index("test_results_cookieId_idx").on(t.cookieId),
+  testIdIdx:   index("test_results_testId_idx").on(t.testId),
+}));
 export type TestResult = typeof testResults.$inferSelect;
 
 export const iqResults = mysqlTable("iq_results", {
@@ -279,7 +299,9 @@ export const iqResults = mysqlTable("iq_results", {
   categoryScores: json("categoryScores").$type<Record<string, number>>().notNull(),
   timeTakenSeconds: int("timeTakenSeconds"),
   completedAt: timestamp("completedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx: index("iq_results_cookieId_idx").on(t.cookieId),
+}));
 export type IQResult = typeof iqResults.$inferSelect;
 
 // ─── Lessons (AI-Generated Learning Content) ─────────────────────────────────
@@ -287,7 +309,7 @@ export const lessons = mysqlTable("lessons", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId"),
   cookieId: varchar("cookieId", { length: 128 }).notNull(),
-  curriculumId: varchar("curriculumId", { length: 64 }).notNull(), // Links to curriculum generation
+  curriculumId: varchar("curriculumId", { length: 64 }).notNull(),
   title: varchar("title", { length: 512 }).notNull(),
   description: text("description"),
   content: text("content").notNull(), // Full lesson markdown/HTML content
@@ -302,10 +324,14 @@ export const lessons = mysqlTable("lessons", {
   viewCount: int("viewCount").default(0).notNull(), // Track popularity
   completed: boolean("completed").default(false).notNull(),
   completedAt: timestamp("completedAt"),
-  relatedTopics: json("relatedTopics").$type<string[]>(), // For off-topic exploration
+  relatedTopics: json("relatedTopics").$type<string[]>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  cookieIdIdx:    index("lessons_cookieId_idx").on(t.cookieId),
+  curriculumIdx:  index("lessons_curriculumId_idx").on(t.curriculumId),
+  sharedIdx:      index("lessons_isShared_idx").on(t.isShared),
+}));
 export type Lesson = typeof lessons.$inferSelect;
 export type InsertLesson = typeof lessons.$inferInsert;
 
@@ -367,7 +393,10 @@ export const lessonProgress = mysqlTable("lesson_progress", {
   timeSpentSeconds: int("timeSpentSeconds").default(0).notNull(),
   attempts: int("attempts").default(1).notNull(),
   lastAccessedAt: timestamp("lastAccessedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  cookieLessonIdx: index("lesson_progress_cookie_lesson_idx").on(t.cookieId, t.lessonId),
+  cookieIdIdx:     index("lesson_progress_cookieId_idx").on(t.cookieId),
+}));
 export type LessonProgress = typeof lessonProgress.$inferSelect;
 export type InsertLessonProgress = typeof lessonProgress.$inferInsert;
 export const curriculumProgress = mysqlTable("curriculum_progress", {
@@ -380,7 +409,9 @@ export const curriculumProgress = mysqlTable("curriculum_progress", {
   lessonsCompleted: int("lessonsCompleted").default(0).notNull(),
   totalLessons: int("totalLessons").default(0).notNull(),
   lastAccessedAt: timestamp("lastAccessedAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  cookieCurriculumIdx: index("curriculum_progress_cookie_curriculum_idx").on(t.cookieId, t.curriculumId),
+}));
 export type CurriculumProgress = typeof curriculumProgress.$inferSelect;
 export type InsertCurriculumProgress = typeof curriculumProgress.$inferInsert;
 

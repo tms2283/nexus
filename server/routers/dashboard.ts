@@ -3,7 +3,6 @@ import { publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { visitorProfiles } from "../../drizzle/schema";
 import { eq, sql, desc as descOrder } from "drizzle-orm";
-
 export const leaderboardRouter = router({
   getTopUsers: publicProcedure
     .input(z.object({ limit: z.number().min(1).max(50).default(20), metric: z.enum(["xp", "streak", "visitCount"]).default("xp") }))
@@ -36,25 +35,53 @@ export const dashboardRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return { days: [], totalActions: 0, avgPerDay: 0 };
-      const { researchSessions, testResults: tr, iqResults: iq, flashcardReviews, flashcardDecks } = await import("../../drizzle/schema");
-      const [research, tests, iqs, reviews] = await Promise.all([
-        db.select({ createdAt: researchSessions.createdAt }).from(researchSessions).where(eq(researchSessions.cookieId, input.cookieId)),
-        db.select({ createdAt: tr.completedAt }).from(tr).where(eq(tr.cookieId, input.cookieId)),
-        db.select({ createdAt: iq.completedAt }).from(iq).where(eq(iq.cookieId, input.cookieId)),
-        db.select({ createdAt: flashcardReviews.reviewedAt }).from(flashcardReviews).innerJoin(flashcardDecks, eq(flashcardReviews.deckId, flashcardDecks.id)).where(eq(flashcardDecks.cookieId, input.cookieId)),
+      const {
+        researchSessions, testResults: tr, iqResults: iq,
+        flashcardReviews, flashcardDecks,
+      } = await import("../../drizzle/schema");
+
+      // Use SQL DATE() + GROUP BY instead of loading all rows into JS memory
+      const cutoff = new Date(Date.now() - 84 * 86400000);
+
+      const [researchCounts, testCounts, iqCounts, reviewCounts] = await Promise.all([
+        db.select({ date: sql<string>`DATE(createdAt)`, count: sql<number>`COUNT(*)` })
+          .from(researchSessions)
+          .where(sql`cookieId = ${input.cookieId} AND createdAt >= ${cutoff}`)
+          .groupBy(sql`DATE(createdAt)`),
+        db.select({ date: sql<string>`DATE(completedAt)`, count: sql<number>`COUNT(*)` })
+          .from(tr)
+          .where(sql`cookieId = ${input.cookieId} AND completedAt >= ${cutoff}`)
+          .groupBy(sql`DATE(completedAt)`),
+        db.select({ date: sql<string>`DATE(completedAt)`, count: sql<number>`COUNT(*)` })
+          .from(iq)
+          .where(sql`cookieId = ${input.cookieId} AND completedAt >= ${cutoff}`)
+          .groupBy(sql`DATE(completedAt)`),
+        db.select({ date: sql<string>`DATE(fr.reviewedAt)`, count: sql<number>`COUNT(*)` })
+          .from(flashcardReviews.as('fr'))
+          .innerJoin(flashcardDecks, eq(flashcardReviews.deckId, flashcardDecks.id))
+          .where(sql`fd.cookieId = ${input.cookieId} AND fr.reviewedAt >= ${cutoff}`)
+          .groupBy(sql`DATE(fr.reviewedAt)`),
       ]);
+
+      // Merge all counts into a single date map
       const dayMap: Record<string, number> = {};
-      const allDates = [...research.map(r => r.createdAt), ...tests.map(r => r.createdAt), ...iqs.map(r => r.createdAt), ...reviews.map(r => r.createdAt)].filter(Boolean);
-      for (const d of allDates) {
-        const key = new Date(d as Date).toISOString().slice(0, 10);
-        dayMap[key] = (dayMap[key] ?? 0) + 1;
+      for (const rows of [researchCounts, testCounts, iqCounts, reviewCounts]) {
+        for (const row of rows) {
+          if (row.date) dayMap[row.date] = (dayMap[row.date] ?? 0) + Number(row.count);
+        }
       }
+
       const days: Array<{ date: string; count: number }> = [];
       for (let i = 83; i >= 0; i--) {
         const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
         days.push({ date: d, count: dayMap[d] ?? 0 });
       }
-      return { days, totalActions: allDates.length, avgPerDay: allDates.length > 0 ? Math.round((allDates.length / 84) * 10) / 10 : 0 };
+      const totalActions = Object.values(dayMap).reduce((a, b) => a + b, 0);
+      return {
+        days,
+        totalActions,
+        avgPerDay: totalActions > 0 ? Math.round((totalActions / 84) * 10) / 10 : 0,
+      };
     }),
 
   getInsight: publicProcedure
