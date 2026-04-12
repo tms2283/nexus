@@ -101,17 +101,6 @@ function ParticleCanvas() {
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.6 }} />;
 }
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = `oklch(0.75 0.18 ${p.hue} / ${a})`; ctx.fill();
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2); ctx.fillStyle = `oklch(0.65 0.12 ${p.hue} / ${a * 0.1})`; ctx.fill();
-      }
-      animRef.current = requestAnimationFrame(draw);
-    }
-    draw();
-    return () => { cancelAnimationFrame(animRef.current); window.removeEventListener("resize", resize); window.removeEventListener("mousemove", onMouse); };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.6 }} />;
-}
 
 // ─── Typewriter ───────────────────────────────────────────────────────────────
 function Typewriter({ texts, speed = 65 }: { texts: string[]; speed?: number }) {
