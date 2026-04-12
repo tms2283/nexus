@@ -64,8 +64,8 @@ export const dashboardRouter = router({
       if (!db) return { insight: null };
       const { testResults: tr, iqResults: iq } = await import("../../drizzle/schema");
       const [tests, iqs] = await Promise.all([
-        db.select().from(tr).where(eq(tr.cookieId, input.cookieId)).orderBy(descOrder(tr.completedAt)).limit(20),
-        db.select().from(iq).where(eq(iq.cookieId, input.cookieId)).orderBy(descOrder(iq.completedAt)).limit(1),
+        db.select({ testId: tr.testId, score: tr.score, totalQuestions: tr.totalQuestions, completedAt: tr.completedAt }).from(tr).where(eq(tr.cookieId, input.cookieId)).orderBy(descOrder(tr.completedAt)).limit(20),
+        db.select({ iqScore: iq.iqScore, percentile: iq.percentile }).from(iq).where(eq(iq.cookieId, input.cookieId)).orderBy(descOrder(iq.completedAt)).limit(1),
       ]);
       if (tests.length === 0 && iqs.length === 0) return { insight: null };
       const subjectScores: Record<string, number[]> = {};

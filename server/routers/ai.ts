@@ -4,6 +4,7 @@ import {
   getChatHistory, saveChatMessage, addXP,
   saveLesson, getLessonById, getLessonsByCurriculum, markLessonComplete,
   askLessonQuestion, saveLessonAnswer, getLessonQuestions, getQuestionAnswer,
+  getLessonQuestionsWithAnswers,
   markAnswerHelpful, incrementLessonViewCount, searchSharedLessons,
   getDb,
 } from "../db";
@@ -153,8 +154,7 @@ Create 3-4 phases with real resources and actual URLs.`;
     }),
 
   getLessonQA: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => {
-    const questions = await getLessonQuestions(input.lessonId);
-    return Promise.all(questions.map(async (q) => ({ question: q, answer: await getQuestionAnswer(q.id) })));
+    return getLessonQuestionsWithAnswers(input.lessonId);
   }),
   markAnswerHelpful: publicProcedure.input(z.object({ answerId: z.number() })).mutation(async ({ input }) => { await markAnswerHelpful(input.answerId); return { success: true }; }),
 
