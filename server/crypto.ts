@@ -1,12 +1,12 @@
 /**
  * crypto.ts — AES-256-GCM encryption for sensitive stored values (user API keys).
  *
- * Key is derived from ENCRYPTION_KEY env var (32 hex bytes = 64 hex chars).
- * Generate a key: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+ * Key MUST be set via ENCRYPTION_KEY env var (64 hex chars = 32 bytes).
+ * Generate: openssl rand -hex 32
  *
  * Encrypted format: "<iv_hex>:<tag_hex>:<ciphertext_hex>"
  */
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LEN = 12; // 96-bit IV recommended for GCM
@@ -14,11 +14,15 @@ const IV_LEN = 12; // 96-bit IV recommended for GCM
 function getKey(): Buffer {
   const hex = process.env.ENCRYPTION_KEY ?? "";
   if (hex.length === 64) return Buffer.from(hex, "hex");
-  // Fallback: derive a deterministic key from JWT_SECRET so existing deployments
-  // don't break immediately — but log a warning.
-  const secret = process.env.JWT_SECRET ?? "nexus-default-insecure-key";
-  console.warn("[crypto] ENCRYPTION_KEY not set — API keys are stored with weak fallback encryption. Set ENCRYPTION_KEY in .env.");
-  return createHash("sha256").update(secret).digest();
+
+  // No fallback — fail loudly so misconfigured deployments are caught immediately.
+  // validateEnv() at startup will have already exited before we reach this, but
+  // guard here too in case crypto is called in tests or scripts without the full
+  // server startup path.
+  throw new Error(
+    "ENCRYPTION_KEY environment variable is required but not set or is invalid. " +
+    "Generate one with: openssl rand -hex 32"
+  );
 }
 
 export function encrypt(plaintext: string): string {
@@ -33,7 +37,7 @@ export function encrypt(plaintext: string): string {
 export function decrypt(encrypted: string): string {
   try {
     const parts = encrypted.split(":");
-    if (parts.length !== 3) return encrypted; // not encrypted — return as-is (legacy)
+    if (parts.length !== 3) return encrypted; // not encrypted — return as-is (legacy plaintext)
     const [ivHex, tagHex, ciphertextHex] = parts;
     const key = getKey();
     const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(ivHex, "hex"));

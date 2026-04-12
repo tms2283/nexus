@@ -7,7 +7,6 @@ import {
 import { callAI } from "./shared";
 import { researchSources, researchProjects, audioOverviews } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
-
 const RESEARCH_SERVICE_URL = process.env.RESEARCH_SERVICE_URL || "http://localhost:8001/api";
 
 // ─── SSRF protection — block private/loopback IP ranges ──────────────────────
@@ -188,10 +187,19 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       }
     }),
 
-  // ─── NEW: RAG chat over a project's sources ───────────────────────────────
+  // ─── RAG chat over a project's sources ───────────────────────────────────
   ragChat: publicProcedure
     .input(z.object({ cookieId: z.string(), projectId: z.number(), question: z.string().min(2).max(2000) }))
     .mutation(async ({ input }) => {
+      // Ownership check — verify the project belongs to this visitor
+      const db = await getDb();
+      if (db) {
+        const projects = await db.select({ cookieId: researchProjects.cookieId })
+          .from(researchProjects).where(eq(researchProjects.id, input.projectId)).limit(1);
+        if (projects.length > 0 && projects[0].cookieId !== input.cookieId) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+      }
       try {
         const result = await callResearchService<{ answer: string; citations: Array<{ title: string; url: string; excerpt: string }> }>(
           "/chat", { question: input.question, project_id: input.projectId, top_k: 5 }
@@ -199,7 +207,6 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
         await addXP(input.cookieId, 5);
         return result;
       } catch (_err) {
-        // Fallback: use plain AI without RAG context
         const answer = await callAI(input.cookieId, input.question, "You are a helpful research assistant.", 1024);
         return { answer, citations: [] };
       }
@@ -213,6 +220,15 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       format: z.enum(["json", "csv", "markdown", "anki"]),
     }))
     .mutation(async ({ input }) => {
+      // Ownership check — verify this project belongs to the caller
+      const db = await getDb();
+      if (db) {
+        const projects = await db.select({ cookieId: researchProjects.cookieId })
+          .from(researchProjects).where(eq(researchProjects.id, input.projectId)).limit(1);
+        if (projects.length > 0 && projects[0].cookieId !== input.cookieId) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+      }
       try {
         const result = await callResearchService<string | Record<string, unknown>>(
           `/export/${input.projectId}?format=${input.format}`
@@ -234,10 +250,20 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       return { projects };
     }),
 
-  // ─── NEW: Generate audio overview (ElevenLabs) ───────────────────────────
+  // ─── Generate audio overview (ElevenLabs) ───────────────────────────────
   generateAudioOverview: publicProcedure
     .input(z.object({ cookieId: z.string(), sessionId: z.number(), title: z.string(), summary: z.string(), keyInsights: z.array(z.string()) }))
     .mutation(async ({ input }) => {
+      // Ownership check — verify session belongs to caller
+      const db = await getDb();
+      if (db) {
+        const { researchSessions } = await import("../../drizzle/schema");
+        const sessions = await db.select({ cookieId: researchSessions.cookieId })
+          .from(researchSessions).where(eq(researchSessions.id, input.sessionId)).limit(1);
+        if (sessions.length > 0 && sessions[0].cookieId !== input.cookieId) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+      }
       const { generateAudioOverview } = await import("../audio");
       const result = await generateAudioOverview({ cookieId: input.cookieId, sourceType: "research_session", sourceId: input.sessionId, title: input.title, content: `${input.summary}\n\nKey Insights:\n${input.keyInsights.map((k, i) => `${i + 1}. ${k}`).join("\n")}` });
       if (result.success) await addXP(input.cookieId, 30);

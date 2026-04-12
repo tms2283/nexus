@@ -12,6 +12,7 @@ import {
   lessonFeedback, LessonFeedback, InsertLessonFeedback,
   lessonProgress, LessonProgress, InsertLessonProgress,
   curriculumProgress, CurriculumProgress, InsertCurriculumProgress,
+  flashcardDecks, FlashcardDeck,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -253,6 +254,13 @@ export async function addFlashcardsToDecks(deckId: number, cards: Array<{ front:
     await db.insert(flashcards).values({ deckId, front: card.front, back: card.back, dueDate: now });
   }
   await db.update(flashcardDecks).set({ cardCount: cards.length, updatedAt: now }).where(eq(flashcardDecks.id, deckId));
+}
+
+export async function getFlashcardDeckById(deckId: number): Promise<FlashcardDeck | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(flashcardDecks).where(eq(flashcardDecks.id, deckId)).limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getFlashcardDecks(cookieId: string): Promise<FlashcardDeck[]> {
