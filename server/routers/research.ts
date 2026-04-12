@@ -10,17 +10,32 @@ import { eq, desc } from "drizzle-orm";
 
 const RESEARCH_SERVICE_URL = process.env.RESEARCH_SERVICE_URL || "http://localhost:8001/api";
 
-// ─── SSRF protection — block private/loopback IP ranges ──────────────────────
+// ─── SSRF protection — block private/loopback/link-local IP ranges ───────────
+// Covers IPv4 private ranges, IPv6 loopback/link-local, AWS metadata, and
+// common DNS rebinding targets (.local, .internal).
 const BLOCKED_PATTERNS = [
+  // IPv4 loopback and private ranges
   /^https?:\/\/localhost/i,
   /^https?:\/\/127\./,
   /^https?:\/\/0\./,
   /^https?:\/\/10\./,
   /^https?:\/\/192\.168\./,
   /^https?:\/\/172\.(1[6-9]|2[0-9]|3[01])\./,
-  /^https?:\/\/169\.254\./,   // Link-local / AWS metadata
+  /^https?:\/\/169\.254\./,        // Link-local / AWS metadata endpoint
+  /^https?:\/\/100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\./,  // CGNAT (RFC 6598)
+
+  // IPv6 loopback and link-local
+  /^https?:\/\/\[::1\]/,           // IPv6 loopback
+  /^https?:\/\/\[fe80::/i,         // IPv6 link-local
+  /^https?:\/\/\[fc0[0-9a-f]::/i,  // IPv6 unique local
+  /^https?:\/\/\[fd[0-9a-f]{2}::/i,// IPv6 unique local (fd prefix)
+  /^https?:\/\/\[::ffff:/i,        // IPv4-mapped IPv6
+
+  // DNS rebinding / internal service discovery
   /^https?:\/\/[^/]*\.internal/i,
-  /^https?:\/\/[^/]*\.local/i,
+  /^https?:\/\/[^/]*\.local(?:host)?/i,
+  /^https?:\/\/metadata\.google\.internal/i,
+  /^https?:\/\/169\.254\.169\.254/,// AWS/GCP/Azure instance metadata
 ];
 
 function isSsrfBlocked(url: string): boolean {

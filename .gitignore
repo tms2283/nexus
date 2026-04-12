@@ -115,6 +115,10 @@ client/public/__manus__/version.json
 # Old router backup (kept locally for reference only)
 server/routers.ts.bak
 
+# Manus/MCP config — may contain API tokens
+.mcp.json
+*.mcp.json
+
 # Manus debug logs
 .manus-logs/
 

@@ -247,11 +247,12 @@ export async function createFlashcardDeck(data: {
 
 export async function addFlashcardsToDecks(deckId: number, cards: Array<{ front: string; back: string }>): Promise<void> {
   const db = await getDb();
-  if (!db) return;
+  if (!db || cards.length === 0) return;
   const now = new Date();
-  for (const card of cards) {
-    await db.insert(flashcards).values({ deckId, front: card.front, back: card.back, dueDate: now });
-  }
+  // Bulk INSERT — single round-trip instead of N individual inserts
+  await db.insert(flashcards).values(
+    cards.map((card) => ({ deckId, front: card.front, back: card.back, dueDate: now }))
+  );
   await db.update(flashcardDecks).set({ cardCount: cards.length, updatedAt: now }).where(eq(flashcardDecks.id, deckId));
 }
 
