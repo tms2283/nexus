@@ -181,9 +181,7 @@ export async function seedCodexEntries(): Promise<void> {
     { title: "The Missing Semester of Your CS Education", description: "MIT course covering essential tools every developer needs: shell, vim, git, debugging, and more.", url: "https://missing.csail.mit.edu", category: "Software Engineering", tags: ["tools", "shell", "git", "productivity", "mit"], difficulty: "beginner" as const, featured: false },
     { title: "Designing Data-Intensive Applications", description: "The definitive guide to building reliable, scalable, and maintainable data systems. A must-read for backend engineers.", url: "https://dataintensive.net", category: "Software Engineering", tags: ["databases", "distributed-systems", "backend", "book"], difficulty: "advanced" as const, featured: true },
   ];
-  for (const entry of entries) {
-    await db.insert(codexEntries).values(entry);
-  }
+  await db.insert(codexEntries).values(entries);
 }
 
 // ─── Research Sessions ────────────────────────────────────────────────────────
@@ -247,11 +245,9 @@ export async function createFlashcardDeck(data: {
 
 export async function addFlashcardsToDecks(deckId: number, cards: Array<{ front: string; back: string }>): Promise<void> {
   const db = await getDb();
-  if (!db) return;
+  if (!db || cards.length === 0) return;
   const now = new Date();
-  for (const card of cards) {
-    await db.insert(flashcards).values({ deckId, front: card.front, back: card.back, dueDate: now });
-  }
+  await db.insert(flashcards).values(cards.map((card) => ({ deckId, front: card.front, back: card.back, dueDate: now })));
   await db.update(flashcardDecks).set({ cardCount: cards.length, updatedAt: now }).where(eq(flashcardDecks.id, deckId));
 }
 
@@ -445,9 +441,7 @@ export async function seedLibraryResources(): Promise<void> {
     { title: "Pomodoro Technique", url: "https://francescocirillo.com/products/the-pomodoro-technique", description: "The classic time management method — 25-minute focused work sessions separated by short breaks. Simple, effective, and battle-tested.", category: "Productivity", tags: ["time-management", "focus", "productivity"], difficulty: "beginner" as const, type: "article" as const, featured: false },
   ];
 
-  for (const resource of resources) {
-    await db.insert(libraryResources).values(resource);
-  }
+  await db.insert(libraryResources).values(resources);
 }
 
 // ─── Lessons (AI-Generated Content) ─────────────────────────────────
@@ -515,6 +509,19 @@ export async function getQuestionAnswer(questionId: number): Promise<LessonAnswe
   if (!db) return null;
   const result = await db.select().from(lessonAnswers).where(eq(lessonAnswers.questionId, questionId)).limit(1);
   return result[0] || null;
+}
+
+export async function getLessonQuestionsWithAnswers(lessonId: number): Promise<Array<{ question: LessonQuestion; answer: LessonAnswer | null }>> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select({
+    question: lessonQuestions,
+    answer: lessonAnswers,
+  }).from(lessonQuestions)
+    .leftJoin(lessonAnswers, eq(lessonAnswers.questionId, lessonQuestions.id))
+    .where(eq(lessonQuestions.lessonId, lessonId))
+    .orderBy(desc(lessonQuestions.createdAt));
+  return rows.map((r) => ({ question: r.question, answer: r.answer }));
 }
 
 export async function markAnswerHelpful(answerId: number): Promise<void> {
