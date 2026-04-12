@@ -58,8 +58,8 @@ jobs:
 
             # Pull latest code
             cd /var/www/nexus
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch https://github.com/tms2283/nexus.git main
+            git reset --hard FETCH_HEAD
 
             # Install dependencies (production only)
             export PNPM_HOME="$HOME/.local/share/pnpm"
