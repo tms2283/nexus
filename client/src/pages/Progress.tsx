@@ -9,12 +9,12 @@ import { StatCardSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/S
 export default function ProgressPage() {
   const { profile, cookieId, isLoaded } = usePersonalization();
 
-  const statsQuery = trpc.ai.getStudyStats.useQuery(
+  const statsQuery = trpc.lesson.getStudyStats.useQuery(
     { cookieId },
     { enabled: !!cookieId && isLoaded }
   );
 
-  const progressQuery = trpc.ai.getUserProgress.useQuery(
+  const progressQuery = trpc.lesson.getUserProgress.useQuery(
     { cookieId },
     { enabled: !!cookieId && isLoaded }
   );
@@ -55,7 +55,7 @@ export default function ProgressPage() {
 
   if (!isLoaded) {
     return (
-      <PageWrapper>
+      <PageWrapper pageName="Progress">
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[oklch(0.75_0.18_55)]" />
         </div>
@@ -64,7 +64,7 @@ export default function ProgressPage() {
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper pageName="Progress">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -126,9 +126,9 @@ export default function ProgressPage() {
           <h2 className="text-2xl font-bold text-foreground mb-6">Lessons Completed</h2>
           {progressQuery.isLoading ? (
             <ListSkeleton count={3} />
-          ) : progress && progress.length > 0 ? (
+          ) : progress && progress.lessons && progress.lessons.length > 0 ? (
             <div className="space-y-3">
-              {progress.map((item: any, idx: number) => (
+              {progress.lessons.map((item: any, idx: number) => (
                 <div key={idx} className="flex items-center justify-between p-4 rounded-lg bg-white/3 border border-white/8">
                   <div className="flex items-center gap-3">
                     <BookOpen size={20} className="text-[oklch(0.75_0.18_55)]" />

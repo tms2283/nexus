@@ -127,7 +127,7 @@ Seed: ${seed}`;
         const result = buildChallenge(data, category, today, seed);
         dailyChallengeCache.set(seed, result);
         // Evict stale cache entries (keep only today's seed)
-        for (const k of dailyChallengeCache.keys()) { if (k !== seed) dailyChallengeCache.delete(k); }
+        for (const k of Array.from(dailyChallengeCache.keys())) { if (k !== seed) dailyChallengeCache.delete(k); }
         return result;
       } catch {
         const fallback = buildChallenge({}, category, today, seed);

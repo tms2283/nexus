@@ -37,7 +37,7 @@ export default function Codex() {
     { staleTime: 60000 }
   );
 
-  const explainMutation = trpc.ai.explainCodex.useMutation();
+  const explainMutation = trpc.ai.explainConcept.useMutation();
 
   const filtered = (entries as CodexEntry[]).filter(e => {
     if (!search) return true;
@@ -52,7 +52,7 @@ export default function Codex() {
     if (aiExplanations[entry.id]) return;
     setLoadingExplanation(entry.id);
     explainMutation.mutate(
-      { title: entry.title, description: entry.description, category: entry.category, cookieId: cookieId ?? undefined },
+      { concept: `${entry.title}: ${entry.description}`, level: "student", cookieId: cookieId ?? undefined },
       {
         onSuccess: (data) => {
           setAiExplanations(prev => ({ ...prev, [entry.id]: data.explanation }));

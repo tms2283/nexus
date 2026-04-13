@@ -56,11 +56,11 @@ export const dashboardRouter = router({
           .from(iq)
           .where(sql`cookieId = ${input.cookieId} AND completedAt >= ${cutoff}`)
           .groupBy(sql`DATE(completedAt)`),
-        db.select({ date: sql<string>`DATE(fr.reviewedAt)`, count: sql<number>`COUNT(*)` })
-          .from(flashcardReviews.as('fr'))
+        db.select({ date: sql<string>`DATE(flashcard_reviews.reviewedAt)`, count: sql<number>`COUNT(*)` })
+          .from(flashcardReviews)
           .innerJoin(flashcardDecks, eq(flashcardReviews.deckId, flashcardDecks.id))
-          .where(sql`fd.cookieId = ${input.cookieId} AND fr.reviewedAt >= ${cutoff}`)
-          .groupBy(sql`DATE(fr.reviewedAt)`),
+          .where(sql`flashcard_decks.cookieId = ${input.cookieId} AND flashcard_reviews.reviewedAt >= ${cutoff}`)
+          .groupBy(sql`DATE(flashcard_reviews.reviewedAt)`),
       ]);
 
       // Merge all counts into a single date map

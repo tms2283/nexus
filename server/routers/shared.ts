@@ -26,7 +26,7 @@ export function checkRateLimit(cookieId: string): void {
 // Clean up old entries every hour to prevent memory leaks
 setInterval(() => {
   const now = Date.now();
-  for (const [key, val] of rateLimitMap.entries()) {
+  for (const [key, val] of Array.from(rateLimitMap.entries())) {
     if (now - val.windowStart > RATE_LIMIT_WINDOW_MS) rateLimitMap.delete(key);
   }
 }, RATE_LIMIT_WINDOW_MS);

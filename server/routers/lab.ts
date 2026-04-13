@@ -122,4 +122,12 @@ export const labRouter = router({
       } catch (_e) { /* fallback */ }
       return { biases: [], overallScore: 75, summary: "Unable to analyze. Please try again." };
     }),
+
+  describeImage: publicProcedure
+    .input(z.object({ cookieId: z.string().optional(), imageUrl: z.string().url() }))
+    .mutation(async ({ input }) => {
+      const prompt = `You are analyzing an image at this URL: ${input.imageUrl}\n\nDescribe the image in detail, covering: main subjects, composition, colors, mood, style, and any notable details. Be vivid and thorough in 2-3 paragraphs.`;
+      const description = await callAI(input.cookieId, prompt, undefined, 600);
+      return { description };
+    }),
 });
