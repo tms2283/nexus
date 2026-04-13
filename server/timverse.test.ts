@@ -16,12 +16,8 @@ function createPublicContext(): TrpcContext {
   };
 }
 
-function createAuthContext(): {
-  ctx: TrpcContext;
-  clearedCookies: { name: string; options: Record<string, unknown> }[];
-} {
-  const clearedCookies: { name: string; options: Record<string, unknown> }[] =
-    [];
+function createAuthContext(): { ctx: TrpcContext; clearedCookies: { name: string; options: Record<string, unknown> }[] } {
+  const clearedCookies: { name: string; options: Record<string, unknown> }[] = [];
   const ctx: TrpcContext = {
     user: {
       id: 1,
@@ -75,7 +71,7 @@ describe("auth.logout", () => {
     expect(clearedCookies[0]?.options).toMatchObject({
       maxAge: -1,
       secure: true,
-      sameSite: "lax",
+      sameSite: "none",
       httpOnly: true,
       path: "/",
     });
@@ -92,9 +88,7 @@ describe("visitor.getProfile", () => {
     const mockCookieId = "test-cookie-" + Date.now();
     // Should not throw even if DB is unavailable (graceful degradation)
     try {
-      const result = await caller.visitor.getProfile({
-        cookieId: mockCookieId,
-      });
+      const result = await caller.visitor.getProfile({ cookieId: mockCookieId });
       expect(result).toHaveProperty("cookieId");
       expect(result).toHaveProperty("xp");
       expect(result).toHaveProperty("level");
@@ -126,6 +120,7 @@ describe("router structure", () => {
     expect(keys).toContain("ai.generateGreeting");
     expect(keys).toContain("ai.generateQuiz");
     expect(keys).toContain("ai.chat");
+    expect(keys).toContain("ai.explainCodex");
     expect(keys).toContain("ai.composeMessage");
   });
 
@@ -163,12 +158,7 @@ describe("input validation", () => {
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
     await expect(
-      caller.contact.submit({
-        name: "",
-        email: "",
-        message: "test",
-        cookieId: "test",
-      })
+      caller.contact.submit({ name: "", email: "", message: "test", cookieId: "test" })
     ).rejects.toThrow();
   });
 });
@@ -216,9 +206,7 @@ describe("testing router", () => {
   it("testing.getScoreHistory returns empty subjects and iqHistory for unknown user", async () => {
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
-    const result = await caller.testing.getScoreHistory({
-      cookieId: "nonexistent-user-xyz",
-    });
+    const result = await caller.testing.getScoreHistory({ cookieId: "nonexistent-user-xyz" });
     expect(result).toHaveProperty("subjects");
     expect(result).toHaveProperty("iqHistory");
     expect(typeof result.subjects).toBe("object");

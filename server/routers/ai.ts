@@ -1,20 +1,10 @@
 import { z } from "zod";
-import { publicProcedure, visitorProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import {
-  getChatHistory,
-  saveChatMessage,
-  addXP,
-  saveLesson,
-  getLessonById,
-  getLessonsByCurriculum,
-  markLessonComplete,
-  askLessonQuestion,
-  saveLessonAnswer,
-  getLessonQuestions,
-  getQuestionAnswer,
-  markAnswerHelpful,
-  incrementLessonViewCount,
-  searchSharedLessons,
+  getChatHistory, saveChatMessage, addXP,
+  saveLesson, getLessonById, getLessonsByCurriculum, markLessonComplete,
+  askLessonQuestion, saveLessonAnswer, getLessonQuestions, getQuestionAnswer,
+  markAnswerHelpful, incrementLessonViewCount, searchSharedLessons,
   getDb,
 } from "../db";
 import { type InsertLesson, backgroundJobs } from "../../drizzle/schema";
@@ -25,182 +15,103 @@ const CURRICULUM_FALLBACK = (goal: string) => ({
   title: `Learning Path: ${goal}`,
   description: "A personalized learning curriculum.",
   estimatedWeeks: 4,
-  phases: [
-    {
-      phase: 1,
-      title: "Foundation",
-      duration: "Week 1",
-      objectives: ["Understand core concepts"],
-      resources: [],
-      milestone: "Complete first project",
-    },
-  ],
+  phases: [{
+    phase: 1,
+    title: "Foundation",
+    duration: "Week 1",
+    objectives: ["Understand core concepts"],
+    resources: [],
+    milestone: "Complete first project",
+  }],
 });
 
 const LEVEL_PROMPTS: Record<string, (concept: string) => string> = {
-  child: c =>
-    `Explain "${c}" to a curious 8-year-old. Simple words, concrete examples, fun analogy. No jargon. Make it a story.`,
-  student: c =>
-    `Explain "${c}" to a high school student. Introduce terminology with definitions. 2-3 concrete examples. Build from fundamentals.`,
-  expert: c =>
-    `Explain "${c}" at a graduate level. Assume domain knowledge. Precise technical language. Cover edge cases and adjacent concepts.`,
-  socratic: c =>
-    `Use the Socratic method for "${c}". Ask 5-7 probing questions that lead to discovery. Don't explain — only ask.`,
-  analogy: c =>
-    `Explain "${c}" using 3 vivid analogies from completely different domains. Each illuminates a different aspect. Make them memorable.`,
+  child:    (c) => `Explain "${c}" to a curious 8-year-old. Simple words, concrete examples, fun analogy. No jargon. Make it a story.`,
+  student:  (c) => `Explain "${c}" to a high school student. Introduce terminology with definitions. 2-3 concrete examples. Build from fundamentals.`,
+  expert:   (c) => `Explain "${c}" at a graduate level. Assume domain knowledge. Precise technical language. Cover edge cases and adjacent concepts.`,
+  socratic: (c) => `Use the Socratic method for "${c}". Ask 5-7 probing questions that lead to discovery. Don't explain — only ask.`,
+  analogy:  (c) => `Explain "${c}" using 3 vivid analogies from completely different domains. Each illuminates a different aspect. Make them memorable.`,
 };
 
 export const aiRouter = router({
-  generateGreeting: visitorProcedure
-    .input(
-      z.object({
-        visitCount: z.number(),
-        pagesVisited: z.array(z.string()),
-        preferredTopics: z.array(z.string()),
-        timeOfDay: z.string(),
-        xp: z.number(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId!;
+  generateGreeting: publicProcedure
+    .input(z.object({
+      cookieId: z.string(), visitCount: z.number(),
+      pagesVisited: z.array(z.string()), preferredTopics: z.array(z.string()),
+      timeOfDay: z.string(), xp: z.number(),
+    }))
+    .mutation(async ({ input }) => {
       const isReturning = input.visitCount > 1;
       const prompt = isReturning
         ? `Generate a short (2-3 sentences), sophisticated, personalized welcome-back message for a returning visitor to Nexus — an AI-powered learning platform. Visit count: ${input.visitCount}. Pages: ${input.pagesVisited.join(", ")}. Interests: ${input.preferredTopics.join(", ") || "not yet determined"}. XP: ${input.xp}. Time: ${input.timeOfDay}. Be warm but intellectually engaging. No generic phrases.`
         : `Generate a short (2-3 sentences), sophisticated, compelling first-time greeting for a new visitor to Nexus — an AI-powered learning and research platform. Time: ${input.timeOfDay}. Feel like entering a place for serious, curious minds. Intriguing, not cheesy.`;
-      const greeting = await callAI(cookieId, prompt);
+      const greeting = await callAI(input.cookieId, prompt);
       return { greeting };
     }),
 
-  generateQuiz: visitorProcedure.mutation(async ({ ctx }) => {
-    const cookieId = ctx.visitorCookieId!;
-    const prompt = `Generate 4 adaptive quiz questions to personalize a learning platform. Return ONLY valid JSON:
+  generateQuiz: publicProcedure
+    .input(z.object({ cookieId: z.string() }))
+    .mutation(async ({ input }) => {
+      const prompt = `Generate 4 adaptive quiz questions to personalize a learning platform. Return ONLY valid JSON:
 {"questions":[{"id":"q1","question":"...","options":["A: ...","B: ...","C: ...","D: ..."],"category":"background|interests|goals|style"}]}
 Topics: technical background, creative interests, learning goals, work style. Exactly 4 options per question labeled A,B,C,D.`;
-    const response = await callAI(cookieId, prompt);
-    try {
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as {
-          questions: Array<{
-            id: string;
-            question: string;
-            options: string[];
-            category: string;
-          }>;
-        };
-        return { questions: parsed.questions };
-      }
-    } catch (_e) {
-      /* fallback */
-    }
-    return {
-      questions: [
-        {
-          id: "q1",
-          question: "What best describes your relationship with technology?",
-          options: [
-            "A: I build it — developer",
-            "B: I design it — UX/product",
-            "C: I strategize it — business",
-            "D: I'm curious about it",
-          ],
-          category: "background",
-        },
-        {
-          id: "q2",
-          question: "What draws you to Nexus most?",
-          options: [
-            "A: Personalized learning paths",
-            "B: Researching with AI",
-            "C: Coding challenges",
-            "D: The knowledge library",
-          ],
-          category: "interests",
-        },
-        {
-          id: "q3",
-          question: "What's your primary learning goal right now?",
-          options: [
-            "A: Master a technical skill",
-            "B: Understand a topic deeply",
-            "C: Stay current with AI trends",
-            "D: Explore broadly",
-          ],
-          category: "goals",
-        },
-        {
-          id: "q4",
-          question: "How do you prefer to learn?",
-          options: [
-            "A: Deep dives — technical details",
-            "B: Visual — show me",
-            "C: Socratic — guide me to discover",
-            "D: Interactive — let me build",
-          ],
-          category: "style",
-        },
-      ],
-    };
-  }),
+      const response = await callAI(input.cookieId, prompt);
+      try {
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]) as { questions: Array<{ id: string; question: string; options: string[]; category: string }> };
+          return { questions: parsed.questions };
+        }
+      } catch (_e) { /* fallback */ }
+      return {
+        questions: [
+          { id: "q1", question: "What best describes your relationship with technology?", options: ["A: I build it — developer", "B: I design it — UX/product", "C: I strategize it — business", "D: I'm curious about it"], category: "background" },
+          { id: "q2", question: "What draws you to Nexus most?", options: ["A: Personalized learning paths", "B: Researching with AI", "C: Coding challenges", "D: The knowledge library"], category: "interests" },
+          { id: "q3", question: "What's your primary learning goal right now?", options: ["A: Master a technical skill", "B: Understand a topic deeply", "C: Stay current with AI trends", "D: Explore broadly"], category: "goals" },
+          { id: "q4", question: "How do you prefer to learn?", options: ["A: Deep dives — technical details", "B: Visual — show me", "C: Socratic — guide me to discover", "D: Interactive — let me build"], category: "style" },
+        ],
+      };
+    }),
 
-  explainConcept: visitorProcedure
-    .input(
-      z.object({
-        concept: z.string().max(500),
-        level: z.enum(["child", "student", "expert", "socratic", "analogy"]),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId ?? "anonymous";
+  explainConcept: publicProcedure
+    .input(z.object({
+      cookieId: z.string().optional(), concept: z.string().max(500),
+      level: z.enum(["child", "student", "expert", "socratic", "analogy"]),
+    }))
+    .mutation(async ({ input }) => {
       const promptFn = LEVEL_PROMPTS[input.level];
-      const explanation = await callAI(
-        cookieId,
-        promptFn(input.concept),
-        undefined,
-        1500
-      );
+      const explanation = await callAI(input.cookieId, promptFn(input.concept), undefined, 1500);
       return { explanation, level: input.level };
     }),
 
-  generateCurriculum: visitorProcedure
-    .input(
-      z.object({
-        goal: z.string().max(500),
-        currentLevel: z.enum(["beginner", "intermediate", "advanced"]),
-        timeAvailable: z.string(),
-        interests: z.array(z.string()),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId ?? "anonymous";
+  generateCurriculum: publicProcedure
+    .input(z.object({
+      cookieId: z.string().optional(), goal: z.string().max(500),
+      currentLevel: z.enum(["beginner", "intermediate", "advanced"]),
+      timeAvailable: z.string(), interests: z.array(z.string()),
+    }))
+    .mutation(async ({ input }) => {
       const prompt = `Create a personalized learning curriculum for: "${input.goal}". Level: ${input.currentLevel}. Time: ${input.timeAvailable}. Interests: ${input.interests.join(", ") || "general"}.
 Return ONLY valid JSON: {"title":"...","description":"...","estimatedWeeks":4,"phases":[{"phase":1,"title":"...","duration":"Week 1-2","objectives":["..."],"resources":[{"title":"...","type":"article|video|book|practice","url":"...","description":"..."}],"milestone":"..."}]}
 Create 3-4 phases with real resources and actual URLs.`;
-      const response = await callAI(cookieId, prompt, undefined, 2048);
+      const response = await callAI(input.cookieId, prompt, undefined, 2048);
       let curriculum: any = null;
       try {
         const m = response.match(/\{[\s\S]*\}/);
         if (m) curriculum = JSON.parse(m[0]);
-      } catch (_e) {
-        /* fallback */
-      }
+      } catch (_e) { /* fallback */ }
       if (!curriculum) curriculum = CURRICULUM_FALLBACK(input.goal);
       const curriculumId = `curriculum-${Date.now()}`;
+      const cookieId = input.cookieId || "anonymous";
 
+      // Enqueue lesson generation as background jobs so the response is immediate
       const db = await getDb();
       if (db) {
         for (let i = 0; i < curriculum.phases.length; i++) {
           const phase = curriculum.phases[i];
           await db.insert(backgroundJobs).values({
             type: "GENERATE_LESSON",
-            payload: {
-              cookieId,
-              curriculumId,
-              phase,
-              index: i,
-              difficulty: input.currentLevel,
-              interests: input.interests,
-            },
+            payload: { cookieId, curriculumId, phase, index: i, difficulty: input.currentLevel, interests: input.interests },
             status: "pending",
           });
         }
@@ -208,240 +119,88 @@ Create 3-4 phases with real resources and actual URLs.`;
       return { ...curriculum, curriculumId };
     }),
 
-  generateLesson: visitorProcedure
-    .input(
-      z.object({
-        curriculumId: z.string(),
-        title: z.string(),
-        objectives: z.array(z.string()),
-        duration: z.string(),
-        order: z.number(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId!;
-      const response = await callAI(
-        cookieId,
-        `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}. Detailed, practical, engaging markdown content with examples.`,
-        undefined,
-        3000
-      );
-      const lesson: InsertLesson = {
-        cookieId,
-        curriculumId: input.curriculumId,
-        title: input.title,
-        description: input.objectives.join(", "),
-        content: response,
-        objectives: input.objectives,
-        keyPoints: input.objectives,
-        resources: [],
-        order: input.order,
-        difficulty: "intermediate",
-        estimatedMinutes: 15,
-      };
+  generateLesson: publicProcedure
+    .input(z.object({ cookieId: z.string(), curriculumId: z.string(), title: z.string(), objectives: z.array(z.string()), duration: z.string(), order: z.number() }))
+    .mutation(async ({ input }) => {
+      const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}. Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
+      const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: input.curriculumId, title: input.title, description: input.objectives.join(", "), content: response, objectives: input.objectives, keyPoints: input.objectives, resources: [], order: input.order, difficulty: "intermediate", estimatedMinutes: 15 };
       const saved = await saveLesson(lesson);
-      return (
-        saved || {
-          id: 0,
-          ...lesson,
-          completed: false,
-          completedAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-      );
+      return saved || { id: 0, ...lesson, completed: false, completedAt: null, createdAt: new Date(), updatedAt: new Date() };
     }),
 
-  getLesson: publicProcedure
-    .input(z.object({ lessonId: z.number() }))
-    .query(async ({ input }) => getLessonById(input.lessonId)),
-  getLessonsByCurriculum: visitorProcedure
-    .input(z.object({ curriculumId: z.string() }))
-    .query(async ({ ctx, input }) =>
-      getLessonsByCurriculum(ctx.visitorCookieId!, input.curriculumId)
-    ),
+  getLesson: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => getLessonById(input.lessonId)),
+  getLessonsByCurriculum: publicProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string() })).query(async ({ input }) => getLessonsByCurriculum(input.cookieId, input.curriculumId)),
 
-  completeLesson: visitorProcedure
-    .input(z.object({ lessonId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+  completeLesson: publicProcedure
+    .input(z.object({ lessonId: z.number(), cookieId: z.string() }))
+    .mutation(async ({ input }) => {
       await markLessonComplete(input.lessonId);
-      await addXP(ctx.visitorCookieId!, 25);
+      await addXP(input.cookieId, 25);
       return { success: true };
     }),
 
-  askLessonQuestion: visitorProcedure
-    .input(
-      z.object({
-        lessonId: z.number(),
-        question: z.string().max(1000),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId!;
-      const q = await askLessonQuestion(
-        input.lessonId,
-        cookieId,
-        input.question
-      );
+  askLessonQuestion: publicProcedure
+    .input(z.object({ lessonId: z.number(), cookieId: z.string(), question: z.string().max(1000) }))
+    .mutation(async ({ input }) => {
+      const q = await askLessonQuestion(input.lessonId, input.cookieId, input.question);
       if (!q) return { error: "Failed to save question" };
       const lesson = await getLessonById(input.lessonId);
       if (!lesson) return { error: "Lesson not found" };
       const prompt = `You are helping a student with the lesson: "${lesson.title}"\n\nLesson content:\n${lesson.content}\n\nStudent question: ${input.question}\n\nProvide a clear, concise answer based on the lesson content.`;
-      const answer = await callAI(cookieId, prompt, undefined, 1024);
+      const answer = await callAI(input.cookieId, prompt, undefined, 1024);
       const saved = await saveLessonAnswer(q.id, answer);
       return { question: q, answer: saved };
     }),
 
-  getLessonQA: visitorProcedure
-    .input(z.object({ lessonId: z.number() }))
-    .query(async ({ input }) => {
-      const questions = await getLessonQuestions(input.lessonId);
-      return Promise.all(
-        questions.map(async q => ({
-          question: q,
-          answer: await getQuestionAnswer(q.id),
-        }))
-      );
-    }),
-  markAnswerHelpful: visitorProcedure
-    .input(z.object({ answerId: z.number() }))
-    .mutation(async ({ input }) => {
-      await markAnswerHelpful(input.answerId);
-      return { success: true };
-    }),
+  getLessonQA: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => {
+    const questions = await getLessonQuestions(input.lessonId);
+    return Promise.all(questions.map(async (q) => ({ question: q, answer: await getQuestionAnswer(q.id) })));
+  }),
+  markAnswerHelpful: publicProcedure.input(z.object({ answerId: z.number() })).mutation(async ({ input }) => { await markAnswerHelpful(input.answerId); return { success: true }; }),
 
-  exploreOffTopic: visitorProcedure
-    .input(
-      z.object({
-        currentTopic: z.string(),
-        relatedTopic: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId!;
-      const content = await callAI(
-        cookieId,
-        `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`,
-        undefined,
-        3000
-      );
-      const lesson: InsertLesson = {
-        cookieId,
-        curriculumId: `exploration-${Date.now()}`,
-        title: input.relatedTopic,
-        description: `Related exploration from: ${input.currentTopic}`,
-        content,
-        objectives: [`Understand ${input.relatedTopic}`],
-        keyPoints: [],
-        resources: [],
-        order: 0,
-        difficulty: "intermediate",
-        estimatedMinutes: 20,
-        isShared: true,
-        relatedTopics: [input.currentTopic],
-      };
+  exploreOffTopic: publicProcedure
+    .input(z.object({ cookieId: z.string(), currentTopic: z.string(), relatedTopic: z.string() }))
+    .mutation(async ({ input }) => {
+      const content = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`, undefined, 3000);
+      const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: `exploration-${Date.now()}`, title: input.relatedTopic, description: `Related exploration from: ${input.currentTopic}`, content, objectives: [`Understand ${input.relatedTopic}`], keyPoints: [], resources: [], order: 0, difficulty: "intermediate", estimatedMinutes: 20, isShared: true, relatedTopics: [input.currentTopic] };
       return saveLesson(lesson);
     }),
 
-  searchSharedLessons: publicProcedure
-    .input(z.object({ query: z.string().max(200) }))
-    .query(async ({ input }) => searchSharedLessons(input.query)),
+  searchSharedLessons: publicProcedure.input(z.object({ query: z.string().max(200) })).query(async ({ input }) => searchSharedLessons(input.query)),
 
-  startSocraticSession: visitorProcedure
-    .input(
-      z.object({
-        topic: z.string().max(500),
-        userLevel: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId ?? "anonymous";
-      const question = await callAI(
-        cookieId,
-        `You are a Socratic tutor. The student wants to learn about: "${input.topic}". Level: ${input.userLevel}. Start with ONE opening question to reveal what they know. Don't explain — only ask.`,
-        undefined,
-        256
-      );
+  startSocraticSession: publicProcedure
+    .input(z.object({ cookieId: z.string().optional(), topic: z.string().max(500), userLevel: z.string() }))
+    .mutation(async ({ input }) => {
+      const question = await callAI(input.cookieId, `You are a Socratic tutor. The student wants to learn about: "${input.topic}". Level: ${input.userLevel}. Start with ONE opening question to reveal what they know. Don't explain — only ask.`, undefined, 256);
       return { question, sessionId: Date.now().toString() };
     }),
 
-  continueSocraticSession: visitorProcedure
-    .input(
-      z.object({
-        topic: z.string().max(500),
-        history: z.array(
-          z.object({ role: z.enum(["tutor", "student"]), content: z.string() })
-        ),
-        userResponse: z.string().max(2000),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId ?? "anonymous";
-      const historyText = input.history
-        .map(h => `${h.role === "tutor" ? "Tutor" : "Student"}: ${h.content}`)
-        .join("\n");
-      const response = await callAI(
-        cookieId,
-        `Socratic tutor on "${input.topic}".\n${historyText}\nStudent: ${input.userResponse}\nAcknowledge briefly, redirect misconceptions with a question, ask the next probing question. 2-3 sentences max.`,
-        undefined,
-        512
-      );
+  continueSocraticSession: publicProcedure
+    .input(z.object({ cookieId: z.string().optional(), topic: z.string().max(500), history: z.array(z.object({ role: z.enum(["tutor", "student"]), content: z.string() })), userResponse: z.string().max(2000) }))
+    .mutation(async ({ input }) => {
+      const historyText = input.history.map((h) => `${h.role === "tutor" ? "Tutor" : "Student"}: ${h.content}`).join("\n");
+      const response = await callAI(input.cookieId, `Socratic tutor on "${input.topic}".\n${historyText}\nStudent: ${input.userResponse}\nAcknowledge briefly, redirect misconceptions with a question, ask the next probing question. 2-3 sentences max.`, undefined, 512);
       return { response };
     }),
 
-  chat: visitorProcedure
-    .input(
-      z.object({
-        message: z.string().max(2000),
-        profile: z
-          .object({
-            visitCount: z.number(),
-            pagesVisited: z.array(z.string()),
-            preferredTopics: z.array(z.string()),
-            xp: z.number(),
-            level: z.number(),
-          })
-          .optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId!;
-      const history = await getChatHistory(cookieId, 10);
-      const chatMessages: Array<{
-        role: "user" | "assistant";
-        content: string;
-      }> = history.map(msg => ({
-        role: msg.role === "user" ? ("user" as const) : ("assistant" as const),
-        content: msg.content,
-      }));
-      const contextNote = input.profile
-        ? `\n\n[Visitor: Visit #${input.profile.visitCount}, explored: ${input.profile.pagesVisited.join(", ")}, XP: ${input.profile.xp}, Level: ${input.profile.level}, interests: ${input.profile.preferredTopics.join(", ")}]`
-        : "";
+  chat: publicProcedure
+    .input(z.object({ cookieId: z.string(), message: z.string().max(2000), profile: z.object({ visitCount: z.number(), pagesVisited: z.array(z.string()), preferredTopics: z.array(z.string()), xp: z.number(), level: z.number() }).optional() }))
+    .mutation(async ({ input }) => {
+      const history = await getChatHistory(input.cookieId, 10);
+      const chatMessages: Array<{ role: "user" | "assistant"; content: string }> = history.map(msg => ({ role: msg.role === "user" ? "user" as const : "assistant" as const, content: msg.content }));
+      const contextNote = input.profile ? `\n\n[Visitor: Visit #${input.profile.visitCount}, explored: ${input.profile.pagesVisited.join(", ")}, XP: ${input.profile.xp}, Level: ${input.profile.level}, interests: ${input.profile.preferredTopics.join(", ")}]` : "";
       chatMessages.push({ role: "user", content: input.message + contextNote });
-      const response = await callAIChat(
-        cookieId,
-        chatMessages,
-        NEXUS_SYSTEM_PROMPT
-      );
-      await saveChatMessage(cookieId, "user", input.message);
-      await saveChatMessage(cookieId, "assistant", response);
-      const xpResult = await addXP(cookieId, 15);
+      const response = await callAIChat(input.cookieId, chatMessages, NEXUS_SYSTEM_PROMPT);
+      await saveChatMessage(input.cookieId, "user", input.message);
+      await saveChatMessage(input.cookieId, "assistant", response);
+      const xpResult = await addXP(input.cookieId, 15);
       return { response, ...xpResult };
     }),
 
-  composeMessage: visitorProcedure
-    .input(
-      z.object({
-        intent: z.string(),
-        context: z.string().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const cookieId = ctx.visitorCookieId ?? "anonymous";
-      const draft = await callAI(
-        cookieId,
-        `Help compose a professional message for someone reaching out to the creator of Nexus. Intent: "${input.intent}". Context: "${input.context || "none"}". Write a polished, concise message (3-4 sentences).`
-      );
+  composeMessage: publicProcedure
+    .input(z.object({ cookieId: z.string().optional(), intent: z.string(), context: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      const draft = await callAI(input.cookieId, `Help compose a professional message for someone reaching out to the creator of Nexus. Intent: "${input.intent}". Context: "${input.context || "none"}". Write a polished, concise message (3-4 sentences).`);
       return { draft };
     }),
 });

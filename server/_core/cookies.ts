@@ -1,4 +1,3 @@
-import { VISITOR_COOKIE_NAME } from "@shared/const";
 import type { CookieOptions, Request } from "express";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -43,22 +42,7 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "lax",
+    sameSite: "none",
     secure: isSecureRequest(req),
-  };
-}
-
-export function getVisitorCookieOptions(
-  req: Request
-): Pick<
-  CookieOptions,
-  "domain" | "httpOnly" | "path" | "sameSite" | "secure" | "maxAge"
-> {
-  return {
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: isSecureRequest(req),
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   };
 }
