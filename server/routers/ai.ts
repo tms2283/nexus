@@ -55,14 +55,14 @@ export const aiRouter = router({
       const prompt = `Generate 4 adaptive quiz questions to personalize a learning platform. Return ONLY valid JSON:
 {"questions":[{"id":"q1","question":"...","options":["A: ...","B: ...","C: ...","D: ..."],"category":"background|interests|goals|style"}]}
 Topics: technical background, creative interests, learning goals, work style. Exactly 4 options per question labeled A,B,C,D.`;
-      const response = await callAI(input.cookieId, prompt);
       try {
+        const response = await callAI(input.cookieId, prompt);
         const jsonMatch = response.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]) as { questions: Array<{ id: string; question: string; options: string[]; category: string }> };
-          return { questions: parsed.questions };
+          if (parsed.questions?.length) return { questions: parsed.questions };
         }
-      } catch (_e) { /* fallback */ }
+      } catch (_e) { /* fallback to hardcoded questions */ }
       return {
         questions: [
           { id: "q1", question: "What best describes your relationship with technology?", options: ["A: I build it — developer", "B: I design it — UX/product", "C: I strategize it — business", "D: I'm curious about it"], category: "background" },
