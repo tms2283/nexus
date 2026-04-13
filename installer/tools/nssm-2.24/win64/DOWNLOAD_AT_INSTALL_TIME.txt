@@ -1,3 +1,0 @@
-NSSM (Non-Sucking Service Manager) v2.24 win64 binary is downloaded at install time.
-This placeholder file keeps the directory structure intact.
-See installer/scripts/setup-service.ps1 for the download logic.
