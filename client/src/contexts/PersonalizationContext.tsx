@@ -1,17 +1,27 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import { trpc } from "@/lib/trpc";
 import { nanoid } from "nanoid";
 
-const COOKIE_KEY = "tv_visitor_id";
+const COOKIE_KEY = "nexus_visitor_id";
 const COOKIE_EXPIRY_DAYS = 365;
 
-function getCookieId(): string {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_KEY}=([^;]*)`));
+function getCookieId(): string | null {
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${COOKIE_KEY}=([^;]*)`)
+  );
   if (match) return decodeURIComponent(match[1]);
-  const id = nanoid(24);
-  const expires = new Date(Date.now() + COOKIE_EXPIRY_DAYS * 86400000).toUTCString();
-  document.cookie = `${COOKIE_KEY}=${encodeURIComponent(id)}; expires=${expires}; path=/; SameSite=Lax`;
-  return id;
+  return null;
+}
+
+function generateCookieId(): string {
+  return nanoid(24);
 }
 
 export interface VisitorProfile {
@@ -68,27 +78,67 @@ const PersonalizationContext = createContext<PersonalizationContextType>({
   xpAnimation: { show: false, amount: 0 },
 });
 
-export function PersonalizationProvider({ children }: { children: React.ReactNode }) {
-  const [cookieId] = useState(() => getCookieId());
-  const [profile, setProfile] = useState<VisitorProfile>({ ...defaultProfile, cookieId });
+export function PersonalizationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [initialized, setInitialized] = useState(false);
+  const [cookieId, setCookieId] = useState<string>("");
+  const [profile, setProfile] = useState<VisitorProfile>(defaultProfile);
   const [isLoaded, setIsLoaded] = useState(false);
   const [newBadges, setNewBadges] = useState<string[]>([]);
   const [xpAnimation, setXpAnimation] = useState({ show: false, amount: 0 });
   const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Use a ref for current XP so recordVisit callback never goes stale
   const xpRef = useRef<number>(0);
-  useEffect(() => { xpRef.current = profile.xp; }, [profile.xp]);
+  useEffect(() => {
+    xpRef.current = profile.xp;
+  }, [profile.xp]);
+
+  // Initialize visitor - call server to set cookie and get/create profile
+  const initMutation = trpc.visitor.init.useMutation();
+
+  useEffect(() => {
+    // Try to get existing cookie or initialize new one
+    let existingId = getCookieId();
+    if (!existingId) {
+      existingId = generateCookieId();
+      // Set client-side as fallback
+      const expires = new Date(
+        Date.now() + COOKIE_EXPIRY_DAYS * 86400000
+      ).toUTCString();
+      document.cookie = `${COOKIE_KEY}=${encodeURIComponent(existingId)}; expires=${expires}; path=/; SameSite=Lax`;
+    }
+    setCookieId(existingId);
+
+    // Initialize with server (sets httpOnly cookie and ensures profile exists)
+    initMutation.mutate(
+      { cookieId: existingId },
+      {
+        onSuccess: data => {
+          if (data?.cookieId) {
+            setCookieId(data.cookieId);
+            setInitialized(true);
+          }
+        },
+        onError: () => {
+          // If server init fails, use client-side only
+          setInitialized(true);
+        },
+      }
+    );
+  }, []);
 
   const recordVisitMutation = trpc.visitor.recordVisit.useMutation();
   const addXPMutation = trpc.visitor.addXP.useMutation();
 
-  const { data: serverProfile } = trpc.visitor.getProfile.useQuery(
-    { cookieId },
-    { enabled: !!cookieId, staleTime: 30000 }
-  );
+  const { data: serverProfile } = trpc.visitor.getProfile.useQuery(undefined, {
+    enabled: initialized && !!cookieId,
+    staleTime: 30000,
+  });
 
   useEffect(() => {
-    if (serverProfile) {
+    if (serverProfile && cookieId) {
       setProfile({
         cookieId,
         visitCount: serverProfile.visitCount,
@@ -96,7 +146,8 @@ export function PersonalizationProvider({ children }: { children: React.ReactNod
         interests: serverProfile.interests ?? [],
         preferredTopics: serverProfile.preferredTopics ?? [],
         quizCompleted: serverProfile.quizCompleted,
-        quizResults: (serverProfile.quizResults as Record<string, string>) ?? {},
+        quizResults:
+          (serverProfile.quizResults as Record<string, string>) ?? {},
         xp: serverProfile.xp,
         level: serverProfile.level,
         streak: serverProfile.streak,
@@ -110,50 +161,61 @@ export function PersonalizationProvider({ children }: { children: React.ReactNod
   const showXPAnimation = useCallback((amount: number) => {
     setXpAnimation({ show: true, amount });
     if (xpTimerRef.current) clearTimeout(xpTimerRef.current);
-    xpTimerRef.current = setTimeout(() => setXpAnimation({ show: false, amount: 0 }), 2000);
+    xpTimerRef.current = setTimeout(
+      () => setXpAnimation({ show: false, amount: 0 }),
+      2000
+    );
   }, []);
 
-  const recordVisit = useCallback((page: string) => {
-    recordVisitMutation.mutate(
-      { cookieId, page },
-      {
-        onSuccess: (data) => {
-          if (data) {
-            const xpGain = data.xp - xpRef.current;
-            setProfile(prev => ({
-              ...prev,
-              xp: data.xp,
-              level: data.level,
-              streak: data.streak,
-              visitCount: prev.visitCount + 1,
-              pagesVisited: prev.pagesVisited.includes(page) ? prev.pagesVisited : [...prev.pagesVisited, page],
-            }));
-            if (xpGain > 0) showXPAnimation(xpGain);
-            if (data.newBadges && data.newBadges.length > 0) {
-              setNewBadges(prev => [...prev, ...data.newBadges]);
+  const recordVisit = useCallback(
+    (page: string) => {
+      recordVisitMutation.mutate(
+        { page },
+        {
+          onSuccess: data => {
+            if (data) {
+              const xpGain = data.xp - xpRef.current;
+              setProfile(prev => ({
+                ...prev,
+                xp: data.xp,
+                level: data.level,
+                streak: data.streak,
+                visitCount: prev.visitCount + 1,
+                pagesVisited: prev.pagesVisited.includes(page)
+                  ? prev.pagesVisited
+                  : [...prev.pagesVisited, page],
+              }));
+              if (xpGain > 0) showXPAnimation(xpGain);
+              if (data.newBadges && data.newBadges.length > 0) {
+                setNewBadges(prev => [...prev, ...data.newBadges]);
+              }
             }
-          }
-        },
-      }
-    );
-  }, [cookieId, recordVisitMutation, showXPAnimation]);
+          },
+        }
+      );
+    },
+    [recordVisitMutation, showXPAnimation]
+  );
 
-  const addXP = useCallback((amount: number) => {
-    addXPMutation.mutate(
-      { cookieId, amount },
-      {
-        onSuccess: (data) => {
-          if (data) {
-            setProfile(prev => ({ ...prev, xp: data.xp, level: data.level }));
-            showXPAnimation(amount);
-            if (data.newBadges && data.newBadges.length > 0) {
-              setNewBadges(prev => [...prev, ...data.newBadges]);
+  const addXP = useCallback(
+    (amount: number) => {
+      addXPMutation.mutate(
+        { amount },
+        {
+          onSuccess: data => {
+            if (data) {
+              setProfile(prev => ({ ...prev, xp: data.xp, level: data.level }));
+              showXPAnimation(amount);
+              if (data.newBadges && data.newBadges.length > 0) {
+                setNewBadges(prev => [...prev, ...data.newBadges]);
+              }
             }
-          }
-        },
-      }
-    );
-  }, [cookieId, addXPMutation, showXPAnimation]);
+          },
+        }
+      );
+    },
+    [addXPMutation, showXPAnimation]
+  );
 
   const updateProfile = useCallback((updates: Partial<VisitorProfile>) => {
     setProfile(prev => ({ ...prev, ...updates }));
@@ -162,10 +224,19 @@ export function PersonalizationProvider({ children }: { children: React.ReactNod
   const clearNewBadges = useCallback(() => setNewBadges([]), []);
 
   return (
-    <PersonalizationContext.Provider value={{
-      profile, cookieId, isLoaded, recordVisit, addXP,
-      updateProfile, newBadges, clearNewBadges, xpAnimation,
-    }}>
+    <PersonalizationContext.Provider
+      value={{
+        profile,
+        cookieId,
+        isLoaded,
+        recordVisit,
+        addXP,
+        updateProfile,
+        newBadges,
+        clearNewBadges,
+        xpAnimation,
+      }}
+    >
       {children}
     </PersonalizationContext.Provider>
   );
