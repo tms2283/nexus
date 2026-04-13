@@ -6,7 +6,7 @@ import {
   Brain, Layers, FlaskConical, BookOpen, Code2, Zap,
   Target, MessageSquare, GraduationCap, Library,
   Star, TrendingUp, Clock, Users, Lightbulb, Trophy,
-  Flame, CheckCircle2, Map, Microscope, Cpu, Globe,
+  Flame, CheckCircle2, Map as MapIcon, Microscope, Cpu, Globe,
   RefreshCw, ChevronRight, BarChart3
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -214,7 +214,7 @@ const STATS = [
 
 const HOW_IT_WORKS = [
   { step: "01", icon: Sparkles, title: "Personalize", desc: "Answer 4 quick questions. Nexus maps your knowledge level, learning style, and goals.", color: "oklch(0.75 0.18 55)" },
-  { step: "02", icon: Map, title: "Get Your Path", desc: "The AI generates a custom curriculum with modules, resources, and milestones — just for you.", color: "oklch(0.65 0.22 200)" },
+  { step: "02", icon: MapIcon, title: "Get Your Path", desc: "The AI generates a custom curriculum with modules, resources, and milestones — just for you.", color: "oklch(0.65 0.22 200)" },
   { step: "03", icon: Microscope, title: "Go Deep", desc: "Use the Depth Engine, Research Forge, and Lab to explore any concept at any level of detail.", color: "oklch(0.72 0.2 290)" },
   { step: "04", icon: BarChart3, title: "Track Growth", desc: "Take tests, earn XP, unlock badges, and watch your knowledge profile evolve over time.", color: "oklch(0.72 0.18 150)" },
 ];
