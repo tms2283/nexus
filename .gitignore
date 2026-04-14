@@ -34,6 +34,11 @@ deploy/nginx-schmo.conf
 # Installer build output
 installer/Output/
 installer/tools/
+installer/LICENSE
+installer/README.md
+installer/build-installer.ps1
+installer/nexus.iss
+installer/scripts/
 
 # IDE and editor files
 .vscode/
