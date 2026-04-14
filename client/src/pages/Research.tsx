@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FlaskConical, Link2, FileText, Sparkles, Loader2,
@@ -157,6 +157,8 @@ export default function Research() {
   const [audioOverview, setAudioOverview] = useState<{ audioUrl: string; transcript?: string; durationSeconds?: number } | null>(null);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
+  const { cookieId, addXP } = usePersonalization();
+
   // Load existing audio overview when a session is saved/restored
   const existingAudio = trpc.research.getAudioOverviews.useQuery(
     { cookieId: cookieId ?? "", sourceType: "research_session", sourceId: savedSessionId ?? 0 },
@@ -168,7 +170,6 @@ export default function Research() {
       setAudioOverview({ audioUrl: ov.audioUrl, transcript: ov.transcript ?? undefined, durationSeconds: ov.durationSeconds ?? undefined });
     }
   }, [existingAudio.data, audioOverview]);
-  const { cookieId, addXP } = usePersonalization();
 
   const generateAudio = trpc.research.generateAudioOverview.useMutation({
     onSuccess: (data) => {

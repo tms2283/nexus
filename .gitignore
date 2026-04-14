@@ -14,6 +14,32 @@ build/
 .env.test.local
 .env.production.local
 
+# Local launcher scripts
+Launch Nexus.bat
+Launch Nexus (Silent).vbs
+create-shortcut.ps1
+create-shortcut.vbs
+create-tables.bat
+download-mysql.ps1
+git-commit.bat
+install-mariadb.ps1
+install-mysql.ps1
+setup-db.bat
+test-db.bat
+test-server.ps1
+test413.mjs
+Test413.md
+deploy/nginx-schmo.conf
+
+# Installer build output
+installer/Output/
+installer/tools/
+installer/LICENSE
+installer/README.md
+installer/build-installer.ps1
+installer/nexus.iss
+installer/scripts/
+
 # IDE and editor files
 .vscode/
 .idea/

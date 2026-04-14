@@ -42,7 +42,7 @@ export default function Daily() {
       if (data.success) {
         setXpGained(data.xpGained);
         setCompleted(true);
-        updateProfile({ xp: data.newXp, level: data.newLevel });
+        updateProfile({ xp: data.xp, level: data.level });
       }
     },
   });

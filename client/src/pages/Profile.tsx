@@ -18,7 +18,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <PageWrapper>
+      <PageWrapper pageName="Profile">
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[oklch(0.75_0.18_55)]" />
         </div>
@@ -28,7 +28,7 @@ export default function ProfilePage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <PageWrapper>
+      <PageWrapper pageName="Profile">
         <div className="max-w-2xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -75,7 +75,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <PageWrapper>
+    <PageWrapper pageName="Profile">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div

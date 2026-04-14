@@ -80,7 +80,12 @@ export const researchRouter = router({
       const prompt = `Analyze this content and return ONLY valid JSON:
 {"title":"...","summary":"markdown summary (3-5 paragraphs)","keyInsights":["insight1","insight2","insight3","insight4","insight5"],"flashcards":[{"front":"question","back":"answer"},{"front":"question","back":"answer"},{"front":"question","back":"answer"},{"front":"question","back":"answer"},{"front":"question","back":"answer"}],"tags":["tag1","tag2","tag3","tag4"]}
 Content:\n${textToAnalyze.slice(0, 12000)}`;
-      const response = await callAI(input.cookieId, prompt, undefined, 3000);
+      let response: string;
+      try {
+        response = await callAI(input.cookieId, prompt, undefined, 3000);
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI analysis failed. Please try again." });
+      }
       try {
         const m = response.match(/\{[\s\S]*\}/);
         if (m) return JSON.parse(m[0]) as { title: string; summary: string; keyInsights: string[]; flashcards: Array<{ front: string; back: string }>; tags: string[] };
@@ -116,12 +121,14 @@ Content:\n${textToAnalyze.slice(0, 12000)}`;
       const prompt = `Generate a ${input.format.toUpperCase()} citation. Return ONLY valid JSON:
 {"citation":"complete citation string","inText":"in-text format","notes":"any important notes"}
 Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Unknown"}, Year: ${input.year ?? new Date().getFullYear()}, Publisher: ${input.publisher ?? "N/A"}`;
-      const response = await callAI(input.cookieId, prompt, undefined, 500);
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) return JSON.parse(m[0]) as { citation: string; inText: string; notes: string };
+        const response = await callAI(input.cookieId, prompt, undefined, 500);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) return JSON.parse(m[0]) as { citation: string; inText: string; notes: string };
+        } catch (_e) { return { citation: response, inText: "", notes: "" }; }
       } catch (_e) { /* fallback */ }
-      return { citation: response, inText: "", notes: "" };
+      return { citation: `${input.author ?? "Unknown"}. (${input.year ?? new Date().getFullYear()}). ${input.title}. ${input.publisher ?? ""}`, inText: "", notes: "" };
     }),
 
   compareTopics: publicProcedure
@@ -133,12 +140,16 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     .mutation(async ({ input }) => {
       const prompt = `Compare "${input.topicA}" vs "${input.topicB}"${input.context ? ` in context of: ${input.context}` : ""}. Return ONLY valid JSON:
 {"title":"...","overview":"2-3 sentence overview","similarities":["...","...","..."],"differences":[{"aspect":"...","topicA":"...","topicB":"..."},{"aspect":"...","topicA":"...","topicB":"..."},{"aspect":"...","topicA":"...","topicB":"..."},{"aspect":"...","topicA":"...","topicB":"..."}],"verdict":"balanced conclusion","useCases":{"topicA":["...","..."],"topicB":["...","..."]}}`;
-      const response = await callAI(input.cookieId, prompt, undefined, 2000);
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) return JSON.parse(m[0]) as { title: string; overview: string; similarities: string[]; differences: Array<{ aspect: string; topicA: string; topicB: string }>; verdict: string; useCases: { topicA: string[]; topicB: string[] } };
-      } catch (_e) { /* fallback */ }
-      return { title: "Comparison", overview: response, similarities: [], differences: [], verdict: "", useCases: { topicA: [], topicB: [] } };
+        const response = await callAI(input.cookieId, prompt, undefined, 2000);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) return JSON.parse(m[0]) as { title: string; overview: string; similarities: string[]; differences: Array<{ aspect: string; topicA: string; topicB: string }>; verdict: string; useCases: { topicA: string[]; topicB: string[] } };
+        } catch (_e) { /* fallback */ }
+        return { title: "Comparison", overview: response, similarities: [], differences: [], verdict: "", useCases: { topicA: [], topicB: [] } };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Comparison failed. Please try again." });
+      }
     }),
 
   // ─── NEW: Source discovery via Python microservice ────────────────────────

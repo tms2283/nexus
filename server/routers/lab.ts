@@ -1,6 +1,11 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
 import { callAI } from "./shared";
+
+const aiError = (msg = "AI is unavailable. Please try again.") => {
+  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: msg });
+};
 
 export const labRouter = router({
   promptExperiment: publicProcedure
@@ -12,31 +17,37 @@ export const labRouter = router({
         "chain-of-thought": `Let's think step by step.\n\n${input.task}\n\nReason carefully, showing each step before the final answer.`,
         "role": `You are a world-class educator with 30 years at MIT and 12 bestselling books on science communication.\n\n${input.task}`,
       };
-      const response = await callAI(input.cookieId, prompts[input.technique], `You are demonstrating the "${input.technique}" prompting technique. Be thorough and educational.`);
-      return { response, technique: input.technique };
+      try {
+        const response = await callAI(input.cookieId, prompts[input.technique], `You are demonstrating the "${input.technique}" prompting technique. Be thorough and educational.`);
+        return { response, technique: input.technique };
+      } catch (_e) { return aiError("Experiment failed. Please try again."); }
     }),
 
   chainOfThought: publicProcedure
     .input(z.object({ cookieId: z.string(), problem: z.string() }))
     .mutation(async ({ input }) => {
       const prompt = `Break down into numbered reasoning steps. End with final answer.\nProblem: ${input.problem}\nReturn ONLY a JSON array: ["Step 1: ...","Step 2: ...","Final Answer: ..."]`;
-      const response = await callAI(input.cookieId, prompt, "You are a logical reasoning expert. Always return valid JSON arrays.", 1200);
-      let steps: string[] = [];
       try {
-        const m = response.match(/\[[\s\S]*\]/);
-        if (m) steps = JSON.parse(m[0]) as string[];
-      } catch (_e) { steps = response.split("\n").filter((l: string) => l.trim().length > 0).slice(0, 8); }
-      return { steps: steps.length ? steps : [response] };
+        const response = await callAI(input.cookieId, prompt, "You are a logical reasoning expert. Always return valid JSON arrays.", 1200);
+        let steps: string[] = [];
+        try {
+          const m = response.match(/\[[\s\S]*\]/);
+          if (m) steps = JSON.parse(m[0]) as string[];
+        } catch (_e) { steps = response.split("\n").filter((l: string) => l.trim().length > 0).slice(0, 8); }
+        return { steps: steps.length ? steps : [response] };
+      } catch (_e) { return aiError(); }
     }),
 
   classifyText: publicProcedure
     .input(z.object({ cookieId: z.string(), text: z.string() }))
     .mutation(async ({ input }) => {
       const prompt = `Classify this text. Return ONLY valid JSON:\n{"sentiment":"positive|negative|neutral|mixed","topic":"<2-3 words>","intent":"<2-3 words>","tone":"<1-2 words>","confidence":<integer 60-98>}\n\nText: ${input.text.slice(0, 2000)}`;
-      const response = await callAI(input.cookieId, prompt, "You are an NLP classification expert. Always return valid JSON.", 300);
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) return JSON.parse(m[0]) as { sentiment: string; topic: string; intent: string; tone: string; confidence: number };
+        const response = await callAI(input.cookieId, prompt, "You are an NLP classification expert. Always return valid JSON.", 300);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) return JSON.parse(m[0]) as { sentiment: string; topic: string; intent: string; tone: string; confidence: number };
+        } catch (_e) { /* fallback */ }
       } catch (_e) { /* fallback */ }
       return { sentiment: "neutral", topic: "General", intent: "Informational", tone: "Neutral", confidence: 75 };
     }),
@@ -44,19 +55,23 @@ export const labRouter = router({
   debate: publicProcedure
     .input(z.object({ cookieId: z.string(), topic: z.string() }))
     .mutation(async ({ input }) => {
-      const [pro, con] = await Promise.all([
-        callAI(input.cookieId, `You are a passionate advocate FOR: "${input.topic}". Make the strongest argument in 3-4 paragraphs.`, "You argue FOR the position. Be persuasive.", 600),
-        callAI(input.cookieId, `You are a passionate advocate AGAINST: "${input.topic}". Make the strongest counter-argument in 3-4 paragraphs.`, "You argue AGAINST the position. Be persuasive.", 600),
-      ]);
-      return { pro, con };
+      try {
+        const [pro, con] = await Promise.all([
+          callAI(input.cookieId, `You are a passionate advocate FOR: "${input.topic}". Make the strongest argument in 3-4 paragraphs.`, "You argue FOR the position. Be persuasive.", 600),
+          callAI(input.cookieId, `You are a passionate advocate AGAINST: "${input.topic}". Make the strongest counter-argument in 3-4 paragraphs.`, "You argue AGAINST the position. Be persuasive.", 600),
+        ]);
+        return { pro, con };
+      } catch (_e) { return aiError("Debate generation failed. Please try again."); }
     }),
 
   debugCode: publicProcedure
     .input(z.object({ cookieId: z.string(), code: z.string(), error: z.string() }))
     .mutation(async ({ input }) => {
       const prompt = `A student has code that produced an error.\n\nCode:\n\`\`\`javascript\n${input.code.slice(0, 3000)}\n\`\`\`\n\nError: ${input.error.slice(0, 500)}\n\nProvide: 1) What caused the error, 2) The fix, 3) A brief explanation of the concept.`;
-      const explanation = await callAI(input.cookieId, prompt, "You are a patient coding tutor. Be clear and educational.", 600);
-      return { explanation };
+      try {
+        const explanation = await callAI(input.cookieId, prompt, "You are a patient coding tutor. Be clear and educational.", 600);
+        return { explanation };
+      } catch (_e) { return aiError("Code debugging failed. Please try again."); }
     }),
 
   tokenCount: publicProcedure
@@ -90,13 +105,17 @@ export const labRouter = router({
       const prompt = isFirst
         ? `You are a Socratic tutor. Topic: "${input.topic}". Ask the FIRST probing question. Open-ended, thought-provoking. Do NOT explain — only ask. 1-2 sentences.`
         : `Socratic tutor on "${input.topic}". Question ${input.questionNumber} of 6. Student answered: "${input.userAnswer}". Acknowledge briefly (1 sentence), ask the NEXT probing question. Never give the answer directly.`;
-      const question = await callAI(input.cookieId, prompt, "You are a Socratic tutor. Never explain — only ask questions that guide discovery.", 300);
-      const isComplete = input.questionNumber >= 6;
-      let insight = "";
-      if (isComplete && input.userAnswer) {
-        insight = await callAI(input.cookieId, `The student explored "${input.topic}". Last answer: "${input.userAnswer}". Provide a concise synthesis (3-4 sentences) revealing the core insight. Make it an 'aha moment'.`, "You are a Socratic tutor delivering the final insight.", 400);
-      }
-      return { question, isComplete, insight };
+      try {
+        const question = await callAI(input.cookieId, prompt, "You are a Socratic tutor. Never explain — only ask questions that guide discovery.", 300);
+        const isComplete = input.questionNumber >= 6;
+        let insight = "";
+        if (isComplete && input.userAnswer) {
+          try {
+            insight = await callAI(input.cookieId, `The student explored "${input.topic}". Last answer: "${input.userAnswer}". Provide a concise synthesis (3-4 sentences) revealing the core insight. Make it an 'aha moment'.`, "You are a Socratic tutor delivering the final insight.", 400);
+          } catch (_e) { insight = ""; }
+        }
+        return { question, isComplete, insight };
+      } catch (_e) { return aiError(); }
     }),
 
   storyGen: publicProcedure
@@ -105,21 +124,35 @@ export const labRouter = router({
       const prompt = !input.choice
         ? `Collaborative storyteller. Genre: ${input.genre}. Premise: "${input.premise}". Write opening scene (3-4 vivid paragraphs). End with EXACTLY 3 choices:\nCHOICE_A: [action]\nCHOICE_B: [action]\nCHOICE_C: [action]`
         : `Collaborative storyteller. Genre: ${input.genre}. Story:\n${input.storyHistory}\n\nReader chose: "${input.choice}". Continue (3-4 paragraphs). End with EXACTLY 3 new choices:\nCHOICE_A: [action]\nCHOICE_B: [action]\nCHOICE_C: [action]`;
-      const response = await callAI(input.cookieId, prompt, "You are a master storyteller. Write vivid, engaging prose.", 800);
-      const choiceMatches = response.match(/CHOICE_[ABC]: (.+)/g) ?? [];
-      const choices = choiceMatches.map((c: string) => c.replace(/CHOICE_[ABC]: /, "").trim());
-      return { story: response.replace(/CHOICE_[ABC]: .+/g, "").trim(), choices: choices.length === 3 ? choices : ["Continue the adventure", "Take a different path", "Seek help from an ally"] };
+      try {
+        const response = await callAI(input.cookieId, prompt, "You are a master storyteller. Write vivid, engaging prose.", 800);
+        const choiceMatches = response.match(/CHOICE_[ABC]: (.+)/g) ?? [];
+        const choices = choiceMatches.map((c: string) => c.replace(/CHOICE_[ABC]: /, "").trim());
+        return { story: response.replace(/CHOICE_[ABC]: .+/g, "").trim(), choices: choices.length === 3 ? choices : ["Continue the adventure", "Take a different path", "Seek help from an ally"] };
+      } catch (_e) { return aiError("Story generation failed. Please try again."); }
     }),
 
   biasDetect: publicProcedure
     .input(z.object({ cookieId: z.string(), text: z.string() }))
     .mutation(async ({ input }) => {
       const prompt = `Analyze for cognitive biases and logical fallacies. Return ONLY valid JSON:\n{"biases":[{"name":"...","quote":"<max 60 chars>","explanation":"...","severity":"low|medium|high"}],"overallScore":<0-100>,"summary":"2-3 sentence assessment"}\n\nText:\n${input.text.slice(0, 3000)}`;
-      const response = await callAI(input.cookieId, prompt, "You are a critical thinking expert. Always return valid JSON.", 800);
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) return JSON.parse(m[0]) as { biases: Array<{ name: string; quote: string; explanation: string; severity: string }>; overallScore: number; summary: string };
+        const response = await callAI(input.cookieId, prompt, "You are a critical thinking expert. Always return valid JSON.", 800);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) return JSON.parse(m[0]) as { biases: Array<{ name: string; quote: string; explanation: string; severity: string }>; overallScore: number; summary: string };
+        } catch (_e) { /* fallback */ }
       } catch (_e) { /* fallback */ }
       return { biases: [], overallScore: 75, summary: "Unable to analyze. Please try again." };
+    }),
+
+  describeImage: publicProcedure
+    .input(z.object({ cookieId: z.string().optional(), imageUrl: z.string().url() }))
+    .mutation(async ({ input }) => {
+      const prompt = `You are analyzing an image at this URL: ${input.imageUrl}\n\nDescribe the image in detail, covering: main subjects, composition, colors, mood, style, and any notable details. Be vivid and thorough in 2-3 paragraphs.`;
+      try {
+        const description = await callAI(input.cookieId, prompt, undefined, 600);
+        return { description };
+      } catch (_e) { return aiError("Image description failed. Please check the URL and try again."); }
     }),
 });

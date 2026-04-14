@@ -138,7 +138,7 @@ export default function LessonPage() {
 
   const handleMarkHelpful = (answerId: number) => {
     if (helpfulAnswers.has(answerId)) return;
-    setHelpfulAnswers(new Set([...helpfulAnswers, answerId]));
+    setHelpfulAnswers(new Set([...Array.from(helpfulAnswers), answerId]));
     markHelpful.mutate({ answerId });
   };
 

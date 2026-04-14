@@ -63,12 +63,17 @@ export const testingRouter = router({
     .input(z.object({ cookieId: z.string(), subject: z.string(), difficulty: z.enum(["beginner", "intermediate", "advanced"]), count: z.number().min(3).max(15).default(10) }))
     .mutation(async ({ input }) => {
       const prompt = `Generate ${input.count} multiple-choice questions for: "${input.subject}" at ${input.difficulty} difficulty. Return ONLY a JSON array:\n[{"id":"q1","question":"...","options":["A) ...","B) ...","C) ...","D) ..."],"correct":0,"explanation":"..."}]`;
-      const raw = await callAI(input.cookieId, prompt, "You are an expert educator. Return only valid JSON.", 2000);
       try {
-        const m = raw.match(/\[[\s\S]*\]/);
-        if (!m) throw new Error("No JSON array");
-        return { questions: JSON.parse(m[0]) as any[] };
-      } catch {
+        const raw = await callAI(input.cookieId, prompt, "You are an expert educator. Return only valid JSON.", 2000);
+        try {
+          const m = raw.match(/\[[\s\S]*\]/);
+          if (!m) throw new Error("No JSON array");
+          return { questions: JSON.parse(m[0]) as any[] };
+        } catch {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to parse questions. Please try again." });
+        }
+      } catch (e) {
+        if (e instanceof TRPCError) throw e;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to generate questions. Please try again." });
       }
     }),

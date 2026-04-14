@@ -56,12 +56,14 @@ export const flashcardsRouter = router({
     .input(z.object({ cookieId: z.string(), topic: z.string().max(500), count: z.number().min(5).max(30).default(10) }))
     .mutation(async ({ input }) => {
       const prompt = `Generate ${input.count} high-quality spaced repetition flashcards for: "${input.topic}". Return ONLY valid JSON: {"cards":[{"front":"question","back":"answer"}]}`;
-      const response = await callAI(input.cookieId, prompt, undefined, 2000);
       let cards: Array<{ front: string; back: string }> = [];
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) cards = (JSON.parse(m[0]) as { cards: Array<{ front: string; back: string }> }).cards;
-      } catch (_e) { /* fallback */ }
+        const response = await callAI(input.cookieId, prompt, undefined, 2000);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) cards = (JSON.parse(m[0]) as { cards: Array<{ front: string; back: string }> }).cards;
+        } catch (_e) { /* fallback */ }
+      } catch (_e) { /* AI unavailable, create empty deck */ }
       const deckId = await createFlashcardDeck({ cookieId: input.cookieId, title: `${input.topic} — Flashcards`, sourceType: "ai_generated" });
       await addFlashcardsToDecks(deckId, cards);
       await addXP(input.cookieId, 15);

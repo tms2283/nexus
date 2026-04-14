@@ -138,7 +138,7 @@ export function getPrerequisiteChain(skillId: string, visited = new Set<string>(
   for (const prereq of skill.prerequisites) {
     chain.push(...getPrerequisiteChain(prereq, visited), prereq);
   }
-  return [...new Set(chain)];
+  return Array.from(new Set(chain));
 }
 
 export function matchSkillsToTopics(topics: string[]): string[] {
