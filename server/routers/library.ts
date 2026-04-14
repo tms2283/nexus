@@ -17,7 +17,10 @@ export const libraryRouter = router({
       const resources = await getLibraryResources(undefined, input.query);
       if (resources.length === 0) return { results: [], aiSummary: null };
       const resourceList = resources.slice(0, 5).map(r => `- ${r.title}: ${r.description}`).join("\n");
-      const aiSummary = await callAI(input.cookieId, `A user searched for "${input.query}". Resources found:\n${resourceList}\n\nWrite a 2-3 sentence synthesis explaining how these relate to the query.`);
+      let aiSummary: string | null = null;
+      try {
+        aiSummary = await callAI(input.cookieId, `A user searched for "${input.query}". Resources found:\n${resourceList}\n\nWrite a 2-3 sentence synthesis explaining how these relate to the query.`);
+      } catch (_e) { /* AI unavailable, return results without summary */ }
       return { results: resources, aiSummary };
     }),
 

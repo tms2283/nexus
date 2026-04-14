@@ -14,12 +14,14 @@ export const mindmapRouter = router({
       const prompt = `Generate a comprehensive mind map for "${input.topic}" at depth ${input.depth}. Return ONLY valid JSON:
 {"nodes":[{"id":"root","label":"${input.topic}","parentId":null,"category":"root","x":0,"y":0},{"id":"n1","label":"Main concept","parentId":"root","category":"primary","x":250,"y":-150}]}
 Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 children per primary. Spread radially (x/y range -600 to 600). Labels: 2-5 words. Categories: root, primary, secondary, tertiary.`;
-      const response = await callAI(input.cookieId, prompt, undefined, 3000);
       let nodes: MindMapNode[] = [];
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) nodes = (JSON.parse(m[0]) as { nodes: MindMapNode[] }).nodes;
-      } catch (_e) { /* fallback */ }
+        const response = await callAI(input.cookieId, prompt, undefined, 3000);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) nodes = (JSON.parse(m[0]) as { nodes: MindMapNode[] }).nodes;
+        } catch (_e) { /* fallback empty */ }
+      } catch (_e) { /* AI unavailable */ }
       const mapId = await saveMindMap({ cookieId: input.cookieId, title: input.topic, rootTopic: input.topic, nodesJson: nodes });
       await addXP(input.cookieId, 15);
       return { mapId, nodes, success: true };
@@ -32,15 +34,17 @@ Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 child
     }))
     .mutation(async ({ input }) => {
       const prompt = `Expand "${input.nodeLabel}" in a mind map. Existing: ${input.existingNodes.map(n => n.label).join(", ")}. Generate 4-6 new child nodes. Return ONLY valid JSON: {"nodes":[{"id":"exp_1","label":"concept","parentId":"${input.nodeId}","category":"secondary","x":0,"y":0}]}`;
-      const response = await callAI(input.cookieId, prompt, undefined, 1000);
       let newNodes: MindMapNode[] = [];
       try {
-        const m = response.match(/\{[\s\S]*\}/);
-        if (m) {
-          const ts = Date.now();
-          newNodes = (JSON.parse(m[0]) as { nodes: MindMapNode[] }).nodes.map((n, i) => ({ ...n, id: `exp_${ts}_${i}` }));
-        }
-      } catch (_e) { /* fallback */ }
+        const response = await callAI(input.cookieId, prompt, undefined, 1000);
+        try {
+          const m = response.match(/\{[\s\S]*\}/);
+          if (m) {
+            const ts = Date.now();
+            newNodes = (JSON.parse(m[0]) as { nodes: MindMapNode[] }).nodes.map((n, i) => ({ ...n, id: `exp_${ts}_${i}` }));
+          }
+        } catch (_e) { /* fallback */ }
+      } catch (_e) { /* AI unavailable */ }
       const allNodes = [...input.existingNodes, ...newNodes] as MindMapNode[];
       await updateMindMap(input.mapId, { nodesJson: allNodes });
       await addXP(input.cookieId, 5);

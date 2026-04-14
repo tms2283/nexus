@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
 import {
   getChatHistory, saveChatMessage, addXP,
@@ -41,12 +42,16 @@ export const aiRouter = router({
       timeOfDay: z.string(), xp: z.number(),
     }))
     .mutation(async ({ input }) => {
-      const isReturning = input.visitCount > 1;
-      const prompt = isReturning
-        ? `Generate a short (2-3 sentences), sophisticated, personalized welcome-back message for a returning visitor to Nexus — an AI-powered learning platform. Visit count: ${input.visitCount}. Pages: ${input.pagesVisited.join(", ")}. Interests: ${input.preferredTopics.join(", ") || "not yet determined"}. XP: ${input.xp}. Time: ${input.timeOfDay}. Be warm but intellectually engaging. No generic phrases.`
-        : `Generate a short (2-3 sentences), sophisticated, compelling first-time greeting for a new visitor to Nexus — an AI-powered learning and research platform. Time: ${input.timeOfDay}. Feel like entering a place for serious, curious minds. Intriguing, not cheesy.`;
-      const greeting = await callAI(input.cookieId, prompt);
-      return { greeting };
+      try {
+        const isReturning = input.visitCount > 1;
+        const prompt = isReturning
+          ? `Generate a short (2-3 sentences), sophisticated, personalized welcome-back message for a returning visitor to Nexus — an AI-powered learning platform. Visit count: ${input.visitCount}. Pages: ${input.pagesVisited.join(", ")}. Interests: ${input.preferredTopics.join(", ") || "not yet determined"}. XP: ${input.xp}. Time: ${input.timeOfDay}. Be warm but intellectually engaging. No generic phrases.`
+          : `Generate a short (2-3 sentences), sophisticated, compelling first-time greeting for a new visitor to Nexus — an AI-powered learning and research platform. Time: ${input.timeOfDay}. Feel like entering a place for serious, curious minds. Intriguing, not cheesy.`;
+        const greeting = await callAI(input.cookieId, prompt);
+        return { greeting };
+      } catch (_e) {
+        return { greeting: "Welcome to Nexus — your AI-powered learning platform. Start exploring." };
+      }
     }),
 
   generateQuiz: publicProcedure
@@ -79,9 +84,13 @@ Topics: technical background, creative interests, learning goals, work style. Ex
       level: z.enum(["child", "student", "expert", "socratic", "analogy"]),
     }))
     .mutation(async ({ input }) => {
-      const promptFn = LEVEL_PROMPTS[input.level];
-      const explanation = await callAI(input.cookieId, promptFn(input.concept), undefined, 1500);
-      return { explanation, level: input.level };
+      try {
+        const promptFn = LEVEL_PROMPTS[input.level];
+        const explanation = await callAI(input.cookieId, promptFn(input.concept), undefined, 1500);
+        return { explanation, level: input.level };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI is unavailable. Please try again or configure an API key in Settings." });
+      }
     }),
 
   generateCurriculum: publicProcedure
@@ -122,10 +131,14 @@ Create 3-4 phases with real resources and actual URLs.`;
   generateLesson: publicProcedure
     .input(z.object({ cookieId: z.string(), curriculumId: z.string(), title: z.string(), objectives: z.array(z.string()), duration: z.string(), order: z.number() }))
     .mutation(async ({ input }) => {
-      const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}. Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
-      const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: input.curriculumId, title: input.title, description: input.objectives.join(", "), content: response, objectives: input.objectives, keyPoints: input.objectives, resources: [], order: input.order, difficulty: "intermediate", estimatedMinutes: 15 };
-      const saved = await saveLesson(lesson);
-      return saved || { id: 0, ...lesson, completed: false, completedAt: null, createdAt: new Date(), updatedAt: new Date() };
+      try {
+        const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}. Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
+        const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: input.curriculumId, title: input.title, description: input.objectives.join(", "), content: response, objectives: input.objectives, keyPoints: input.objectives, resources: [], order: input.order, difficulty: "intermediate", estimatedMinutes: 15 };
+        const saved = await saveLesson(lesson);
+        return saved || { id: 0, ...lesson, completed: false, completedAt: null, createdAt: new Date(), updatedAt: new Date() };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to generate lesson. The AI service may be unavailable." });
+      }
     }),
 
   getLesson: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => getLessonById(input.lessonId)),
@@ -142,14 +155,18 @@ Create 3-4 phases with real resources and actual URLs.`;
   askLessonQuestion: publicProcedure
     .input(z.object({ lessonId: z.number(), cookieId: z.string(), question: z.string().max(1000) }))
     .mutation(async ({ input }) => {
-      const q = await askLessonQuestion(input.lessonId, input.cookieId, input.question);
-      if (!q) return { error: "Failed to save question" };
-      const lesson = await getLessonById(input.lessonId);
-      if (!lesson) return { error: "Lesson not found" };
-      const prompt = `You are helping a student with the lesson: "${lesson.title}"\n\nLesson content:\n${lesson.content}\n\nStudent question: ${input.question}\n\nProvide a clear, concise answer based on the lesson content.`;
-      const answer = await callAI(input.cookieId, prompt, undefined, 1024);
-      const saved = await saveLessonAnswer(q.id, answer);
-      return { question: q, answer: saved };
+      try {
+        const q = await askLessonQuestion(input.lessonId, input.cookieId, input.question);
+        if (!q) return { error: "Failed to save question" };
+        const lesson = await getLessonById(input.lessonId);
+        if (!lesson) return { error: "Lesson not found" };
+        const prompt = `You are helping a student with the lesson: "${lesson.title}"\n\nLesson content:\n${lesson.content}\n\nStudent question: ${input.question}\n\nProvide a clear, concise answer based on the lesson content.`;
+        const answer = await callAI(input.cookieId, prompt, undefined, 1024);
+        const saved = await saveLessonAnswer(q.id, answer);
+        return { question: q, answer: saved };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to answer question. Please try again." });
+      }
     }),
 
   getLessonQA: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => {
@@ -161,9 +178,13 @@ Create 3-4 phases with real resources and actual URLs.`;
   exploreOffTopic: publicProcedure
     .input(z.object({ cookieId: z.string(), currentTopic: z.string(), relatedTopic: z.string() }))
     .mutation(async ({ input }) => {
-      const content = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`, undefined, 3000);
-      const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: `exploration-${Date.now()}`, title: input.relatedTopic, description: `Related exploration from: ${input.currentTopic}`, content, objectives: [`Understand ${input.relatedTopic}`], keyPoints: [], resources: [], order: 0, difficulty: "intermediate", estimatedMinutes: 20, isShared: true, relatedTopics: [input.currentTopic] };
-      return saveLesson(lesson);
+      try {
+        const content = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`, undefined, 3000);
+        const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: `exploration-${Date.now()}`, title: input.relatedTopic, description: `Related exploration from: ${input.currentTopic}`, content, objectives: [`Understand ${input.relatedTopic}`], keyPoints: [], resources: [], order: 0, difficulty: "intermediate", estimatedMinutes: 20, isShared: true, relatedTopics: [input.currentTopic] };
+        return saveLesson(lesson);
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to explore topic. Please try again." });
+      }
     }),
 
   searchSharedLessons: publicProcedure.input(z.object({ query: z.string().max(200) })).query(async ({ input }) => searchSharedLessons(input.query)),
@@ -171,36 +192,52 @@ Create 3-4 phases with real resources and actual URLs.`;
   startSocraticSession: publicProcedure
     .input(z.object({ cookieId: z.string().optional(), topic: z.string().max(500), userLevel: z.string() }))
     .mutation(async ({ input }) => {
-      const question = await callAI(input.cookieId, `You are a Socratic tutor. The student wants to learn about: "${input.topic}". Level: ${input.userLevel}. Start with ONE opening question to reveal what they know. Don't explain — only ask.`, undefined, 256);
-      return { question, sessionId: Date.now().toString() };
+      try {
+        const question = await callAI(input.cookieId, `You are a Socratic tutor. The student wants to learn about: "${input.topic}". Level: ${input.userLevel}. Start with ONE opening question to reveal what they know. Don't explain — only ask.`, undefined, 256);
+        return { question, sessionId: Date.now().toString() };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to start session. Please try again." });
+      }
     }),
 
   continueSocraticSession: publicProcedure
     .input(z.object({ cookieId: z.string().optional(), topic: z.string().max(500), history: z.array(z.object({ role: z.enum(["tutor", "student"]), content: z.string() })), userResponse: z.string().max(2000) }))
     .mutation(async ({ input }) => {
-      const historyText = input.history.map((h) => `${h.role === "tutor" ? "Tutor" : "Student"}: ${h.content}`).join("\n");
-      const response = await callAI(input.cookieId, `Socratic tutor on "${input.topic}".\n${historyText}\nStudent: ${input.userResponse}\nAcknowledge briefly, redirect misconceptions with a question, ask the next probing question. 2-3 sentences max.`, undefined, 512);
-      return { response };
+      try {
+        const historyText = input.history.map((h) => `${h.role === "tutor" ? "Tutor" : "Student"}: ${h.content}`).join("\n");
+        const response = await callAI(input.cookieId, `Socratic tutor on "${input.topic}".\n${historyText}\nStudent: ${input.userResponse}\nAcknowledge briefly, redirect misconceptions with a question, ask the next probing question. 2-3 sentences max.`, undefined, 512);
+        return { response };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to continue session. Please try again." });
+      }
     }),
 
   chat: publicProcedure
     .input(z.object({ cookieId: z.string(), message: z.string().max(2000), profile: z.object({ visitCount: z.number(), pagesVisited: z.array(z.string()), preferredTopics: z.array(z.string()), xp: z.number(), level: z.number() }).optional() }))
     .mutation(async ({ input }) => {
-      const history = await getChatHistory(input.cookieId, 10);
-      const chatMessages: Array<{ role: "user" | "assistant"; content: string }> = history.map(msg => ({ role: msg.role === "user" ? "user" as const : "assistant" as const, content: msg.content }));
-      const contextNote = input.profile ? `\n\n[Visitor: Visit #${input.profile.visitCount}, explored: ${input.profile.pagesVisited.join(", ")}, XP: ${input.profile.xp}, Level: ${input.profile.level}, interests: ${input.profile.preferredTopics.join(", ")}]` : "";
-      chatMessages.push({ role: "user", content: input.message + contextNote });
-      const response = await callAIChat(input.cookieId, chatMessages, NEXUS_SYSTEM_PROMPT);
-      await saveChatMessage(input.cookieId, "user", input.message);
-      await saveChatMessage(input.cookieId, "assistant", response);
-      const xpResult = await addXP(input.cookieId, 15);
-      return { response, ...xpResult };
+      try {
+        const history = await getChatHistory(input.cookieId, 10);
+        const chatMessages: Array<{ role: "user" | "assistant"; content: string }> = history.map(msg => ({ role: msg.role === "user" ? "user" as const : "assistant" as const, content: msg.content }));
+        const contextNote = input.profile ? `\n\n[Visitor: Visit #${input.profile.visitCount}, explored: ${input.profile.pagesVisited.join(", ")}, XP: ${input.profile.xp}, Level: ${input.profile.level}, interests: ${input.profile.preferredTopics.join(", ")}]` : "";
+        chatMessages.push({ role: "user", content: input.message + contextNote });
+        const response = await callAIChat(input.cookieId, chatMessages, NEXUS_SYSTEM_PROMPT);
+        await saveChatMessage(input.cookieId, "user", input.message);
+        await saveChatMessage(input.cookieId, "assistant", response);
+        const xpResult = await addXP(input.cookieId, 15);
+        return { response, ...xpResult };
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI chat is unavailable. Please try again or configure an API key in Settings." });
+      }
     }),
 
   composeMessage: publicProcedure
     .input(z.object({ cookieId: z.string().optional(), intent: z.string(), context: z.string().optional() }))
     .mutation(async ({ input }) => {
-      const draft = await callAI(input.cookieId, `Help compose a professional message for someone reaching out to the creator of Nexus. Intent: "${input.intent}". Context: "${input.context || "none"}". Write a polished, concise message (3-4 sentences).`);
-      return { draft };
+      try {
+        const draft = await callAI(input.cookieId, `Help compose a professional message for someone reaching out to the creator of Nexus. Intent: "${input.intent}". Context: "${input.context || "none"}". Write a polished, concise message (3-4 sentences).`);
+        return { draft };
+      } catch (_e) {
+        return { draft: "" };
+      }
     }),
 });

@@ -9,6 +9,7 @@
  */
 
 import { invokeLLM } from "./_core/llm";
+import { ENV } from "./_core/env";
 import { getAIProviderSettings } from "./db";
 
 // "builtin" = platform-managed LLM, no quota issues
@@ -139,7 +140,19 @@ export async function invokeAI(
 
     case "builtin":
     default:
-      return withRetry(() => invokeBuiltin(options));
+      // If a platform Forge key is configured, use it
+      if (ENV.forgeApiKey) {
+        return withRetry(() => invokeBuiltin(options));
+      }
+      // Fall back to Gemini if a GEMINI_API_KEY is set in the environment
+      if (ENV.geminiApiKey) {
+        return withRetry(() =>
+          invokeGeminiDirect(ENV.geminiApiKey, DEFAULT_MODELS.gemini, options)
+        );
+      }
+      throw new Error(
+        "No AI provider configured. Please add a GEMINI_API_KEY to your environment, or set up a provider in Settings → AI Provider."
+      );
   }
 }
 

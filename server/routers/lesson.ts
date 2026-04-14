@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
 import {
   addXP, saveLesson, getLessonById, markLessonComplete, searchSharedLessons,
@@ -31,7 +32,12 @@ export const lessonRouter = router({
   createLessonWithResources: publicProcedure
     .input(z.object({ cookieId: z.string(), title: z.string(), topic: z.string(), objectives: z.array(z.string()), curriculumId: z.string() }))
     .mutation(async ({ input }) => {
-      const content = await callAI(input.cookieId, `Create a comprehensive lesson for: "${input.title}"\nObjectives: ${input.objectives.join(", ")}\n\nDetailed markdown content with examples.`, undefined, 3000);
+      let content = "";
+      try {
+        content = await callAI(input.cookieId, `Create a comprehensive lesson for: "${input.title}"\nObjectives: ${input.objectives.join(", ")}\n\nDetailed markdown content with examples.`, undefined, 3000);
+      } catch (_e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to generate lesson. Please try again." });
+      }
       let externalResources: Array<{ title: string; url: string; source: string; description?: string }> = [];
       try {
         const resourcesResponse = await callAI(input.cookieId, `For the topic "${input.topic}", suggest 5 relevant external resources including Wikipedia articles. Return ONLY JSON array: [{"title":"Title","url":"https://...","source":"Wikipedia","description":"Brief"}]`, undefined, 1024);
