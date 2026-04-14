@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap, ChevronDown, Brain, Network, Settings2, Target, BarChart3, Trophy, BookOpen, Search, Flame, TrendingUp, User, BookMarked, Layers } from "lucide-react";
+import { Menu, X, Zap, ChevronDown, Brain, Network, Settings2, Target, BarChart3, Trophy, BookOpen, Search, Flame, TrendingUp, User, BookMarked, Layers, LogOut } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
-  { href: "/", label: "Home" },
+  { href: "/app", label: "Home" },
   { href: "/learn", label: "Learn" },
   { href: "/research", label: "Research" },
   { href: "/depth", label: "Depth" },
@@ -36,6 +37,7 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const { profile } = usePersonalization();
+  const { user, isGuest, logout } = useAuth();
   const toolsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -191,11 +193,11 @@ export default function Navigation() {
             <Search size={12} />
             <span>Search</span>
             <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/8 text-[10px] font-mono group-hover:bg-white/12 transition-colors">
-              ⌘K
+              âŒ˜K
             </kbd>
           </button>
 
-          {/* XP indicator + mobile menu */}
+          {/* XP indicator + user info + mobile menu */}
           <div className="flex items-center gap-3">
             {profile.xp > 0 && (
               <motion.div
@@ -205,10 +207,34 @@ export default function Navigation() {
               >
                 <Zap size={11} className="text-[oklch(0.75_0.18_55)]" />
                 <span className="text-[oklch(0.75_0.18_55)] font-semibold">{profile.xp} XP</span>
-                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">Â·</span>
                 <span className="text-muted-foreground">Lv.{profile.level}</span>
               </motion.div>
             )}
+
+            {/* User avatar / guest indicator */}
+            {user ? (
+              <div className="hidden sm:flex items-center gap-2">
+                <Link href="/profile" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name ?? ""} className="w-6 h-6 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-[oklch(0.75_0.18_55_/_0.2)] flex items-center justify-center">
+                      <User size={12} className="text-[oklch(0.75_0.18_55)]" />
+                    </div>
+                  )}
+                  <span className="text-xs text-foreground font-medium max-w-[80px] truncate">{user.name ?? user.email}</span>
+                </Link>
+                <button onClick={logout} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground" title="Sign out">
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : isGuest ? (
+              <Link href="/register" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-muted-foreground hover:text-foreground hover:border-white/20 transition-colors">
+                <User size={12} />
+                Sign Up
+              </Link>
+            ) : null}
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}

@@ -12,7 +12,10 @@ import {
   lessonFeedback, LessonFeedback, InsertLessonFeedback,
   lessonProgress, LessonProgress, InsertLessonProgress,
   curriculumProgress, CurriculumProgress, InsertCurriculumProgress,
-  flashcardDecks, FlashcardDeck,
+  flashcardDecks, flashcards, flashcardReviews,
+  aiProviderSettings, mindMaps, libraryResources,
+  FlashcardDeck, Flashcard, AIProviderSettings, MindMap, LibraryResource,
+  MindMapNode, userPsychProfiles, User,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -220,12 +223,6 @@ export async function updateResearchSessionNotes(id: number, notes: string): Pro
 }
 
 // ─── Flashcard Decks & Cards ──────────────────────────────────────────────────
-import {
-  flashcardDecks, flashcards, flashcardReviews,
-  aiProviderSettings, mindMaps, libraryResources,
-  FlashcardDeck, Flashcard, AIProviderSettings, MindMap, LibraryResource,
-  MindMapNode,
-} from "../drizzle/schema";
 
 export async function createFlashcardDeck(data: {
   cookieId: string;
@@ -674,4 +671,113 @@ export async function getCurriculumProgress(cookieId: string, curriculumId: stri
   if (!db) return null;
   const result = await db.select().from(curriculumProgress).where(and(eq(curriculumProgress.cookieId, cookieId), eq(curriculumProgress.curriculumId, curriculumId))).limit(1);
   return result[0] || null;
+}
+
+// ─── Auth DB helpers ──────────────────────────────────────────────────────────
+
+export async function createUser(data: {
+  email?: string;
+  passwordHash?: string;
+  googleId?: string;
+  name?: string;
+  avatarUrl?: string;
+  loginMethod: string;
+}): Promise<User | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(users).values({
+    email: data.email ?? null,
+    passwordHash: data.passwordHash ?? null,
+    googleId: data.googleId ?? null,
+    name: data.name ?? null,
+    avatarUrl: data.avatarUrl ?? null,
+    loginMethod: data.loginMethod,
+    emailVerified: !!data.googleId, // Google accounts are pre-verified
+    onboardingCompleted: false,
+    lastSignedIn: new Date(),
+  });
+  const id = (result as any).insertId;
+  if (!id) return null;
+  return getUserById(id);
+}
+
+export async function getUserById(id: number): Promise<User | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getUserByGoogleId(googleId: string): Promise<User | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(users).where(eq(users.googleId, googleId)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function updateUserLastSignedIn(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+}
+
+export async function markOnboardingComplete(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ onboardingCompleted: true }).where(eq(users.id, userId));
+}
+
+export async function savePsychProfile(userId: number, data: {
+  quizAnswers: Record<string, string>;
+  inferredBackground: string;
+  inferredInterests: string[];
+  inferredGoal: string;
+  inferredLearnStyle: string;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(userPsychProfiles).values({ userId, ...data })
+    .onDuplicateKeyUpdate({ set: { ...data, updatedAt: new Date() } });
+}
+
+export async function getPsychProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(userPsychProfiles).where(eq(userPsychProfiles.userId, userId)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertGoogleUser(googleId: string, data: {
+  email: string;
+  name: string;
+  avatarUrl?: string;
+}): Promise<User | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Check existing by googleId
+  let user = await getUserByGoogleId(googleId);
+  if (user) {
+    await db.update(users).set({ lastSignedIn: new Date(), name: data.name, avatarUrl: data.avatarUrl ?? null })
+      .where(eq(users.googleId, googleId));
+    return getUserById(user.id);
+  }
+
+  // Check if email already exists (link accounts)
+  user = await getUserByEmail(data.email);
+  if (user) {
+    await db.update(users).set({ googleId, lastSignedIn: new Date(), emailVerified: true })
+      .where(eq(users.id, user.id));
+    return getUserById(user.id);
+  }
+
+  // Create new
+  return createUser({ googleId, email: data.email, name: data.name, avatarUrl: data.avatarUrl, loginMethod: "google" });
 }

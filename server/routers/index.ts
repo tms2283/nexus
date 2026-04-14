@@ -1,8 +1,7 @@
-import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "../_core/cookies";
 import { systemRouter } from "../_core/systemRouter";
-import { publicProcedure, router } from "../_core/trpc";
+import { router } from "../_core/trpc";
 
+import { authRouter } from "./auth";
 import { visitorRouter } from "./visitor";
 import { aiRouter } from "./ai";
 import { researchRouter } from "./research";
@@ -18,16 +17,7 @@ import { skillsRouter } from "./skills";
 
 export const appRouter = router({
   system: systemRouter,
-
-  auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return { success: true } as const;
-    }),
-  }),
-
+  auth: authRouter,
   visitor: visitorRouter,
   ai: aiRouter,
   research: researchRouter,

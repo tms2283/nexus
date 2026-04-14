@@ -1,22 +1,26 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch, useLocation, Redirect } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { PersonalizationProvider } from "./contexts/PersonalizationContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Navigation from "./components/Navigation";
 import GamificationHUD from "./components/GamificationHUD";
 import AIChat from "./components/AIChat";
 import CommandPalette from "./components/CommandPalette";
 
-// ─── Eagerly loaded (always needed on first paint) ────────────────────────────
+// ─── Eagerly loaded ───────────────────────────────────────────────────────────
+import Welcome from "./pages/Welcome";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 
-// ─── Lazily loaded (split into separate chunks, loaded on demand) ─────────────
-// This eliminates ~85KB of JS from the initial bundle.
+// ─── Lazily loaded ────────────────────────────────────────────────────────────
 const About        = lazy(() => import("./pages/About"));
 const Learn        = lazy(() => import("./pages/Learn"));
 const Research     = lazy(() => import("./pages/Research"));
@@ -38,7 +42,6 @@ const Profile      = lazy(() => import("./pages/Profile"));
 const ReadingList  = lazy(() => import("./pages/ReadingList"));
 const Skills       = lazy(() => import("./pages/Skills"));
 
-// Minimal inline fallback — no dependency needed, no layout shift
 function PageSkeleton() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -48,8 +51,21 @@ function PageSkeleton() {
   );
 }
 
+// Guard: redirects to / if not authenticated or guest
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
+  if (isLoading) return <PageSkeleton />;
+  if (!isAuthenticated && !isGuest) return <Redirect to="/" />;
+  return <>{children}</>;
+}
+
 function Router() {
   const [location] = useLocation();
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
+
+  // Show loading spinner while resolving auth
+  if (isLoading) return <PageSkeleton />;
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -62,28 +78,71 @@ function Router() {
       >
         <Suspense fallback={<PageSkeleton />}>
           <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/learn" component={Learn} />
-            <Route path="/research" component={Research} />
-            <Route path="/depth" component={DepthEngine} />
-            <Route path="/library" component={Library} />
-            <Route path="/lab" component={Lab} />
+            {/* Public auth routes */}
+            <Route path="/" component={Welcome} />
+            <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
+            <Route path="/onboarding" component={Onboarding} />
+
+            {/* /app and all sub-routes — require auth or guest */}
+            <Route path="/app">
+              <RequireAuth><Home /></RequireAuth>
+            </Route>
+            <Route path="/learn">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Learn /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/research">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Research /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/depth">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><DepthEngine /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/library">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Library /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/lab">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Lab /></Suspense></RequireAuth>
+            </Route>
             <Route path="/about" component={About} />
             <Route path="/contact" component={Contact} />
-            <Route path="/flashcards" component={Flashcards} />
-            <Route path="/mindmap" component={MindMap} />
-            <Route path="/settings" component={Settings} />
-            <Route path="/testing" component={TestingCenter} />
-            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/flashcards">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Flashcards /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/mindmap">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><MindMap /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/settings">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Settings /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/testing">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><TestingCenter /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/dashboard">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Dashboard /></Suspense></RequireAuth>
+            </Route>
             <Route path="/leaderboard" component={Leaderboard} />
-            <Route path="/study-buddy" component={StudyBuddy} />
-            <Route path="/daily" component={Daily} />
-            <Route path="/lesson/:lessonId" component={Lesson} />
-            <Route path="/progress" component={Progress} />
+            <Route path="/study-buddy">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><StudyBuddy /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/daily">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Daily /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/lesson/:lessonId">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Lesson /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/progress">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Progress /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/profile">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Profile /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/reading-list">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><ReadingList /></Suspense></RequireAuth>
+            </Route>
+            <Route path="/skills">
+              <RequireAuth><Suspense fallback={<PageSkeleton />}><Skills /></Suspense></RequireAuth>
+            </Route>
             <Route path="/404" component={NotFound} />
-            <Route path="/profile" component={Profile} />
-            <Route path="/reading-list" component={ReadingList} />
-            <Route path="/skills" component={Skills} />
             <Route component={NotFound} />
           </Switch>
         </Suspense>
@@ -92,19 +151,30 @@ function Router() {
   );
 }
 
+function AppShell() {
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
+  const showNav = isAuthenticated || isGuest;
+
+  return (
+    <TooltipProvider>
+      <Toaster position="bottom-right" theme="dark" />
+      {showNav && <Navigation />}
+      {showNav && <CommandPalette />}
+      <Router />
+      {showNav && <GamificationHUD />}
+      {showNav && <AIChat />}
+    </TooltipProvider>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <PersonalizationProvider>
-          <TooltipProvider>
-            <Toaster position="bottom-right" theme="dark" />
-            <Navigation />
-            <CommandPalette />
-            <Router />
-            <GamificationHUD />
-            <AIChat />
-          </TooltipProvider>
+          <AuthProvider>
+            <AppShell />
+          </AuthProvider>
         </PersonalizationProvider>
       </ThemeProvider>
     </ErrorBoundary>

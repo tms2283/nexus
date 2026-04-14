@@ -128,7 +128,7 @@ export default function MindMap() {
     setIsSaving(true);
     try {
       if (currentMapId) {
-        await updateMutation.mutateAsync({ id: currentMapId, nodesJson: nodes });
+        await updateMutation.mutateAsync({ id: currentMapId, cookieId: cookieId ?? "", nodesJson: nodes });
       } else {
         const result = await saveMutation.mutateAsync({ cookieId, title: currentTitle, rootTopic: currentTitle, nodesJson: nodes });
         setCurrentMapId(result.mapId);
@@ -143,7 +143,7 @@ export default function MindMap() {
   };
 
   const handleDeleteMap = async (id: number) => {
-    await deleteMutation.mutateAsync({ id });
+    await deleteMutation.mutateAsync({ id, cookieId: cookieId ?? "" });
     await refetchMaps();
     toast.success("Map deleted.");
   };

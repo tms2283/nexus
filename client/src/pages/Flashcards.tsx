@@ -64,8 +64,8 @@ export default function Flashcards() {
   const generateMutation = trpc.flashcards.generateDeck.useMutation();
 
   const { data: deckCards, refetch: refetchCards } = trpc.flashcards.getCards.useQuery(
-    { deckId: selectedDeck?.id ?? 0 },
-    { enabled: !!selectedDeck }
+    { deckId: selectedDeck?.id ?? 0, cookieId: cookieId ?? "" },
+    { enabled: !!selectedDeck && !!cookieId }
   );
 
   useEffect(() => {

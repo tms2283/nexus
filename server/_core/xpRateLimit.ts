@@ -21,7 +21,7 @@ const xpWindows = new Map<string, XpWindow>();
 // Clean up stale windows every 5 minutes
 setInterval(() => {
   const now = Date.now();
-  for (const [key, win] of xpWindows.entries()) {
+  for (const [key, win] of Array.from(xpWindows.entries())) {
     if (now - win.windowStart > XP_WINDOW_MS) xpWindows.delete(key);
   }
 }, 5 * 60 * 1000);
