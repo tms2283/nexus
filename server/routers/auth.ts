@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import {
-  createUser, getUserByEmail, getUserById,
+  createUser, getUserByEmail,
   updateUserLastSignedIn, markOnboardingComplete,
-  savePsychProfile, getPsychProfile, upsertGoogleUser,
+  savePsychProfile, upsertGoogleUser,
 } from "../db";
 import {
   hashPassword, verifyPassword, createSessionToken,
-  setAuthCookie, clearAuthCookie, getSessionTokenFromRequest, verifySessionToken,
+  setAuthCookie, clearAuthCookie,
 } from "../auth";
 import { OAuth2Client } from "google-auth-library";
 import { ENV } from "../_core/env";
@@ -67,14 +67,8 @@ function inferProfile(answers: Record<string, string>) {
 export const authRouter = router({
   // Get current logged-in user (called on app load)
   me: publicProcedure.query(async ({ ctx }) => {
-    const token = getSessionTokenFromRequest(ctx.req);
-    if (!token) return null;
-    const payload = verifySessionToken(token);
-    if (!payload) return null;
-    const user = await getUserById(payload.userId);
-    if (!user) return null;
-    // Never expose passwordHash
-    const { passwordHash: _, ...safeUser } = user;
+    if (!ctx.user) return null;
+    const { passwordHash: _, ...safeUser } = ctx.user;
     return safeUser;
   }),
 
@@ -123,14 +117,12 @@ export const authRouter = router({
 
   // Complete onboarding quiz — saves psych profile, marks onboarding done
   completeOnboarding: publicProcedure.input(onboardingSchema).mutation(async ({ input, ctx }) => {
-    const token = getSessionTokenFromRequest(ctx.req);
-    if (!token) throw new TRPCError({ code: "UNAUTHORIZED", message: "Not logged in." });
-    const payload = verifySessionToken(token);
-    if (!payload) throw new TRPCError({ code: "UNAUTHORIZED", message: "Session expired." });
+    // Use the user already resolved by context.ts from the JWT cookie
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED", message: "Not logged in." });
 
     const inferred = inferProfile(input.quizAnswers);
-    await savePsychProfile(payload.userId, { quizAnswers: input.quizAnswers, ...inferred });
-    await markOnboardingComplete(payload.userId);
+    await savePsychProfile(ctx.user.id, { quizAnswers: input.quizAnswers, ...inferred });
+    await markOnboardingComplete(ctx.user.id);
     return { success: true };
   }),
 
