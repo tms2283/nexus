@@ -150,3 +150,5 @@ server/routers.ts.bak
 
 # Audio output files (generated at runtime on server)
 public/audio/
+
+.claude/
