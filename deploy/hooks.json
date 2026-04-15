@@ -1,0 +1,31 @@
+[
+  {
+    "id": "deploy-nexus",
+    "execute-command": "/usr/local/bin/webhook-deploy",
+    "command-working-directory": "/var/www/nexus",
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "payload-hmac-sha256",
+            "secret": "nexus-deploy-secret-2026",
+            "parameter": {
+              "source": "header",
+              "name": "X-Hub-Signature-256"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "refs/heads/main",
+            "parameter": {
+              "source": "payload",
+              "name": "ref"
+            }
+          }
+        }
+      ]
+    }
+  }
+]

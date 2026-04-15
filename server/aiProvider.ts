@@ -188,6 +188,29 @@ async function invokeBuiltin(options: LLMOptions): Promise<string> {
 
 // ─── Direct Gemini REST (user-supplied key only) ──────────────────────────────
 
+async function callGeminiEndpoint(
+  apiKey: string,
+  model: string,
+  body: Record<string, unknown>
+): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+  );
+  if (!response.ok) {
+    const err = await response.text();
+    const status = response.status;
+    // Throw a typed error so the caller can detect quota exhaustion
+    const error = new Error(`Gemini API error ${status}: ${err}`) as Error & { status: number };
+    error.status = status;
+    throw error;
+  }
+  const data = await response.json() as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
 async function invokeGeminiDirect(
   apiKey: string,
   model: string,
@@ -210,24 +233,27 @@ async function invokeGeminiDirect(
   if (options.responseFormat === "json") {
     (body.generationConfig as Record<string, unknown>).responseMimeType = "application/json";
   }
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
-  );
-  if (!response.ok) {
-    const err = await response.text();
-    let errData: any;
-    try { errData = JSON.parse(err); } catch { /* ignore */ }
-    const status = response.status;
-    if (status === 429) {
+
+  try {
+    return await callGeminiEndpoint(apiKey, model, body);
+  } catch (err: any) {
+    // On quota exhaustion (429) try the backup key if available
+    if (err.status === 429 && ENV.geminiApiKeyBackup) {
+      console.warn("[AI] Primary Gemini key quota exceeded — falling back to backup key");
+      try {
+        return await callGeminiEndpoint(ENV.geminiApiKeyBackup, model, body);
+      } catch (backupErr: any) {
+        if (backupErr.status === 429) {
+          throw new Error("The AI service is over its quota. Please add billing to your Google Cloud project at console.cloud.google.com, or configure a different AI provider in Settings.");
+        }
+        throw backupErr;
+      }
+    }
+    if (err.status === 429) {
       throw new Error("The AI service is over its quota. Please add billing to your Google Cloud project at console.cloud.google.com, or configure a different AI provider in Settings.");
     }
-    throw new Error(`Gemini API error ${status}: ${err}`);
+    throw err;
   }
-  const data = await response.json() as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 // ─── Perplexity ───────────────────────────────────────────────────────────────

@@ -1,0 +1,28 @@
+http:
+  routers:
+    nexus:
+      rule: "(Host(`schmo.tech`) || Host(`www.schmo.tech`)) && !PathPrefix(`/hooks`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: nexus-svc
+
+    webhook:
+      rule: "(Host(`schmo.tech`) || Host(`www.schmo.tech`)) && PathPrefix(`/hooks`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: webhook-svc
+
+  services:
+    nexus-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3000"
+
+    webhook-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:9000"
