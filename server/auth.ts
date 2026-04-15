@@ -5,6 +5,7 @@
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { parse as parseCookies } from "cookie";
 import type { Response, Request } from "express";
 import { ENV } from "./_core/env";
 
@@ -58,7 +59,8 @@ export function clearAuthCookie(res: Response): void {
 }
 
 export function getSessionTokenFromRequest(req: Request): string | null {
-  return req.cookies?.[SESSION_COOKIE_NAME] ?? null;
+  const cookies = parseCookies(req.headers.cookie ?? "");
+  return cookies[SESSION_COOKIE_NAME] ?? null;
 }
 
 export { SESSION_COOKIE_NAME };

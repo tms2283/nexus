@@ -42,7 +42,7 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedModule, setExpandedModule] = useState<number | null>(null);
-  const { addXP } = usePersonalization();
+  const { addXP, profile } = usePersonalization();
 
   const generateCurriculum = trpc.ai.generateCurriculum.useMutation({
     onSuccess: (data) => {
@@ -85,7 +85,7 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
       goal,
       currentLevel: levelMap[currentKnowledge] ?? "beginner",
       timeAvailable,
-      interests: [],
+      interests: profile.preferredTopics,
     });
   };
 

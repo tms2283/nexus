@@ -54,7 +54,7 @@ export function applyCsrfProtection(app: Express): void {
         secure: req.protocol === "https",
         path: "/",
         httpOnly: false,          // Must be readable by JS so it can be sent as header
-        maxAge: 24 * 60 * 60,    // 24 hours in seconds
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds (Express expects ms)
       });
     }
 

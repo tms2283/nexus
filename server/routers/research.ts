@@ -2,7 +2,7 @@ import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
-  saveResearchSession, getResearchSessions, getDb, addXP,
+  saveResearchSession, getResearchSessions, getDb, addXP, updatePsychProfileActivity,
 } from "../db";
 import { callAI } from "./shared";
 import { researchSources, researchProjects, audioOverviews } from "../../drizzle/schema";
@@ -100,9 +100,14 @@ Content:\n${textToAnalyze.slice(0, 12000)}`;
       summary: z.string().optional(), keyInsights: z.array(z.string()).optional(),
       notes: z.string().optional(), tags: z.array(z.string()).optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const id = await saveResearchSession(input);
       await addXP(input.cookieId, 10);
+      // Track researched topics in the psych profile
+      const userId = ctx.user?.id;
+      if (userId && input.tags?.length) {
+        await updatePsychProfileActivity(userId, { newTopics: input.tags });
+      }
       return { id, success: true };
     }),
 

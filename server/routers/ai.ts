@@ -6,7 +6,7 @@ import {
   saveLesson, getLessonById, getLessonsByCurriculum, markLessonComplete,
   askLessonQuestion, saveLessonAnswer, getLessonQuestions, getQuestionAnswer,
   markAnswerHelpful, incrementLessonViewCount, searchSharedLessons,
-  getDb,
+  getDb, getPsychProfile,
 } from "../db";
 import { type InsertLesson, backgroundJobs } from "../../drizzle/schema";
 import { callAI, callAIChat, NEXUS_SYSTEM_PROMPT } from "./shared";
@@ -99,8 +99,29 @@ Topics: technical background, creative interests, learning goals, work style. Ex
       currentLevel: z.enum(["beginner", "intermediate", "advanced"]),
       timeAvailable: z.string(), interests: z.array(z.string()),
     }))
-    .mutation(async ({ input }) => {
-      const prompt = `Create a personalized learning curriculum for: "${input.goal}". Level: ${input.currentLevel}. Time: ${input.timeAvailable}. Interests: ${input.interests.join(", ") || "general"}.
+    .mutation(async ({ input, ctx }) => {
+      // Fetch psych profile for registered users to personalize the curriculum
+      let profileContext = "";
+      let learnStyle = "adaptive";
+      let background = "";
+      const userId = ctx.user?.id;
+      if (userId) {
+        const profile = await getPsychProfile(userId);
+        if (profile) {
+          const allInterests = Array.from(new Set([...input.interests, ...((profile.inferredInterests as string[]) ?? [])])).join(", ") || "general";
+          learnStyle = profile.inferredLearnStyle ?? "adaptive";
+          background = profile.inferredBackground ?? "";
+          const styleDirective =
+            learnStyle === "visual"        ? "Use diagrams, visual metaphors, and step-by-step walkthroughs." :
+            learnStyle === "socratic"      ? "Structure phases as guided discovery — pose questions before answers." :
+            learnStyle === "hands-on"      ? "Prioritize project-based phases with build-something milestones." :
+            learnStyle === "deep-technical"? "Include low-level details, edge cases, and architecture trade-offs." :
+            "Balance theory and practice across phases.";
+          profileContext = `\n\nLearner profile — Background: ${profile.inferredBackground || "general"}. Goal: ${profile.inferredGoal || input.goal}. Interests: ${allInterests}. Learning style: ${learnStyle}. ${styleDirective}`;
+        }
+      }
+      const allInterestsFallback = input.interests.join(", ") || "general";
+      const prompt = `Create a personalized learning curriculum for: "${input.goal}". Level: ${input.currentLevel}. Time: ${input.timeAvailable}. Interests: ${allInterestsFallback}.${profileContext}
 Return ONLY valid JSON: {"title":"...","description":"...","estimatedWeeks":4,"phases":[{"phase":1,"title":"...","duration":"Week 1-2","objectives":["..."],"resources":[{"title":"...","type":"article|video|book|practice","url":"...","description":"..."}],"milestone":"..."}]}
 Create 3-4 phases with real resources and actual URLs.`;
       const response = await callAI(input.cookieId, prompt, undefined, 2048);
@@ -120,7 +141,7 @@ Create 3-4 phases with real resources and actual URLs.`;
           const phase = curriculum.phases[i];
           await db.insert(backgroundJobs).values({
             type: "GENERATE_LESSON",
-            payload: { cookieId, curriculumId, phase, index: i, difficulty: input.currentLevel, interests: input.interests },
+            payload: { cookieId, curriculumId, phase, index: i, difficulty: input.currentLevel, interests: input.interests, learnStyle, background },
             status: "pending",
           });
         }
@@ -130,9 +151,23 @@ Create 3-4 phases with real resources and actual URLs.`;
 
   generateLesson: publicProcedure
     .input(z.object({ cookieId: z.string(), curriculumId: z.string(), title: z.string(), objectives: z.array(z.string()), duration: z.string(), order: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
-        const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}. Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
+        let profileContext = "";
+        const userId = ctx.user?.id;
+        if (userId) {
+          const profile = await getPsychProfile(userId);
+          if (profile) {
+            const styleDirective =
+              profile.inferredLearnStyle === "visual"         ? "Use diagrams, numbered steps, and visual metaphors." :
+              profile.inferredLearnStyle === "socratic"       ? "Pose guiding questions before revealing answers." :
+              profile.inferredLearnStyle === "hands-on"       ? "Include a hands-on exercise or mini-project in every section." :
+              profile.inferredLearnStyle === "deep-technical" ? "Cover internals, edge cases, and performance trade-offs." :
+              "Balance theory, examples, and practice exercises.";
+            profileContext = ` Learner background: ${profile.inferredBackground || "general"}. Style: ${profile.inferredLearnStyle || "adaptive"}. ${styleDirective}`;
+          }
+        }
+        const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}.${profileContext} Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
         const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: input.curriculumId, title: input.title, description: input.objectives.join(", "), content: response, objectives: input.objectives, keyPoints: input.objectives, resources: [], order: input.order, difficulty: "intermediate", estimatedMinutes: 15 };
         const saved = await saveLesson(lesson);
         return saved || { id: 0, ...lesson, completed: false, completedAt: null, createdAt: new Date(), updatedAt: new Date() };

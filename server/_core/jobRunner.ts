@@ -25,14 +25,25 @@ interface GenerateLessonPayload {
   index: number;
   difficulty: string;
   interests: string[];
+  learnStyle?: string;
+  background?: string;
 }
 
 async function processJob(job: { id: number; type: string; payload: unknown }): Promise<void> {
   if (job.type === "GENERATE_LESSON") {
     const p = job.payload as GenerateLessonPayload;
+    const styleDirective =
+      p.learnStyle === "visual"         ? "Use diagrams, numbered steps, and visual metaphors throughout." :
+      p.learnStyle === "socratic"       ? "Pose guiding questions before each answer to encourage discovery." :
+      p.learnStyle === "hands-on"       ? "Include a hands-on exercise or mini-project in every section." :
+      p.learnStyle === "deep-technical" ? "Cover internals, edge cases, and performance trade-offs in depth." :
+      "Balance theory, examples, and practice exercises.";
+    const interestLine = p.interests?.length ? `Learner interests: ${p.interests.join(", ")}. ` : "";
+    const backgroundLine = p.background ? `Learner background: ${p.background}. ` : "";
+    const difficultyLine = `Level: ${p.difficulty}. `;
     const content = await callAI(
       p.cookieId,
-      `Create a comprehensive lesson on: "${p.phase.title}"\nObjectives: ${p.phase.objectives.join(", ")}\n\nWrite detailed markdown content with examples and explanations.`,
+      `Create a comprehensive lesson on: "${p.phase.title}"\nObjectives: ${p.phase.objectives.join(", ")}\n\n${difficultyLine}${backgroundLine}${interestLine}${styleDirective}\n\nWrite detailed markdown content with examples and explanations tailored to this learner.`,
       undefined,
       3000
     );

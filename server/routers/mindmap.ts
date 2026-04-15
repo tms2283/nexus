@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
-import { addXP, getMindMaps, getMindMapById, saveMindMap, updateMindMap, deleteMindMap } from "../db";
+import { addXP, getMindMaps, getMindMapById, saveMindMap, updateMindMap, deleteMindMap, updatePsychProfileActivity } from "../db";
 import { callAI } from "./shared";
 import { type MindMapNode } from "../../drizzle/schema";
 
@@ -24,7 +24,7 @@ export const mindmapRouter = router({
 
   generate: publicProcedure
     .input(z.object({ cookieId: z.string(), topic: z.string().max(500), depth: z.number().min(1).max(3).default(2) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const prompt = `Generate a comprehensive mind map for "${input.topic}" at depth ${input.depth}. Return ONLY valid JSON:
 {"nodes":[{"id":"root","label":"${input.topic}","parentId":null,"category":"root","x":0,"y":0},{"id":"n1","label":"Main concept","parentId":"root","category":"primary","x":250,"y":-150}]}
 Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 children per primary. Spread radially (x/y range -600 to 600). Labels: 2-5 words. Categories: root, primary, secondary, tertiary.`;
@@ -38,6 +38,11 @@ Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 child
       } catch (_e) { /* AI unavailable */ }
       const mapId = await saveMindMap({ cookieId: input.cookieId, title: input.topic, rootTopic: input.topic, nodesJson: nodes });
       await addXP(input.cookieId, 15);
+      // Track mind-mapped topics in the psych profile
+      const userId = ctx.user?.id;
+      if (userId) {
+        await updatePsychProfileActivity(userId, { newTopics: [input.topic] });
+      }
       return { mapId, nodes, success: true };
     }),
 

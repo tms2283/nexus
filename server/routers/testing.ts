@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { addXP, getDb } from "../db";
+import { addXP, getDb, updatePsychProfileActivity } from "../db";
 import { callAI } from "./shared";
 import { testResults, iqResults } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
@@ -9,23 +9,34 @@ import { eq, desc } from "drizzle-orm";
 export const testingRouter = router({
   saveResult: publicProcedure
     .input(z.object({ cookieId: z.string().min(1), testId: z.string().min(1), score: z.number(), totalQuestions: z.number(), answers: z.record(z.string(), z.number()), timeTakenSeconds: z.number().optional() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(testResults).values({ cookieId: input.cookieId, testId: input.testId, score: input.score, totalQuestions: input.totalQuestions, answers: input.answers, timeTakenSeconds: input.timeTakenSeconds ?? null });
       const pct = input.score / input.totalQuestions;
       const xp = pct >= 0.9 ? 100 : pct >= 0.7 ? 60 : pct >= 0.5 ? 30 : 15;
       const xpResult = await addXP(input.cookieId, xp);
+      // Update psych profile with the subject practiced
+      const userId = ctx.user?.id;
+      if (userId) {
+        await updatePsychProfileActivity(userId, { newTopics: [input.testId] });
+      }
       return { success: true, xpAwarded: xp, ...xpResult };
     }),
 
   saveIQResult: publicProcedure
     .input(z.object({ cookieId: z.string().min(1), iqScore: z.number().min(40).max(200), percentile: z.number(), rawScore: z.number(), categoryScores: z.record(z.string(), z.number()), timeTakenSeconds: z.number().optional() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(iqResults).values({ cookieId: input.cookieId, iqScore: input.iqScore, percentile: input.percentile, rawScore: input.rawScore, categoryScores: input.categoryScores, timeTakenSeconds: input.timeTakenSeconds ?? null });
       const xpResult = await addXP(input.cookieId, 75);
+      // IQ test category scores reveal cognitive strengths — add them to the psych profile
+      const userId = ctx.user?.id;
+      if (userId) {
+        const topCategory = Object.entries(input.categoryScores).sort((a, b) => b[1] - a[1])[0]?.[0];
+        await updatePsychProfileActivity(userId, { newTopics: topCategory ? [topCategory] : [] });
+      }
       return { success: true, xpAwarded: 75, ...xpResult };
     }),
 

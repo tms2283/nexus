@@ -1,22 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Calendar, LogOut, Save, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { trpc } from "@/lib/trpc";
+import { User, Mail, Calendar, LogOut, Save, AlertCircle, Brain, Shield, Zap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 import PageWrapper from "@/components/PageWrapper";
+import { Link } from "wouter";
 import { toast } from "sonner";
-import { getLoginUrl } from "@/const";
 
 export default function ProfilePage() {
-  const { user, logout, isAuthenticated, loading } = useAuth();
-  const [preferences, setPreferences] = useState({
-    emailNotifications: true,
-    darkMode: true,
-    publicProfile: false,
-  });
+  const { user, isAuthenticated, isGuest, logout, isLoading } = useAuth();
+  const { profile } = usePersonalization();
+  const [name, setName] = useState(user?.name ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <PageWrapper pageName="Profile">
         <div className="flex items-center justify-center h-96">
@@ -26,225 +23,111 @@ export default function ProfilePage() {
     );
   }
 
-  if (!isAuthenticated || !user) {
+  // Guest state
+  if (!isAuthenticated) {
     return (
       <PageWrapper pageName="Profile">
         <div className="max-w-2xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-2xl p-8 border border-white/8 text-center"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="glass rounded-2xl p-8 border border-white/8 text-center">
             <AlertCircle size={48} className="mx-auto mb-4 text-[oklch(0.75_0.18_55)]" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Sign In Required</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">You're browsing as a guest</h1>
             <p className="text-muted-foreground mb-6">
-              Sign in to create a profile, save your progress, and access all features.
+              Create an account to save your progress, earn XP, and unlock personalized learning.
             </p>
-            <a
-              href={getLoginUrl()}
-              className="inline-block px-6 py-3 rounded-lg bg-[oklch(0.75_0.18_55)] text-black font-semibold hover:opacity-90 transition-opacity"
-            >
-              Sign In with Manus
-            </a>
+            <div className="flex gap-3 justify-center">
+              <Link href="/register"
+                className="px-6 py-3 rounded-lg bg-[oklch(0.75_0.18_55)] text-black font-semibold hover:opacity-90 transition-opacity">
+                Create Account
+              </Link>
+              <Link href="/login"
+                className="px-6 py-3 rounded-lg border border-white/15 text-foreground hover:bg-white/5 transition-colors">
+                Sign In
+              </Link>
+            </div>
           </motion.div>
         </div>
       </PageWrapper>
     );
   }
 
-  const handleSavePreferences = async () => {
+  const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Save preferences to localStorage for now
-      localStorage.setItem("user_preferences", JSON.stringify(preferences));
-      toast.success("Preferences saved!");
-    } catch (error) {
-      toast.error("Failed to save preferences");
+      toast.success("Profile updated!");
+    } catch {
+      toast.error("Failed to save");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success("Logged out successfully");
-    } catch (error) {
-      toast.error("Failed to logout");
-    }
-  };
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    : "Recently";
 
   return (
     <PageWrapper pageName="Profile">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <h1 className="text-4xl font-bold text-foreground mb-2">Your Profile</h1>
-          <p className="text-muted-foreground">Manage your account and preferences</p>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Your Profile</h1>
+          <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
         </motion.div>
 
-        {/* User Info Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8 glass rounded-2xl p-8 border border-white/8"
-        >
-          <div className="flex items-start gap-6 mb-8">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] flex items-center justify-center">
-              <User size={40} className="text-black" />
+        {/* Avatar + identity */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-2xl p-6 border border-white/8 flex items-center gap-5">
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.name ?? ""} className="w-16 h-16 rounded-full object-cover ring-2 ring-[oklch(0.75_0.18_55_/_0.3)]" />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] flex items-center justify-center">
+              <User size={28} className="text-[oklch(0.75_0.18_55)]" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-foreground">{user.name || "User"}</h2>
-              <div className="flex items-center gap-2 text-muted-foreground mt-2">
-                <Mail size={16} />
-                {user.email || "No email provided"}
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                <Calendar size={16} />
-                Joined {new Date(user.createdAt).toLocaleDateString()}
-              </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="text-lg font-semibold text-foreground truncate">{user?.name ?? "Anonymous"}</div>
+            <div className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+              <Mail size={13} />
+              <span className="truncate">{user?.email ?? "â€”"}</span>
+            </div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+              <Calendar size={12} />
+              <span>Member since {memberSince}</span>
             </div>
           </div>
-
-          {/* Account Status */}
-          <div className="p-4 rounded-lg bg-white/3 border border-white/8 mb-6">
-            <div className="flex items-center gap-2 text-[oklch(0.75_0.18_55)] font-medium">
-              <CheckCircle2 size={20} />
-              Account Status: Active
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Your progress and preferences are automatically saved to your account.
-            </p>
+          <div className="text-right">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Login method</div>
+            <span className="text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10 text-muted-foreground capitalize">
+              {user?.loginMethod ?? "email"}
+            </span>
           </div>
+        </motion.div>
 
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors font-medium"
-          >
+        {/* XP / Stats */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="grid grid-cols-3 gap-3">
+          {[
+            { label: "XP Earned", value: profile.xp.toLocaleString(), icon: Zap, color: "oklch(0.75_0.18_55)" },
+            { label: "Level", value: profile.level, icon: Brain, color: "oklch(0.72_0.20_310)" },
+            { label: "Streak", value: `${profile.streak}d`, icon: Shield, color: "oklch(0.75_0.18_180)" },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="glass rounded-xl p-4 border border-white/8 text-center">
+              <Icon size={20} className="mx-auto mb-2" style={{ color }} />
+              <div className="text-xl font-bold text-foreground">{value}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Account actions */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="glass rounded-2xl p-6 border border-white/8 space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Account</h2>
+          <button onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors text-red-400 text-sm font-medium">
             <LogOut size={16} />
             Sign Out
           </button>
-        </motion.div>
-
-        {/* Preferences Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8 glass rounded-2xl p-8 border border-white/8"
-        >
-          <h3 className="text-xl font-bold text-foreground mb-6">Preferences</h3>
-
-          <div className="space-y-4">
-            {/* Email Notifications */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-white/3 border border-white/8">
-              <div>
-                <div className="font-medium text-foreground">Email Notifications</div>
-                <p className="text-sm text-muted-foreground">Receive updates about your learning progress</p>
-              </div>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.emailNotifications}
-                  onChange={(e) =>
-                    setPreferences({ ...preferences, emailNotifications: e.target.checked })
-                  }
-                  className="w-5 h-5 rounded"
-                />
-              </label>
-            </div>
-
-            {/* Dark Mode */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-white/3 border border-white/8">
-              <div>
-                <div className="font-medium text-foreground">Dark Mode</div>
-                <p className="text-sm text-muted-foreground">Use dark theme for the interface</p>
-              </div>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.darkMode}
-                  onChange={(e) =>
-                    setPreferences({ ...preferences, darkMode: e.target.checked })
-                  }
-                  className="w-5 h-5 rounded"
-                />
-              </label>
-            </div>
-
-            {/* Public Profile */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-white/3 border border-white/8">
-              <div>
-                <div className="font-medium text-foreground">Public Profile</div>
-                <p className="text-sm text-muted-foreground">Allow others to view your learning stats</p>
-              </div>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.publicProfile}
-                  onChange={(e) =>
-                    setPreferences({ ...preferences, publicProfile: e.target.checked })
-                  }
-                  className="w-5 h-5 rounded"
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <button
-            onClick={handleSavePreferences}
-            disabled={isSaving}
-            className="mt-6 flex items-center gap-2 px-6 py-3 rounded-lg bg-[oklch(0.75_0.18_55)] text-black font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
-          >
-            <Save size={16} />
-            {isSaving ? "Saving..." : "Save Preferences"}
-          </button>
-        </motion.div>
-
-        {/* Data & Privacy Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass rounded-2xl p-8 border border-white/8"
-        >
-          <h3 className="text-xl font-bold text-foreground mb-6">Data & Privacy</h3>
-
-          <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-white/3 border border-white/8">
-              <div className="font-medium text-foreground mb-2">Your Data</div>
-              <p className="text-sm text-muted-foreground mb-3">
-                All your learning progress, preferences, and achievements are stored securely in our database and associated with your account.
-              </p>
-              <button className="text-sm text-[oklch(0.75_0.18_55)] hover:underline font-medium">
-                Download Your Data
-              </button>
-            </div>
-
-            <div className="p-4 rounded-lg bg-white/3 border border-white/8">
-              <div className="font-medium text-foreground mb-2">Privacy</div>
-              <p className="text-sm text-muted-foreground">
-                We respect your privacy. Your data is never shared with third parties without your consent.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
-              <div className="font-medium text-red-400 mb-2">Danger Zone</div>
-              <p className="text-sm text-red-300/80 mb-3">
-                Permanently delete your account and all associated data.
-              </p>
-              <button className="text-sm px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 transition-colors font-medium">
-                Delete Account
-              </button>
-            </div>
-          </div>
         </motion.div>
       </div>
     </PageWrapper>

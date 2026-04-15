@@ -558,7 +558,7 @@ export default function Home() {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h2 className="text-xl font-bold text-foreground">Personalize your experience</h2>
-                  <p className="text-sm text-muted-foreground mt-1">3 quick questions to tailor Nexus for you. Earn 50 XP.</p>
+                  <p className="text-sm text-muted-foreground mt-1">4 quick questions to tailor Nexus for you. Earn 50 XP.</p>
                 </div>
                 <button onClick={() => { setShowQuiz(false); setQuizDone(true); }} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground"><X size={18} /></button>
               </div>

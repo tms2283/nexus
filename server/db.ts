@@ -754,6 +754,30 @@ export async function getPsychProfile(userId: number) {
   return rows[0] ?? null;
 }
 
+export async function updatePsychProfileActivity(
+  userId: number,
+  update: { newTopics?: string[]; newLearnStyle?: string }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getPsychProfile(userId);
+  if (!existing) return; // no profile yet — onboarding hasn't completed
+
+  const currentInterests: string[] = Array.isArray(existing.inferredInterests)
+    ? (existing.inferredInterests as string[])
+    : [];
+
+  const merged = update.newTopics
+    ? Array.from(new Set([...currentInterests, ...update.newTopics])).slice(0, 40)
+    : currentInterests;
+
+  await db.update(userPsychProfiles).set({
+    inferredInterests: merged,
+    ...(update.newLearnStyle ? { inferredLearnStyle: update.newLearnStyle } : {}),
+    updatedAt: new Date(),
+  }).where(eq(userPsychProfiles.userId, userId));
+}
+
 export async function upsertGoogleUser(googleId: string, data: {
   email: string;
   name: string;
