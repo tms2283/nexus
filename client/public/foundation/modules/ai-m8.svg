@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#0b1320" rx="32" />
+  <rect x="30" y="30" width="1140" height="660" rx="28" fill="#10243d" />
+  <text x="72" y="120" fill="#f2b94b" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif" letter-spacing="3">AI LITERACY</text>
+  <text x="72" y="210" fill="#f5f1e8" font-size="42" font-family="Georgia, 'Times New Roman', serif">Module 8 - Becoming an</text><text x="72" y="258" fill="#f5f1e8" font-size="42" font-family="Georgia, 'Times New Roman', serif">AI-Native Thinker</text>
+  <text x="72" y="340" fill="#f5f1e8" fill-opacity="0.82" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Synthesize the course into a long-term posture that preserves agency while using powerful tools.</text>
+  <g transform="translate(72,420)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Build a mature posture toward AI rather than hype or fear.</text></g><g transform="translate(72,498)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Turn verification into a durable habit.</text></g><g transform="translate(72,576)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Design repeatable AI workflows you would trust in real life.</text></g>
+  <rect x="760" y="120" width="330" height="440" rx="24" fill="#ffffff" fill-opacity="0.08" stroke="#7ad1ff" stroke-opacity="0.4" />
+  <text x="792" y="180" fill="#7ad1ff" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Signature</text>
+  <text x="792" y="240" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Decision framework builder</text><text x="792" y="290" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Final AI trust checklist</text><text x="792" y="340" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Workflow stress test</text>
+  <text x="792" y="430" fill="#f2b94b" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Capstone</text>
+  <text x="792" y="480" fill="#f5f1e8" font-size="21" font-family="'Trebuchet MS', Arial, sans-serif">Redesign one AI-assisted workflow into a wiser version you would actually trust and defend.</text>
+</svg>

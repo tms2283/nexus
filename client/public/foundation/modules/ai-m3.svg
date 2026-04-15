@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#0b1320" rx="32" />
+  <rect x="30" y="30" width="1140" height="660" rx="28" fill="#10243d" />
+  <text x="72" y="120" fill="#f2b94b" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif" letter-spacing="3">AI LITERACY</text>
+  <text x="72" y="210" fill="#f5f1e8" font-size="42" font-family="Georgia, 'Times New Roman', serif">Module 3 - Generative AI and</text><text x="72" y="258" fill="#f5f1e8" font-size="42" font-family="Georgia, 'Times New Roman', serif">the New Tool Landscape</text>
+  <text x="72" y="340" fill="#f5f1e8" fill-opacity="0.82" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Help learners choose the right AI tool and understand what generative systems are actually good at.</text>
+  <g transform="translate(72,420)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Differentiate search, chat, and generation.</text></g><g transform="translate(72,498)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Recognize major AI product categories.</text></g><g transform="translate(72,576)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Match the right type of AI help to the right kind of task.</text></g>
+  <rect x="760" y="120" width="330" height="440" rx="24" fill="#ffffff" fill-opacity="0.08" stroke="#7ad1ff" stroke-opacity="0.4" />
+  <text x="792" y="180" fill="#7ad1ff" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Signature</text>
+  <text x="792" y="240" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Choose the right tool</text><text x="792" y="290" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Search vs chat vs generate challenge</text>
+  <text x="792" y="430" fill="#f2b94b" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Capstone</text>
+  <text x="792" y="480" fill="#f5f1e8" font-size="21" font-family="'Trebuchet MS', Arial, sans-serif">Map 10 realistic tasks to the best AI tool type and defend your reasoning.</text>
+</svg>

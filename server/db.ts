@@ -21,8 +21,48 @@ import {
   MindMapNode, userPsychProfiles, User,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { foundationTrack } from "../shared/foundationCurriculum";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+
+function normalizeStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
+  if (typeof value === "string") {
+    try {
+      return normalizeStringArray(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizeStringRecord(value: unknown): Record<string, string> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, typeof entry === "string" ? entry : String(entry)])
+    );
+  }
+  if (typeof value === "string") {
+    try {
+      return normalizeStringRecord(JSON.parse(value));
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+function normalizeVisitorProfile(profile: VisitorProfile): VisitorProfile {
+  return {
+    ...profile,
+    pagesVisited: normalizeStringArray(profile.pagesVisited),
+    interests: normalizeStringArray(profile.interests),
+    preferredTopics: normalizeStringArray(profile.preferredTopics),
+    badges: normalizeStringArray(profile.badges),
+    quizResults: normalizeStringRecord(profile.quizResults),
+  };
+}
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -69,16 +109,28 @@ export async function getOrCreateVisitorProfile(cookieId: string): Promise<Visit
   const db = await getDb();
   if (!db) return null;
   const existing = await db.select().from(visitorProfiles).where(eq(visitorProfiles.cookieId, cookieId)).limit(1);
-  if (existing.length > 0) return existing[0];
+  if (existing.length > 0) return normalizeVisitorProfile(existing[0]);
   await db.insert(visitorProfiles).values({ cookieId });
   const created = await db.select().from(visitorProfiles).where(eq(visitorProfiles.cookieId, cookieId)).limit(1);
-  return created[0] ?? null;
+  return created[0] ? normalizeVisitorProfile(created[0]) : null;
 }
 
 export async function updateVisitorProfile(cookieId: string, updates: Partial<InsertVisitorProfile>): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.update(visitorProfiles).set({ ...updates, updatedAt: new Date() }).where(eq(visitorProfiles.cookieId, cookieId));
+}
+
+export async function ensureVisitorBadge(cookieId: string, badge: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const profile = await getOrCreateVisitorProfile(cookieId);
+  if (!profile) return false;
+  const badges = profile.badges ?? [];
+  if (badges.includes(badge)) return false;
+  badges.push(badge);
+  await db.update(visitorProfiles).set({ badges, updatedAt: new Date() }).where(eq(visitorProfiles.cookieId, cookieId));
+  return true;
 }
 
 export async function recordPageVisit(cookieId: string, page: string): Promise<{ xp: number; level: number; streak: number; newBadges: string[] }> {
@@ -483,7 +535,22 @@ export async function saveLesson(data: InsertLesson): Promise<Lesson | null> {
   if (!db) return null;
   const result = await db.insert(lessons).values(data);
   const id = (result as any).insertId;
-  return getLessonById(id);
+  if (id) {
+    return getLessonById(id);
+  }
+
+  // Some MySQL drivers do not surface insertId consistently through Drizzle.
+  // Fall back to the latest matching lesson record so creation paths stay reliable.
+  const rows = await db.select().from(lessons)
+    .where(and(
+      eq(lessons.cookieId, data.cookieId),
+      eq(lessons.curriculumId, data.curriculumId),
+      eq(lessons.title, data.title),
+      eq(lessons.order, data.order ?? 0),
+    ))
+    .orderBy(desc(lessons.createdAt))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getLessonById(id: number): Promise<Lesson | null> {
@@ -772,6 +839,69 @@ export async function getCurriculumProgress(cookieId: string, curriculumId: stri
   if (!db) return null;
   const result = await db.select().from(curriculumProgress).where(and(eq(curriculumProgress.cookieId, cookieId), eq(curriculumProgress.curriculumId, curriculumId))).limit(1);
   return result[0] || null;
+}
+
+export async function getFoundationProgress(cookieId: string): Promise<{
+  totalLessons: number;
+  startedLessons: number;
+  completedLessons: number;
+  badgeUnlocked: boolean;
+  courseProgress: Array<{ courseId: string; title: string; totalLessons: number; startedLessons: number; completedLessons: number }>;
+  completedLessonKeys: string[];
+}> {
+  const db = await getDb();
+  const totalLessons = foundationTrack.courses.reduce(
+    (sum, course) => sum + course.modules.reduce((moduleSum, module) => moduleSum + module.lessons.length, 0),
+    0
+  );
+
+  const courseProgress = foundationTrack.courses.map((course) => ({
+    courseId: course.id,
+    title: course.title,
+    totalLessons: course.modules.reduce((sum, module) => sum + module.lessons.length, 0),
+    startedLessons: 0,
+    completedLessons: 0,
+  }));
+
+  if (!db) {
+    return { totalLessons, startedLessons: 0, completedLessons: 0, badgeUnlocked: false, courseProgress, completedLessonKeys: [] };
+  }
+
+  const rows = await db.select().from(lessons).where(and(eq(lessons.cookieId, cookieId), sql`${lessons.curriculumId} LIKE 'foundation-%'`));
+  const lessonKeyRows = rows
+    .map((row) => {
+      const relatedTopics = normalizeStringArray(row.relatedTopics);
+      const related = relatedTopics.find((item) => item.startsWith("foundation-key:"));
+      const courseId = row.curriculumId?.split("-").slice(1, 3).join("-") ?? "";
+      return {
+        key: related?.replace("foundation-key:", "") ?? "",
+        courseId,
+        completed: !!row.completed,
+      };
+    })
+    .filter((row) => row.key);
+
+  const uniqueStarted = new Set(lessonKeyRows.map((row) => row.key));
+  const uniqueCompleted = new Set(lessonKeyRows.filter((row) => row.completed).map((row) => row.key));
+
+  for (const course of courseProgress) {
+    course.startedLessons = new Set(lessonKeyRows.filter((row) => row.courseId === course.courseId).map((row) => row.key)).size;
+    course.completedLessons = new Set(
+      lessonKeyRows.filter((row) => row.courseId === course.courseId && row.completed).map((row) => row.key)
+    ).size;
+  }
+
+  const profile = await getOrCreateVisitorProfile(cookieId);
+  const badgeUnlocked = (profile?.badges ?? []).includes("foundation-thinker") || uniqueCompleted.size >= totalLessons;
+
+  return {
+    totalLessons,
+    startedLessons: uniqueStarted.size,
+    completedLessons: uniqueCompleted.size,
+    badgeUnlocked,
+    courseProgress,
+    completedLessonKeys: Array.from(uniqueCompleted),
+  };
 }
 
 // ─── Auth DB helpers ──────────────────────────────────────────────────────────

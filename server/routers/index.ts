@@ -11,6 +11,7 @@ import { labRouter } from "./lab";
 import { libraryRouter } from "./library";
 import { testingRouter } from "./testing";
 import { lessonRouter } from "./lesson";
+import { foundationRouter } from "./foundation";
 import { leaderboardRouter, dashboardRouter } from "./dashboard";
 import { contactRouter, codexRouter, aiProviderRouter, dailyRouter } from "./misc";
 import { skillsRouter } from "./skills";
@@ -27,6 +28,7 @@ export const appRouter = router({
   library: libraryRouter,
   testing: testingRouter,
   lesson: lessonRouter,
+  foundation: foundationRouter,
   leaderboard: leaderboardRouter,
   dashboard: dashboardRouter,
   contact: contactRouter,

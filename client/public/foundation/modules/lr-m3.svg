@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#171320" rx="32" />
+  <rect x="30" y="30" width="1140" height="660" rx="28" fill="#24303d" />
+  <text x="72" y="120" fill="#9be07c" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif" letter-spacing="3">LOGIC &amp; REASON</text>
+  <text x="72" y="210" fill="#f4efe5" font-size="42" font-family="Georgia, 'Times New Roman', serif">Module 3 - Understanding</text><text x="72" y="258" fill="#f4efe5" font-size="42" font-family="Georgia, 'Times New Roman', serif">Arguments Properly</text>
+  <text x="72" y="340" fill="#f4efe5" fill-opacity="0.82" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Strengthen analysis before evaluation so learners stop attacking messy impressions and start working with structure.</text>
+  <g transform="translate(72,420)"><circle cx="12" cy="12" r="12" fill="#9be07c" fill-opacity="0.9" /><text x="38" y="20" fill="#f4efe5" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Standardize arguments more clearly.</text></g><g transform="translate(72,498)"><circle cx="12" cy="12" r="12" fill="#9be07c" fill-opacity="0.9" /><text x="38" y="20" fill="#f4efe5" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Find hidden assumptions.</text></g><g transform="translate(72,576)"><circle cx="12" cy="12" r="12" fill="#9be07c" fill-opacity="0.9" /><text x="38" y="20" fill="#f4efe5" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Separate explanation from argument.</text></g>
+  <rect x="760" y="120" width="330" height="440" rx="24" fill="#ffffff" fill-opacity="0.08" stroke="#f5c26b" stroke-opacity="0.4" />
+  <text x="792" y="180" fill="#f5c26b" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Signature</text>
+  <text x="792" y="240" fill="#f4efe5" font-size="24" font-family="Georgia, 'Times New Roman', serif">Argument map builder</text><text x="792" y="290" fill="#f4efe5" font-size="24" font-family="Georgia, 'Times New Roman', serif">Missing-premise challenge</text>
+  <text x="792" y="430" fill="#9be07c" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Capstone</text>
+  <text x="792" y="480" fill="#f4efe5" font-size="21" font-family="'Trebuchet MS', Arial, sans-serif">Repair one weak argument into its strongest fair version.</text>
+</svg>

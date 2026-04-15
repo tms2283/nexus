@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1320" />
+      <stop offset="100%" stop-color="#10243d" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)" rx="40" />
+  <circle cx="1280" cy="180" r="220" fill="#f2b94b" fill-opacity="0.12" />
+  <circle cx="1420" cy="720" r="180" fill="#7ad1ff" fill-opacity="0.14" />
+  <rect x="82" y="82" width="1436" height="736" rx="32" fill="#ffffff" fill-opacity="0.035" stroke="#ffffff" stroke-opacity="0.1" />
+  <text x="110" y="170" fill="#f2b94b" font-size="30" font-family="'Trebuchet MS', Arial, sans-serif" letter-spacing="4">AI LITERACY</text>
+  <text x="110" y="255" fill="#f5f1e8" font-size="54" font-family="Georgia, 'Times New Roman', serif">AI Clarity: Understand,</text><text x="110" y="315" fill="#f5f1e8" font-size="54" font-family="Georgia, 'Times New Roman', serif">Use, and Judge</text><text x="110" y="375" fill="#f5f1e8" font-size="54" font-family="Georgia, 'Times New Roman', serif">Artificial Intelligence</text>
+  <text x="110" y="430" fill="#f5f1e8" fill-opacity="0.82" font-size="30" font-family="'Trebuchet MS', Arial, sans-serif">Use AI powerfully without surrendering judgment</text>
+  <text x="110" y="505" fill="#f5f1e8" fill-opacity="0.72" font-size="25" font-family="'Trebuchet MS', Arial, sans-serif">A practical AI literacy course for non-specialists who need better instincts for how AI works, where it fails, and how to use it responsibly.</text>
+  <g transform="translate(110,620)"><rect width="210" height="92" rx="18" fill="#ffffff" fill-opacity="0.06" stroke="#f2b94b" stroke-opacity="0.35" /><text x="18" y="53" fill="#f5f1e8" font-size="28" font-family="'Trebuchet MS', Arial, sans-serif">signal</text></g><g transform="translate(360,620)"><rect width="210" height="92" rx="18" fill="#ffffff" fill-opacity="0.06" stroke="#f2b94b" stroke-opacity="0.35" /><text x="18" y="53" fill="#f5f1e8" font-size="28" font-family="'Trebuchet MS', Arial, sans-serif">systems</text></g><g transform="translate(610,620)"><rect width="210" height="92" rx="18" fill="#ffffff" fill-opacity="0.06" stroke="#f2b94b" stroke-opacity="0.35" /><text x="18" y="53" fill="#f5f1e8" font-size="28" font-family="'Trebuchet MS', Arial, sans-serif">patterns</text></g><g transform="translate(860,620)"><rect width="210" height="92" rx="18" fill="#ffffff" fill-opacity="0.06" stroke="#f2b94b" stroke-opacity="0.35" /><text x="18" y="53" fill="#f5f1e8" font-size="28" font-family="'Trebuchet MS', Arial, sans-serif">tools</text></g>
+  <text x="110" y="785" fill="#f5f1e8" fill-opacity="0.72" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Practical trust calibration instead of hype or fear.</text>
+</svg>

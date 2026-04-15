@@ -37,6 +37,8 @@ interface SocraticMessage {
   content: string;
 }
 
+type FoundationCourseId = "ai-clarity" | "reason-well";
+
 // ─── Curriculum Generator ─────────────────────────────────────────────────────
 function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
   const [, setLocation] = useLocation();
@@ -507,6 +509,246 @@ function SocraticTutor() {
   );
 }
 
+function FoundationTrackTab() {
+  const [, setLocation] = useLocation();
+  const { cookieId } = usePersonalization();
+  const [activeCourseId, setActiveCourseId] = useState<FoundationCourseId>("ai-clarity");
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
+  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+
+  const foundationTrackQuery = trpc.foundation.getTrack.useQuery();
+  const foundationProgressQuery = trpc.foundation.getProgress.useQuery(
+    { cookieId: cookieId || "" },
+    { enabled: !!cookieId }
+  );
+  const createTemplateLesson = trpc.foundation.createTemplateLesson.useMutation();
+
+  const track = foundationTrackQuery.data;
+  const activeCourse = track?.courses.find((course) => course.id === activeCourseId);
+  const activeCourseProgress = foundationProgressQuery.data?.courseProgress.find((course) => course.courseId === activeCourseId);
+
+  const handleStartLesson = async (moduleId: string, lessonId: string) => {
+    if (!cookieId) {
+      toast.error("Missing session cookie. Refresh and try again.");
+      return;
+    }
+    try {
+      const result = await createTemplateLesson.mutateAsync({
+        cookieId,
+        courseId: activeCourseId,
+        moduleId,
+        lessonId,
+      });
+      toast.success(result.created ? "Foundation lesson ready." : "Opening your existing foundation lesson.");
+      setLocation(`/lesson/${result.lessonId}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to open lesson.";
+      toast.error(message);
+    }
+  };
+
+  if (foundationTrackQuery.isLoading) {
+    return (
+      <div className="glass rounded-2xl p-6 border border-white/8 text-sm text-muted-foreground inline-flex items-center gap-2">
+        <Loader2 size={14} className="animate-spin" /> Loading foundation curriculum...
+      </div>
+    );
+  }
+
+  if (!track || !activeCourse) {
+    return (
+      <div className="glass rounded-2xl p-6 border border-red-500/30 text-sm text-red-300">
+        Foundation curriculum is unavailable right now.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.25)]">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.16)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.35)]">
+            {track.label}
+          </span>
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-muted-foreground">
+            Reward: {track.completionReward}
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">{track.positioning}</p>
+        {foundationProgressQuery.data && (
+          <div className="mb-4 rounded-xl border border-white/10 bg-white/4 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div>
+                <div className="text-sm font-semibold text-foreground">Foundation Progress</div>
+                <div className="text-xs text-muted-foreground">
+                  {foundationProgressQuery.data.completedLessons}/{foundationProgressQuery.data.totalLessons} lessons completed
+                </div>
+              </div>
+              <div className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                foundationProgressQuery.data.badgeUnlocked
+                  ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.35)] text-[oklch(0.82_0.18_150)]"
+                  : "bg-white/5 border-white/10 text-muted-foreground"
+              }`}>
+                {foundationProgressQuery.data.badgeUnlocked ? "Foundation Thinker unlocked" : "Reward locked"}
+              </div>
+            </div>
+            <div className="w-full h-2 rounded-full bg-white/8 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)]"
+                style={{ width: `${Math.round((foundationProgressQuery.data.completedLessons / foundationProgressQuery.data.totalLessons) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {track.differentiation.map((item) => (
+            <div key={item} className="text-xs text-muted-foreground border border-white/10 rounded-lg p-3 bg-white/3">
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        {track.courses.map((course) => (
+          <button
+            key={course.id}
+            onClick={() => {
+              setActiveCourseId(course.id as FoundationCourseId);
+              setExpandedModuleId(null);
+              setExpandedLessonId(null);
+            }}
+            className={`flex-1 rounded-xl border px-4 py-3 text-left transition-all ${
+              activeCourseId === course.id
+                ? "bg-[oklch(0.65_0.22_200_/_0.18)] border-[oklch(0.65_0.22_200_/_0.4)]"
+                : "glass border-white/10 hover:border-white/20"
+            }`}
+          >
+            <div className="text-xs text-muted-foreground mb-1">{course.badge}</div>
+            <div className="text-sm font-semibold text-foreground">{course.title}</div>
+            <div className="text-xs text-muted-foreground mt-1">{course.modules.length} modules • {course.totalHours}h</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="glass rounded-2xl p-6 border border-white/8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">{activeCourse.subtitle}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{activeCourse.description}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+              {activeCourse.outcomes.map((outcome) => (
+                <div key={outcome} className="text-xs text-muted-foreground border border-white/10 rounded-lg p-2.5 bg-white/3">
+                  {outcome}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {activeCourse.differentiationEdge.map((item) => (
+                <span key={item} className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+            <img src={activeCourse.posterPath} alt={activeCourse.title} className="w-full h-full object-cover" />
+          </div>
+        </div>
+        {activeCourseProgress && (
+          <div className="mb-5 rounded-xl border border-white/10 bg-white/4 p-4">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="text-sm font-semibold text-foreground">{activeCourse.title} progress</div>
+              <div className="text-xs text-muted-foreground">
+                {activeCourseProgress.completedLessons}/{activeCourseProgress.totalLessons} completed
+              </div>
+            </div>
+            <div className="w-full h-2 rounded-full bg-white/8 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)]"
+                style={{ width: `${Math.round((activeCourseProgress.completedLessons / activeCourseProgress.totalLessons) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {activeCourse.modules.map((module) => {
+            const expanded = expandedModuleId === module.id;
+            return (
+              <div key={module.id} className="rounded-xl border border-white/10 bg-white/3 overflow-hidden">
+                <button
+                  onClick={() => setExpandedModuleId(expanded ? null : module.id)}
+                  className="w-full text-left px-4 py-3 flex items-start justify-between gap-4 hover:bg-white/5"
+                >
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{module.title}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{module.purpose}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{module.lessons.length} lessons • {module.estimatedMinutes} min</div>
+                  </div>
+                  <ChevronDown size={14} className={`mt-1 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
+                </button>
+                {expanded && (
+                  <div className="px-4 pb-4 space-y-2 border-t border-white/10 pt-3">
+                    <div className="rounded-xl overflow-hidden border border-white/10 bg-white/4 mb-3">
+                      <img src={module.modulePosterPath} alt={module.title} className="w-full h-auto" />
+                    </div>
+                    {module.lessons.map((lesson) => {
+                      const lessonExpanded = expandedLessonId === lesson.id;
+                      return (
+                        <div key={lesson.id} className="rounded-lg border border-white/10 bg-white/4">
+                          <button
+                            onClick={() => setExpandedLessonId(lessonExpanded ? null : lesson.id)}
+                            className="w-full text-left px-3 py-2.5 flex items-center justify-between gap-3"
+                          >
+                            <div>
+                              <div className="text-sm text-foreground">{lesson.title}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">{lesson.durationMinutes} min • Hook/Explain/Visualize/Check/Apply/Reflect</div>
+                            </div>
+                            <ChevronDown size={12} className={`text-muted-foreground transition-transform ${lessonExpanded ? "rotate-180" : ""}`} />
+                          </button>
+                          {lessonExpanded && (
+                            <div className="px-3 pb-3 pt-1 border-t border-white/10">
+                              <div className="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-3 items-start mb-3">
+                                <div className="rounded-lg overflow-hidden border border-white/10 bg-white/4">
+                                  <img src={lesson.posterPath} alt={lesson.title} className="w-full h-auto" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-2">{lesson.scenario}</p>
+                                  <div className="text-[11px] text-muted-foreground mb-2">
+                                    Retrieval: {lesson.checkpoint.question}
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground mb-2">
+                                    Common trap: {lesson.misconceptions[0]}
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    Why this is different: {lesson.whyThisWins}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleStartLesson(module.id, lesson.id)}
+                                disabled={createTemplateLesson.isPending}
+                                className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[oklch(0.75_0.18_55)] text-black disabled:opacity-60"
+                              >
+                                {createTemplateLesson.isPending ? "Preparing..." : "Start Lesson"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Paths Tab Component ────────────────────────────────────────────
 function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
   const [search, setSearch] = useState("");
@@ -615,13 +857,14 @@ const featuredPaths = [
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Learn() {
-  const [activeTab, setActiveTab] = useState<"curriculum" | "socratic" | "paths">("curriculum");
+  const [activeTab, setActiveTab] = useState<"foundation" | "curriculum" | "socratic" | "paths">("foundation");
   const [prefillGoal, setPrefillGoal] = useState("");
   const handleSelectPath = (pathTitle: string) => {
     setPrefillGoal(`I want to learn: ${pathTitle}`);
     setActiveTab("curriculum");
   };
   const tabs = [
+    { id: "foundation" as const, label: "Nexus Foundation", icon: BookOpen, desc: "AI Literacy + Logic & Reason" },
     { id: "curriculum" as const, label: "AI Curriculum", icon: Target, desc: "Build your personalized path" },
     { id: "socratic" as const, label: "Socratic Mode", icon: MessageSquare, desc: "Learn by questioning" },
     { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated starting points" },
@@ -709,6 +952,7 @@ export default function Learn() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
+                {activeTab === "foundation" && <FoundationTrackTab />}
                 {activeTab === "curriculum" && <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />}
                 {activeTab === "socratic" && <SocraticTutor />}
                 {activeTab === "paths" && <PathsTab onSelectPath={handleSelectPath} />}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#0b1320" rx="28" />
+  <rect x="28" y="28" width="1144" height="664" rx="24" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.1" />
+  <text x="60" y="92" fill="#f2b94b" font-size="20" font-family="'Trebuchet MS', Arial, sans-serif" letter-spacing="3">AI LITERACY</text>
+  <text x="60" y="160" fill="#f5f1e8" font-size="40" font-family="Georgia, 'Times New Roman', serif">The danger of overtrust</text>
+  <text x="60" y="286" fill="#f5f1e8" fill-opacity="0.84" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">A manager forwards AI analysis into a decision process without checking the chain of reasoning because the output looks ready to use.</text>
+  <rect x="60" y="340" width="500" height="270" rx="18" fill="#ffffff" fill-opacity="0.05" stroke="#f2b94b" stroke-opacity="0.28" />
+  <text x="84" y="385" fill="#f2b94b" font-size="20" font-family="'Trebuchet MS', Arial, sans-serif">Visual Model</text>
+  <text x="84" y="438" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Start with the concrete case: A manager forwards AI analysis into a decision process without checking the chain of reasoning because the output looks ready to use.</text><text x="84" y="494" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Name the hidden structure: Trust calibration curve from undertrust to calibrated trust to overtrust.</text><text x="84" y="550" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Watch for the trap: Using convenience as a substitute for judgment.</text><text x="84" y="606" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Transfer the habit immediately: Write a team norm for when AI outputs require explicit review before action.</text>
+  <rect x="620" y="120" width="520" height="490" rx="24" fill="#7ad1ff" fill-opacity="0.08" stroke="#7ad1ff" stroke-opacity="0.28" />
+  <text x="652" y="172" fill="#7ad1ff" font-size="20" font-family="'Trebuchet MS', Arial, sans-serif">Practice Edge</text>
+  <text x="652" y="235" fill="#f5f1e8" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Unlike broad intro courses, this lesson turns the danger of overtrust into a practical operating skill through a real scenario, a visual model, a retrieval gate, and a transfer task built around AI trust calibration, real-world workflows, and verification discipline.</text>
+  <text x="652" y="338" fill="#f2b94b" font-size="20" font-family="'Trebuchet MS', Arial, sans-serif">Most Common Trap</text>
+  <text x="652" y="395" fill="#f5f1e8" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Using convenience as a substitute for judgment.</text>
+  <text x="652" y="500" fill="#f2b94b" font-size="20" font-family="'Trebuchet MS', Arial, sans-serif">Transfer Challenge</text>
+  <text x="652" y="560" fill="#f5f1e8" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Write a team norm for when AI outputs require explicit review before action.
+
+The goal is not to memorize the idea, but to build a repeatable habit for AI-assisted work. Ask the learner to produce a concrete artifact, not just an opinion.</text>
+</svg>

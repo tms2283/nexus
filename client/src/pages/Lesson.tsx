@@ -55,10 +55,20 @@ const SECTION_BADGES: Record<string, { label: string; border: string; badge: str
     border: "border-l-[oklch(0.78_0.16_30)]",
     badge: "bg-[oklch(0.78_0.16_30_/_0.18)] text-[oklch(0.84_0.16_30)]",
   },
+  check: {
+    label: "Check",
+    border: "border-l-[oklch(0.65_0.22_200)]",
+    badge: "bg-[oklch(0.65_0.22_200_/_0.18)] text-[oklch(0.75_0.22_200)]",
+  },
   recap: {
     label: "Recap",
     border: "border-l-[oklch(0.75_0.18_55)]",
     badge: "bg-[oklch(0.75_0.18_55_/_0.18)] text-[oklch(0.85_0.18_55)]",
+  },
+  reflect: {
+    label: "Reflect",
+    border: "border-l-[oklch(0.72_0.18_150)]",
+    badge: "bg-[oklch(0.72_0.18_150_/_0.18)] text-[oklch(0.82_0.18_150)]",
   },
 };
 
@@ -154,6 +164,9 @@ export default function LessonPage() {
     onSuccess: (data) => {
       addXP(50);
       toast.success("Lesson completed. Flashcards scheduled.");
+      if (data.unlockedFoundationBadge) {
+        toast.success("Foundation Thinker badge unlocked.");
+      }
       if (data.synthesis) {
         toast.message("Personalized synthesis generated.");
       }
@@ -165,10 +178,31 @@ export default function LessonPage() {
   const lesson = (lessonBundleQuery.data?.lesson ?? fallbackLessonQuery.data) as any;
   const sections = (lessonBundleQuery.data?.sections ?? []) as any[];
   const completions = (lessonBundleQuery.data?.completions ?? []) as any[];
+  const blueprint = lessonBundleQuery.data?.blueprint?.blueprintJson as
+    | {
+        flashcardSeeds?: Array<{ front: string; back: string }>;
+        sections?: Array<{ id: string; title: string; estimatedMinutes?: number }>;
+        totalEstimatedMinutes?: number;
+      }
+    | undefined;
 
   const completedSectionIds = useMemo(() => new Set(completions.map((c) => c.sectionId)), [completions]);
-  const completionPct = sections.length > 0
-    ? Math.round((completedSectionIds.size / sections.length) * 100)
+  const checkpointSections = useMemo(
+    () => sections.filter((section) => Boolean(section.retrievalQuestion && String(section.retrievalQuestion).trim())),
+    [sections]
+  );
+  const flashcardSeeds = useMemo(() => blueprint?.flashcardSeeds?.slice(0, 4) ?? [], [blueprint]);
+  const lessonFlow = useMemo(
+    () =>
+      blueprint?.sections?.map((section, index) => ({
+        id: section.id ?? `flow-${index}`,
+        title: section.title ?? `Step ${index + 1}`,
+        estimatedMinutes: section.estimatedMinutes ?? 0,
+      })) ?? [],
+    [blueprint]
+  );
+  const completionPct = checkpointSections.length > 0
+    ? Math.round((completedSectionIds.size / checkpointSections.length) * 100)
     : lesson?.completed ? 100 : 0;
 
   useEffect(() => {
@@ -319,7 +353,7 @@ export default function LessonPage() {
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-5">
               <span className="inline-flex items-center gap-1.5"><Clock size={14} /> {lesson.estimatedMinutes || 20} min</span>
               <span className="inline-flex items-center gap-1.5"><BookOpen size={14} /> {lesson.difficulty || "intermediate"}</span>
-              <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={14} /> {completedSectionIds.size}/{sections.length || 1} checkpoints</span>
+              <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={14} /> {completedSectionIds.size}/{checkpointSections.length || 1} checkpoints</span>
             </div>
 
             <div className="w-full bg-white/6 rounded-full h-2 overflow-hidden">
@@ -439,60 +473,66 @@ export default function LessonPage() {
                       <Streamdown>{section.content}</Streamdown>
                     </div>
 
-                    <div className="rounded-xl border border-[oklch(0.65_0.22_200_/_0.3)] bg-[oklch(0.65_0.22_200_/_0.08)] p-4">
-                      <div className="text-xs uppercase tracking-wider text-[oklch(0.75_0.22_200)] mb-2">Retrieval Checkpoint</div>
-                      <p className="text-sm text-foreground mb-3">{section.retrievalQuestion}</p>
+                    {section.retrievalQuestion ? (
+                      <div className="rounded-xl border border-[oklch(0.65_0.22_200_/_0.3)] bg-[oklch(0.65_0.22_200_/_0.08)] p-4">
+                        <div className="text-xs uppercase tracking-wider text-[oklch(0.75_0.22_200)] mb-2">Retrieval Checkpoint</div>
+                        <p className="text-sm text-foreground mb-3">{section.retrievalQuestion}</p>
 
-                      {options.length > 0 ? (
-                        <div className="space-y-2 mb-3">
-                          {options.map((opt: string) => (
-                            <label key={opt} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <input
-                                type="radio"
-                                name={`q-${section.id}`}
-                                checked={currentAnswer === opt}
-                                onChange={() => setAnswers((prev) => ({ ...prev, [section.id]: opt }))}
-                                className="mt-1"
-                              />
-                              <span>{opt}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ) : (
-                        <textarea
-                          value={currentAnswer}
-                          onChange={(e) => setAnswers((prev) => ({ ...prev, [section.id]: e.target.value }))}
-                          placeholder="Type your answer"
-                          rows={3}
-                          className="w-full mb-3 bg-white/6 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)]"
-                        />
-                      )}
+                        {options.length > 0 ? (
+                          <div className="space-y-2 mb-3">
+                            {options.map((opt: string) => (
+                              <label key={opt} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <input
+                                  type="radio"
+                                  name={`q-${section.id}`}
+                                  checked={currentAnswer === opt}
+                                  onChange={() => setAnswers((prev) => ({ ...prev, [section.id]: opt }))}
+                                  className="mt-1"
+                                />
+                                <span>{opt}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <textarea
+                            value={currentAnswer}
+                            onChange={(e) => setAnswers((prev) => ({ ...prev, [section.id]: e.target.value }))}
+                            placeholder="Type your answer"
+                            rows={3}
+                            className="w-full mb-3 bg-white/6 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)]"
+                          />
+                        )}
 
-                      <button
-                        disabled={done || !currentAnswer.trim() || submitRetrieval.isPending || !cookieId}
-                        onClick={() => {
-                          if (!cookieId) return;
-                          submitRetrieval.mutate({
-                            lessonId: lesson.id,
-                            sectionId: section.id,
-                            cookieId,
-                            answer: currentAnswer,
-                            questionType: section.questionType || undefined,
-                          });
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[oklch(0.75_0.18_55)] text-black text-sm font-semibold disabled:opacity-50"
-                      >
-                        {submitRetrieval.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                        {done ? "Completed" : "Submit Answer"}
-                      </button>
-                    </div>
+                        <button
+                          disabled={done || !currentAnswer.trim() || submitRetrieval.isPending || !cookieId}
+                          onClick={() => {
+                            if (!cookieId) return;
+                            submitRetrieval.mutate({
+                              lessonId: lesson.id,
+                              sectionId: section.id,
+                              cookieId,
+                              answer: currentAnswer,
+                              questionType: section.questionType || undefined,
+                            });
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[oklch(0.75_0.18_55)] text-black text-sm font-semibold disabled:opacity-50"
+                        >
+                          {submitRetrieval.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                          {done ? "Completed" : "Submit Answer"}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-white/10 bg-white/4 p-4 text-sm text-muted-foreground">
+                        This section is for explanation and transfer. The lesson checkpoint appears in the dedicated Check section.
+                      </div>
+                    )}
                   </article>
                 );
               })}
 
               {!lesson.completed && (
                 <button
-                  disabled={sections.length > 0 && completedSectionIds.size < sections.length}
+                  disabled={checkpointSections.length > 0 && completedSectionIds.size < checkpointSections.length}
                   onClick={() => {
                     if (!cookieId) return;
                     completeLesson.mutate({ lessonId: lesson.id, cookieId });
@@ -505,6 +545,47 @@ export default function LessonPage() {
             </main>
 
             <aside className="space-y-5">
+              {lessonFlow.length > 0 && (
+                <div className="glass rounded-2xl border border-white/8 p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-3 inline-flex items-center gap-2">
+                    <BookOpen size={14} /> Lesson Flow
+                  </h3>
+                  <div className="space-y-2">
+                    {lessonFlow.map((flow, index) => (
+                      <div key={flow.id} className="rounded-lg border border-white/10 bg-white/4 px-3 py-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm text-foreground">{index + 1}. {flow.title}</div>
+                          {flow.estimatedMinutes > 0 && (
+                            <div className="text-[11px] text-muted-foreground">{flow.estimatedMinutes} min</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {blueprint?.totalEstimatedMinutes ? (
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      Total designed runtime: {blueprint.totalEstimatedMinutes} min
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {flashcardSeeds.length > 0 && (
+                <div className="glass rounded-2xl border border-white/8 p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Memory Sparks</h3>
+                  <div className="space-y-3">
+                    {flashcardSeeds.map((card, index) => (
+                      <div key={`${card.front}-${index}`} className="rounded-xl border border-white/10 bg-white/4 p-3">
+                        <div className="text-[11px] uppercase tracking-wider text-[oklch(0.75_0.18_55)] mb-1">Prompt</div>
+                        <div className="text-sm text-foreground mb-2">{card.front}</div>
+                        <div className="text-[11px] uppercase tracking-wider text-[oklch(0.65_0.22_200)] mb-1">Answer</div>
+                        <div className="text-xs text-muted-foreground">{card.back}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="glass rounded-2xl border border-white/8 p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-3 inline-flex items-center gap-2"><MessageSquare size={14} /> AI Tutor</h3>
                 <textarea

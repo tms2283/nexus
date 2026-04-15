@@ -18,8 +18,10 @@ import {
   getStudyStats,
   startCurriculumProgress,
   getCurriculumProgress,
+  getFoundationProgress,
   incrementLessonViewCount,
   getOrCreateVisitorProfile,
+  ensureVisitorBadge,
   saveLessonBlueprint,
   getLessonBlueprintByLessonId,
   replaceLessonSections,
@@ -699,10 +701,17 @@ Question: ${section.retrievalQuestion}
 Reference section content: ${section.content.slice(0, 1800)}
 Learner answer: ${input.answer}
 Return JSON only: {"correct": true|false, "feedback":"one concise sentence"}`;
-        const raw = await callAI(input.cookieId, gradingPrompt, undefined, 500);
-        const parsed = parseJsonFromAI<{ correct?: boolean; feedback?: string }>(raw);
-        correct = parsed?.correct ?? input.answer.trim().length > 40;
-        feedback = parsed?.feedback ?? (correct ? "Good explanation." : "Needs a bit more specificity.");
+        try {
+          const raw = await callAI(input.cookieId, gradingPrompt, undefined, 500);
+          const parsed = parseJsonFromAI<{ correct?: boolean; feedback?: string }>(raw);
+          correct = parsed?.correct ?? input.answer.trim().length > 40;
+          feedback = parsed?.feedback ?? (correct ? "Good explanation." : "Needs a bit more specificity.");
+        } catch {
+          correct = input.answer.trim().length >= 40;
+          feedback = correct
+            ? "Saved. Your answer is detailed enough to count; AI grading was unavailable, so a length-based fallback was used."
+            : "Add a bit more detail so the idea is clear even without AI-assisted grading.";
+        }
       }
 
       await upsertSectionCompletion({
@@ -731,7 +740,8 @@ Return JSON only: {"correct": true|false, "feedback":"one concise sentence"}`;
       ]);
 
       if (!lesson) throw new TRPCError({ code: "NOT_FOUND", message: "Lesson not found." });
-      if (sections.length > 0 && completions.length < sections.length) {
+      const requiredSections = sections.filter((section) => !!section.retrievalQuestion?.trim());
+      if (requiredSections.length > 0 && completions.length < requiredSections.length) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Complete all section checkpoints before finishing this lesson." });
       }
 
@@ -748,7 +758,17 @@ Learner quiz categories: ${JSON.stringify(profile?.quizResults ?? {})}
 Learner XP: ${profile?.xp ?? 0}
 Sections and answers:\n${synthesisInput}`;
 
-      const synthesis = await callAI(input.cookieId, synthesisPrompt, undefined, 1200);
+      const synthesis = await (async () => {
+        try {
+          return await callAI(input.cookieId, synthesisPrompt, undefined, 1200);
+        } catch {
+          return [
+            `${lesson.title} centers on a practical judgment habit rather than a memorized definition. The learner moved through concrete scenarios, structured sections, and at least one retrieval checkpoint, which means the lesson can still close with a durable takeaway even when AI synthesis is unavailable.`,
+            `The strongest next step is to reuse the lesson in a live context: repeat the key move, watch for the core trap, and apply the concept to one real decision this week. The flashcards scheduled from this lesson should reinforce the language and the transfer habit over time.`,
+            `To keep momentum, the learner should revisit the diagram, restate the lesson in plain language, and practice the apply task with a real example from work, media, or AI-assisted problem solving.`,
+          ].join("\n\n");
+        }
+      })();
 
       let flashcardSeeds: Array<{ front: string; back: string }> = [];
       const parsedBlueprint = blueprint?.blueprintJson ? lessonBlueprintSchema.safeParse(blueprint.blueprintJson) : null;
@@ -777,10 +797,10 @@ Sections and answers:\n${synthesisInput}`;
         }
       }
 
-      const recommendationsPrompt = `Return JSON array of 3 lesson ideas related to "${lesson.title}". Format: ["...","...","..."]`;
-      const recRaw = await callAI(input.cookieId, recommendationsPrompt, undefined, 300);
-      const recommendations = (() => {
+      const recommendations = await (async () => {
         try {
+          const recommendationsPrompt = `Return JSON array of 3 lesson ideas related to "${lesson.title}". Format: ["...","...","..."]`;
+          const recRaw = await callAI(input.cookieId, recommendationsPrompt, undefined, 300);
           const arr = JSON.parse(recRaw);
           return Array.isArray(arr) ? arr.slice(0, 3).map((x) => String(x)) : [];
         } catch {
@@ -795,12 +815,21 @@ Sections and answers:\n${synthesisInput}`;
       await markLessonComplete(input.lessonId);
       await addXP(input.cookieId, 50);
 
+      let unlockedFoundationBadge = false;
+      if (lesson.curriculumId?.startsWith("foundation-")) {
+        const foundationProgress = await getFoundationProgress(input.cookieId);
+        if (foundationProgress.completedLessons >= foundationProgress.totalLessons) {
+          unlockedFoundationBadge = await ensureVisitorBadge(input.cookieId, "foundation-thinker");
+        }
+      }
+
       return {
         success: true,
         synthesis,
         recommendations,
         flashcardDeckId,
         flashcardsScheduled: flashcardSeeds.length,
+        unlockedFoundationBadge,
       };
     }),
 

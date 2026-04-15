@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#0b1320" rx="32" />
+  <rect x="30" y="30" width="1140" height="660" rx="28" fill="#10243d" />
+  <text x="72" y="120" fill="#f2b94b" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif" letter-spacing="3">AI LITERACY</text>
+  <text x="72" y="210" fill="#f5f1e8" font-size="42" font-family="Georgia, 'Times New Roman', serif">Module 2 - How AI Works</text><text x="72" y="258" fill="#f5f1e8" font-size="42" font-family="Georgia, 'Times New Roman', serif">Without the Math Overload</text>
+  <text x="72" y="340" fill="#f5f1e8" fill-opacity="0.82" font-size="24" font-family="'Trebuchet MS', Arial, sans-serif">Give non-specialists a conceptual model for modern AI without drowning them in formulas.</text>
+  <g transform="translate(72,420)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Explain data, models, training, and inference in ordinary language.</text></g><g transform="translate(72,498)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Describe why AI output is probabilistic rather than magical.</text></g><g transform="translate(72,576)"><circle cx="12" cy="12" r="12" fill="#f2b94b" fill-opacity="0.9" /><text x="38" y="20" fill="#f5f1e8" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Understand why models can feel smart while still failing badly.</text></g>
+  <rect x="760" y="120" width="330" height="440" rx="24" fill="#ffffff" fill-opacity="0.08" stroke="#7ad1ff" stroke-opacity="0.4" />
+  <text x="792" y="180" fill="#7ad1ff" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Signature</text>
+  <text x="792" y="240" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Build-a-model analogy</text><text x="792" y="290" fill="#f5f1e8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Broken AI pipeline diagnosis</text>
+  <text x="792" y="430" fill="#f2b94b" font-size="22" font-family="'Trebuchet MS', Arial, sans-serif">Capstone</text>
+  <text x="792" y="480" fill="#f5f1e8" font-size="21" font-family="'Trebuchet MS', Arial, sans-serif">Explain how a modern AI system works to a skeptical friend using one analogy and one real example.</text>
+</svg>
