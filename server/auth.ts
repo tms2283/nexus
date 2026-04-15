@@ -7,11 +7,13 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { parse as parseCookies } from "cookie";
 import type { Response, Request } from "express";
+import { COOKIE_NAME, SESSION_LIFETIME_MS } from "@shared/const";
+import { getSessionCookieOptions } from "./_core/cookies";
 import { ENV } from "./_core/env";
 
 const BCRYPT_ROUNDS = 12;
-const SESSION_COOKIE_NAME = "nexus_session";
-const SESSION_EXPIRY_SECONDS = 60 * 60 * 24 * 30; // 30 days
+const LEGACY_SESSION_COOKIE_NAME = "nexus_session";
+const SESSION_EXPIRY_SECONDS = Math.floor(SESSION_LIFETIME_MS / 1000);
 
 // ─── Password ────────────────────────────────────────────────────────────────
 
@@ -44,23 +46,28 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
 // ─── Cookie ───────────────────────────────────────────────────────────────────
 
-export function setAuthCookie(res: Response, token: string): void {
-  res.cookie(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: ENV.isProduction,
-    sameSite: "lax",
-    maxAge: SESSION_EXPIRY_SECONDS * 1000,
-    path: "/",
+export function setAuthCookie(req: Request, res: Response, token: string): void {
+  const cookieOptions = getSessionCookieOptions(req);
+  res.cookie(COOKIE_NAME, token, {
+    ...cookieOptions,
+    maxAge: SESSION_LIFETIME_MS,
   });
 }
 
-export function clearAuthCookie(res: Response): void {
-  res.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
+export function clearAuthCookie(req: Request, res: Response): void {
+  const expiredCookieOptions = {
+    ...getSessionCookieOptions(req),
+    maxAge: -1,
+  };
+
+  res.clearCookie(COOKIE_NAME, expiredCookieOptions);
+  res.clearCookie(LEGACY_SESSION_COOKIE_NAME, expiredCookieOptions);
 }
 
 export function getSessionTokenFromRequest(req: Request): string | null {
   const cookies = parseCookies(req.headers.cookie ?? "");
-  return cookies[SESSION_COOKIE_NAME] ?? null;
+  return cookies[COOKIE_NAME] ?? cookies[LEGACY_SESSION_COOKIE_NAME] ?? null;
 }
 
-export { SESSION_COOKIE_NAME };
+export const SESSION_COOKIE_NAME = COOKIE_NAME;
+export { LEGACY_SESSION_COOKIE_NAME };

@@ -23,7 +23,7 @@ export interface AIProviderConfig {
 
 export const DEFAULT_MODELS: Record<AIProvider, string> = {
   builtin: "gemini-2.5-flash",
-  gemini: "gemini-2.5-flash",
+  gemini: "gemini-2.5-pro",
   perplexity: "llama-3.1-sonar-large-128k-online",
   openai: "gpt-4o-mini",
 };

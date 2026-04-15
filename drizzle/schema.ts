@@ -361,6 +361,63 @@ export const lessons = mysqlTable("lessons", {
 export type Lesson = typeof lessons.$inferSelect;
 export type InsertLesson = typeof lessons.$inferInsert;
 
+export const lessonBlueprints = mysqlTable("lesson_blueprints", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  lessonId: int("lessonId").notNull(),
+  blueprintJson: json("blueprintJson").$type<Record<string, unknown>>().notNull(),
+  totalEstimatedMinutes: int("totalEstimatedMinutes"),
+  heroImagePrompt: text("heroImagePrompt"),
+  videoConceptPrompt: text("videoConceptPrompt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  lessonIdIdx: index("lesson_blueprints_lessonId_idx").on(t.lessonId),
+}));
+export type LessonBlueprint = typeof lessonBlueprints.$inferSelect;
+export type InsertLessonBlueprint = typeof lessonBlueprints.$inferInsert;
+
+export const lessonSections = mysqlTable("lesson_sections", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  lessonId: int("lessonId").notNull(),
+  sequenceNumber: int("sequenceNumber").notNull(),
+  type: varchar("type", { length: 32 }).notNull(),
+  title: varchar("title", { length: 512 }).notNull(),
+  content: text("content").notNull(),
+  svgContent: text("svgContent"),
+  imageUrl: text("imageUrl"),
+  videoUrl: text("videoUrl"),
+  audioUrl: text("audioUrl"),
+  retrievalQuestion: text("retrievalQuestion"),
+  questionType: varchar("questionType", { length: 32 }),
+  questionOptions: json("questionOptions").$type<string[]>(),
+  correctAnswer: text("correctAnswer"),
+  visualAsset: varchar("visualAsset", { length: 32 }),
+  learningPrinciple: varchar("learningPrinciple", { length: 64 }),
+  imageGeneratedAt: timestamp("imageGeneratedAt"),
+  videoGeneratedAt: timestamp("videoGeneratedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  lessonSeqIdx: index("lesson_sections_lesson_seq_idx").on(t.lessonId, t.sequenceNumber),
+  lessonIdIdx: index("lesson_sections_lessonId_idx").on(t.lessonId),
+}));
+export type LessonSection = typeof lessonSections.$inferSelect;
+export type InsertLessonSection = typeof lessonSections.$inferInsert;
+
+export const sectionCompletions = mysqlTable("section_completions", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  lessonId: int("lessonId").notNull(),
+  sectionId: varchar("sectionId", { length: 64 }).notNull(),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  retrievalAnswer: text("retrievalAnswer"),
+  answerCorrect: boolean("answerCorrect"),
+  timeSpentSeconds: int("timeSpentSeconds"),
+  completedAt: timestamp("completedAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieLessonIdx: index("section_completions_cookie_lesson_idx").on(t.cookieId, t.lessonId),
+  sectionIdx: index("section_completions_section_idx").on(t.sectionId),
+}));
+export type SectionCompletion = typeof sectionCompletions.$inferSelect;
+export type InsertSectionCompletion = typeof sectionCompletions.$inferInsert;
+
 // Lesson Q&A tables
 export const lessonQuestions = mysqlTable("lesson_questions", {
   id: int("id").autoincrement().primaryKey(),

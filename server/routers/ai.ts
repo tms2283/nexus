@@ -167,7 +167,7 @@ Create 3-4 phases with real resources and actual URLs.`;
             profileContext = ` Learner background: ${profile.inferredBackground || "general"}. Style: ${profile.inferredLearnStyle || "adaptive"}. ${styleDirective}`;
           }
         }
-        const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}.${profileContext} Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
+        const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}.${profileContext} Detailed, practical, engaging markdown content with examples.`, undefined, 12000);
         const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: input.curriculumId, title: input.title, description: input.objectives.join(", "), content: response, objectives: input.objectives, keyPoints: input.objectives, resources: [], order: input.order, difficulty: "intermediate", estimatedMinutes: 15 };
         const saved = await saveLesson(lesson);
         return saved || { id: 0, ...lesson, completed: false, completedAt: null, createdAt: new Date(), updatedAt: new Date() };
@@ -214,7 +214,7 @@ Create 3-4 phases with real resources and actual URLs.`;
     .input(z.object({ cookieId: z.string(), currentTopic: z.string(), relatedTopic: z.string() }))
     .mutation(async ({ input }) => {
       try {
-        const content = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`, undefined, 3000);
+        const content = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`, undefined, 12000);
         const lesson: InsertLesson = { cookieId: input.cookieId, curriculumId: `exploration-${Date.now()}`, title: input.relatedTopic, description: `Related exploration from: ${input.currentTopic}`, content, objectives: [`Understand ${input.relatedTopic}`], keyPoints: [], resources: [], order: 0, difficulty: "intermediate", estimatedMinutes: 20, isShared: true, relatedTopics: [input.currentTopic] };
         return saveLesson(lesson);
       } catch (_e) {

@@ -66,15 +66,19 @@ describe("auth.logout", () => {
     const caller = appRouter.createCaller(ctx);
     const result = await caller.auth.logout();
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(1);
-    expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({
-      maxAge: -1,
-      secure: true,
-      sameSite: "none",
-      httpOnly: true,
-      path: "/",
-    });
+    expect(clearedCookies).toHaveLength(2);
+    expect(clearedCookies.map(cookie => cookie.name)).toEqual(
+      expect.arrayContaining([COOKIE_NAME, "nexus_session"])
+    );
+    for (const cookie of clearedCookies) {
+      expect(cookie.options).toMatchObject({
+        maxAge: -1,
+        secure: true,
+        sameSite: "lax",
+        httpOnly: true,
+        path: "/",
+      });
+    }
   });
 });
 
@@ -120,7 +124,7 @@ describe("router structure", () => {
     expect(keys).toContain("ai.generateGreeting");
     expect(keys).toContain("ai.generateQuiz");
     expect(keys).toContain("ai.chat");
-    expect(keys).toContain("ai.explainCodex");
+    expect(keys).toContain("ai.explainConcept");
     expect(keys).toContain("ai.composeMessage");
   });
 

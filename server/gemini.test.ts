@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { resolveProviderConfig } from "./aiProvider";
 
-describe("Gemini API Key", () => {
-  it("GEMINI_API_KEY environment variable is set", () => {
-    const key = process.env.GEMINI_API_KEY;
-    expect(key).toBeDefined();
-    expect(key?.length).toBeGreaterThan(10);
+describe("AI provider defaults", () => {
+  it("falls back to the built-in provider without a per-user override", async () => {
+    const config = await resolveProviderConfig();
+    expect(config).toEqual({ provider: "builtin" });
   });
 });

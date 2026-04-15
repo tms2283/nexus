@@ -87,7 +87,7 @@ export const authRouter = router({
     });
     if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create account." });
     const token = createSessionToken({ userId: user.id, email: user.email ?? null });
-    setAuthCookie(ctx.res, token);
+    setAuthCookie(ctx.req, ctx.res, token);
     const { passwordHash: _, ...safeUser } = user;
     return { user: safeUser };
   }),
@@ -104,14 +104,14 @@ export const authRouter = router({
     }
     await updateUserLastSignedIn(user.id);
     const token = createSessionToken({ userId: user.id, email: user.email ?? null });
-    setAuthCookie(ctx.res, token);
+    setAuthCookie(ctx.req, ctx.res, token);
     const { passwordHash: _, ...safeUser } = user;
     return { user: safeUser };
   }),
 
   // Logout
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    clearAuthCookie(ctx.res);
+    clearAuthCookie(ctx.req, ctx.res);
     return { success: true };
   }),
 
@@ -146,7 +146,7 @@ export const authRouter = router({
         if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create account." });
 
         const token = createSessionToken({ userId: user.id, email: user.email ?? null });
-        setAuthCookie(ctx.res, token);
+        setAuthCookie(ctx.req, ctx.res, token);
         const { passwordHash: _, ...safeUser } = user;
         return { user: safeUser };
       } catch (e) {

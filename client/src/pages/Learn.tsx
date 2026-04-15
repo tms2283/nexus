@@ -11,6 +11,7 @@ import { usePersonalization } from "@/contexts/PersonalizationContext";
 import PageWrapper from "@/components/PageWrapper";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import { useLocation } from "wouter";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CurriculumModule {
@@ -19,6 +20,7 @@ interface CurriculumModule {
   duration: string;
   type: "lesson" | "practice" | "project" | "assessment";
   concepts: string[];
+  objectives: string[];
 }
 
 interface Curriculum {
@@ -26,6 +28,7 @@ interface Curriculum {
   overview: string;
   totalDuration: string;
   level: string;
+  curriculumId?: string;
   modules: CurriculumModule[];
 }
 
@@ -36,13 +39,15 @@ interface SocraticMessage {
 
 // ─── Curriculum Generator ─────────────────────────────────────────────────────
 function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
+  const [, setLocation] = useLocation();
   const [goal, setGoal] = useState(initialGoal);
   const [currentKnowledge, setCurrentKnowledge] = useState("");
   const [timeAvailable, setTimeAvailable] = useState("5 hours/week");
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedModule, setExpandedModule] = useState<number | null>(null);
-  const { addXP, profile } = usePersonalization();
+  const [generatingModuleIndex, setGeneratingModuleIndex] = useState<number | null>(null);
+  const { addXP, profile, cookieId } = usePersonalization();
 
   const generateCurriculum = trpc.ai.generateCurriculum.useMutation({
     onSuccess: (data) => {
@@ -55,12 +60,14 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
         overview: (raw.description as string) ?? "",
         totalDuration: raw.estimatedWeeks ? `${raw.estimatedWeeks as number} weeks` : "Self-paced",
         level: currentKnowledge || "Adaptive",
+        curriculumId: (raw.curriculumId as string) ?? undefined,
         modules: ((raw.phases ?? []) as Array<{ title: string; objectives: string[]; resources: Array<{ title: string }> }>).map((p, i) => ({
           title: p.title,
           description: (p.objectives ?? []).join(". "),
           duration: `Phase ${i + 1}`,
           type: "lesson" as const,
           concepts: (p.resources ?? []).map((r) => r.title),
+          objectives: p.objectives ?? [],
         })),
       };
       setCurriculum(mapped);
@@ -94,6 +101,46 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
     practice: "text-[oklch(0.65_0.22_200)] border-[oklch(0.65_0.22_200_/_0.3)] bg-[oklch(0.65_0.22_200_/_0.08)]",
     project: "text-[oklch(0.72_0.2_290)] border-[oklch(0.72_0.2_290_/_0.3)] bg-[oklch(0.72_0.2_290_/_0.08)]",
     assessment: "text-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150_/_0.3)] bg-[oklch(0.72_0.18_150_/_0.08)]",
+  };
+
+  const createLessonWithResources = trpc.lesson.createLessonWithResources.useMutation();
+  const blueprintLesson = trpc.lesson.blueprintLesson.useMutation();
+  const generateLessonSections = trpc.lesson.generateLessonSections.useMutation();
+
+  const handleBuildStructuredLesson = async (module: CurriculumModule, index: number) => {
+    if (!curriculum) return;
+    if (!cookieId) {
+      toast.error("Missing session cookie. Refresh and try again.");
+      return;
+    }
+    setGeneratingModuleIndex(index);
+    try {
+      const created = await createLessonWithResources.mutateAsync({
+        cookieId,
+        title: module.title,
+        topic: goal || module.title,
+        objectives: module.objectives.length > 0 ? module.objectives : [module.description || module.title],
+        curriculumId: curriculum.curriculumId || `curriculum-${Date.now()}`,
+      });
+      const blueprint = await blueprintLesson.mutateAsync({
+        lessonId: created.id,
+        cookieId,
+        topic: module.title,
+        depth: 3,
+      });
+      await generateLessonSections.mutateAsync({
+        lessonId: created.id,
+        blueprintId: blueprint.blueprintId,
+        cookieId,
+      });
+      toast.success("Structured lesson generated.");
+      setLocation(`/lesson/${created.id}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to generate lesson.";
+      toast.error(message);
+    } finally {
+      setGeneratingModuleIndex(null);
+    }
   };
 
   return (
@@ -250,16 +297,25 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
                       >
                         <div className="px-4 pb-4 border-t border-white/5 pt-3">
                           <p className="text-sm text-muted-foreground mb-3">{mod.description}</p>
-                          <div className="flex flex-wrap gap-2">
-                            {mod.concepts.map((c, ci) => (
-                              <span key={ci} className="px-2 py-1 rounded-md text-xs bg-white/5 border border-white/8 text-muted-foreground">
-                                {c}
-                              </span>
-                            ))}
-                          </div>
+                        <div className="flex flex-wrap gap-2">
+                          {mod.concepts.map((c, ci) => (
+                            <span key={ci} className="px-2 py-1 rounded-md text-xs bg-white/5 border border-white/8 text-muted-foreground">
+                              {c}
+                            </span>
+                          ))}
                         </div>
-                      </motion.div>
-                    )}
+                        <div className="mt-4 flex justify-end">
+                          <button
+                            onClick={() => handleBuildStructuredLesson(mod, i)}
+                            disabled={generatingModuleIndex === i}
+                            className="px-3 py-2 rounded-lg text-xs font-semibold bg-[oklch(0.75_0.18_55)] text-black disabled:opacity-60"
+                          >
+                            {generatingModuleIndex === i ? "Building lesson..." : "Generate Structured Lesson"}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                   </AnimatePresence>
                 </motion.div>
               ))}

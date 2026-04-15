@@ -6,6 +6,9 @@ import {
   InsertUser, users, visitorProfiles, chatMessages,
   contactSubmissions, codexEntries, VisitorProfile, InsertVisitorProfile, ChatMessage,
   researchSessions, ResearchSession, lessons, Lesson, InsertLesson,
+  lessonBlueprints, LessonBlueprint, InsertLessonBlueprint,
+  lessonSections, LessonSection, InsertLessonSection,
+  sectionCompletions, SectionCompletion, InsertSectionCompletion,
   lessonQuestions, LessonQuestion, InsertLessonQuestion,
   lessonAnswers, LessonAnswer, InsertLessonAnswer,
   lessonRatings, LessonRating, InsertLessonRating,
@@ -254,6 +257,24 @@ export async function addFlashcardsToDecks(deckId: number, cards: Array<{ front:
   await db.update(flashcardDecks).set({ cardCount: cards.length, updatedAt: now }).where(eq(flashcardDecks.id, deckId));
 }
 
+export async function addScheduledFlashcardsToDeck(
+  deckId: number,
+  cards: Array<{ front: string; back: string }>,
+  dayOffsets: number[] = [1, 3, 7, 14, 30]
+): Promise<void> {
+  const db = await getDb();
+  if (!db || cards.length === 0) return;
+  const now = new Date();
+  await db.insert(flashcards).values(
+    cards.map((card, idx) => {
+      const offset = dayOffsets[idx % dayOffsets.length] ?? 1;
+      const dueDate = new Date(now.getTime() + offset * 86400000);
+      return { deckId, front: card.front, back: card.back, dueDate };
+    })
+  );
+  await db.update(flashcardDecks).set({ cardCount: cards.length, updatedAt: now }).where(eq(flashcardDecks.id, deckId));
+}
+
 export async function getFlashcardDeckById(deckId: number): Promise<FlashcardDeck | null> {
   const db = await getDb();
   if (!db) return null;
@@ -486,6 +507,86 @@ export async function markLessonComplete(id: number): Promise<void> {
   await db.update(lessons)
     .set({ completed: true, completedAt: new Date() })
     .where(eq(lessons.id, id));
+}
+
+export async function saveLessonBlueprint(data: InsertLessonBlueprint): Promise<LessonBlueprint | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(lessonBlueprints).values(data);
+  const rows = await db.select().from(lessonBlueprints).where(eq(lessonBlueprints.id, data.id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getLessonBlueprintByLessonId(lessonId: number): Promise<LessonBlueprint | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lessonBlueprints)
+    .where(eq(lessonBlueprints.lessonId, lessonId))
+    .orderBy(desc(lessonBlueprints.createdAt))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function replaceLessonSections(lessonId: number, sections: InsertLessonSection[]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(lessonSections).where(eq(lessonSections.lessonId, lessonId));
+  if (sections.length > 0) {
+    await db.insert(lessonSections).values(sections);
+  }
+}
+
+export async function getLessonSections(lessonId: number): Promise<LessonSection[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(lessonSections)
+    .where(eq(lessonSections.lessonId, lessonId))
+    .orderBy(lessonSections.sequenceNumber);
+}
+
+export async function updateLessonSectionById(
+  sectionId: string,
+  updates: Partial<InsertLessonSection>
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(lessonSections).set(updates).where(eq(lessonSections.id, sectionId));
+}
+
+export async function getLessonSectionById(sectionId: string): Promise<LessonSection | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(lessonSections).where(eq(lessonSections.id, sectionId)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertSectionCompletion(data: InsertSectionCompletion): Promise<SectionCompletion | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(sectionCompletions)
+    .where(and(eq(sectionCompletions.cookieId, data.cookieId), eq(sectionCompletions.sectionId, data.sectionId)))
+    .limit(1);
+  if (existing.length > 0) {
+    await db.update(sectionCompletions).set({
+      retrievalAnswer: data.retrievalAnswer ?? null,
+      answerCorrect: data.answerCorrect ?? null,
+      timeSpentSeconds: data.timeSpentSeconds ?? null,
+      completedAt: new Date(),
+    }).where(eq(sectionCompletions.id, existing[0].id));
+    const updated = await db.select().from(sectionCompletions).where(eq(sectionCompletions.id, existing[0].id)).limit(1);
+    return updated[0] ?? null;
+  }
+  await db.insert(sectionCompletions).values(data);
+  const rows = await db.select().from(sectionCompletions).where(eq(sectionCompletions.id, data.id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getSectionCompletionsForLesson(cookieId: string, lessonId: number): Promise<SectionCompletion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(sectionCompletions)
+    .where(and(eq(sectionCompletions.cookieId, cookieId), eq(sectionCompletions.lessonId, lessonId)))
+    .orderBy(desc(sectionCompletions.completedAt));
 }
 
 
