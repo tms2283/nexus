@@ -23,7 +23,7 @@ export interface AIProviderConfig {
 
 export const DEFAULT_MODELS: Record<AIProvider, string> = {
   builtin: "gemini-2.5-flash",
-  gemini: "gemini-2.0-flash",
+  gemini: "gemini-2.0-flash-lite",
   perplexity: "llama-3.1-sonar-large-128k-online",
   openai: "gpt-4o-mini",
 };
@@ -211,12 +211,18 @@ async function invokeGeminiDirect(
     (body.generationConfig as Record<string, unknown>).responseMimeType = "application/json";
   }
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
   );
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${err}`);
+    let errData: any;
+    try { errData = JSON.parse(err); } catch { /* ignore */ }
+    const status = response.status;
+    if (status === 429) {
+      throw new Error("The AI service is over its quota. Please add billing to your Google Cloud project at console.cloud.google.com, or configure a different AI provider in Settings.");
+    }
+    throw new Error(`Gemini API error ${status}: ${err}`);
   }
   const data = await response.json() as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
