@@ -23,7 +23,7 @@ export interface AIProviderConfig {
 
 export const DEFAULT_MODELS: Record<AIProvider, string> = {
   builtin: "gemini-2.5-flash",
-  gemini: "gemini-2.0-flash-lite",
+  gemini: "gemini-2.5-flash",
   perplexity: "llama-3.1-sonar-large-128k-online",
   openai: "gpt-4o-mini",
 };
@@ -211,7 +211,7 @@ async function invokeGeminiDirect(
     (body.generationConfig as Record<string, unknown>).responseMimeType = "application/json";
   }
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
   );
   if (!response.ok) {
