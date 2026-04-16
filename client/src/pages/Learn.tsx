@@ -6,7 +6,8 @@ import {
   GraduationCap, Zap, RotateCcw, Send, ChevronDown,
   Clock, Star, Play, Lock, ChevronLeft, XCircle, Check,
   Volume2, VolumeX, Pause, HelpCircle, Shield, Trophy,
-  Eye, Info, Award, RefreshCw
+  Eye, Info, Award, RefreshCw, Lightbulb, AlertTriangle,
+  Scale, Search, FlaskConical, Flame, Users, TrendingUp
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
@@ -215,6 +216,115 @@ const M2_CAPSTONE_PROMPTS = [
   { label: "Output Audit", q: "You receive this AI-generated paragraph from a colleague who plans to use it in a client proposal: 'Our approach is based on the McKinsey 2024 Global Productivity Report, which found that AI adoption increases team output by 73% within 6 months for companies with 100+ employees.' What questions do you ask before approving it?", ph: "e.g., First: does this report exist? I'd search McKinsey's publication database directly — AI frequently cites plausible-sounding but nonexistent reports. Second: even if the report exists, '73%' is a very specific number — I'd check what it actually measured (self-reported perception vs. objective metrics), for what type of work, and what the full context is. Third: 'within 6 months' is a strong causal claim — most productivity research is correlational..." },
   { label: "Career Strategy", q: "Based on your own field or the one you're targeting: name two specific AI tools entering your industry, one task category you expect to decrease in demand, and one new skill you plan to develop to stay competitive. Be specific.", ph: "e.g., In marketing, Jasper and Adobe Firefly are already replacing entry-level copywriting and basic image creation work. I expect junior content creation roles to shrink significantly. The skill I'm building is AI campaign strategy — knowing how to direct AI tools, evaluate output quality, and translate business goals into effective AI workflows. I'm also prioritizing client relationship skills since that's the human layer AI can't replace..." },
 ];
+
+// ─── SegmentFooter ─────────────────────────────────────────────────────────────────
+// topics: 2–4 short strings specific to the segment just shown
+// onReady: called when the learner taps "Got it" (e.g. advance to next segment)
+function SegmentFooter({ topics, onReady, accentColor = "oklch(0.75_0.18_55)" }: {
+  topics: string[];
+  onReady?: () => void;
+  accentColor?: string;
+}) {
+  const [mode, setMode] = useState<"idle" | "picking" | "loading" | "done">("idle");
+  const [pickedTopic, setPickedTopic] = useState<string | null>(null);
+  const [expansion, setExpansion] = useState("");
+
+  const expandMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setExpansion(data.explanation); setMode("done"); },
+    onError: (err: { message: string }) => { toast.error(err.message); setMode("picking"); },
+  });
+
+  const handlePickTopic = (topic: string) => {
+    setPickedTopic(topic);
+    setMode("loading");
+    setExpansion("");
+    expandMutation.mutate({
+      concept: `Explain "${topic}" in plain language for an adult learner who just encountered it in an AI literacy course. Be concise but thorough — 3 to 5 short paragraphs. Use concrete examples and avoid jargon.`,
+      level: "student",
+    });
+  };
+
+  const reset = () => { setMode("idle"); setPickedTopic(null); setExpansion(""); };
+
+  return (
+    <div className="mt-5 pt-4 border-t border-white/8">
+      <AnimatePresence mode="wait">
+        {mode === "idle" && (
+          <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <p className="text-xs text-muted-foreground">How are you feeling about this section?</p>
+            <div className="flex gap-2">
+              {onReady && (
+                <motion.button onClick={onReady} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-black"
+                  style={{ background: `linear-gradient(to right, ${accentColor}, oklch(0.65_0.22_200))` }}>
+                  <Check size={13} /> Got it, move on
+                </motion.button>
+              )}
+              <button onClick={() => setMode("picking")}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm border glass border-white/10 text-muted-foreground hover:text-foreground transition-colors">
+                <HelpCircle size={13} /> Tell me more about…
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {mode === "picking" && (
+          <motion.div key="picking" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="space-y-3">
+            <p className="text-xs font-medium text-foreground">Which part do you want to dig deeper on?</p>
+            <div className="flex flex-wrap gap-2">
+              {topics.map((t) => (
+                <button key={t} onClick={() => handlePickTopic(t)}
+                  className="px-3 py-2 rounded-xl text-sm border glass border-white/10 text-muted-foreground hover:text-foreground hover:border-white/25 transition-colors text-left">
+                  {t}
+                </button>
+              ))}
+            </div>
+            <button onClick={reset} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Never mind, I'm good
+            </button>
+          </motion.div>
+        )}
+
+        {mode === "loading" && (
+          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex items-center gap-3 p-4 rounded-xl glass border border-white/8">
+            <RefreshCw size={14} className="animate-spin shrink-0" style={{ color: accentColor }} />
+            <span className="text-sm text-muted-foreground">Expanding on <em className="text-foreground">{pickedTopic}</em>…</span>
+          </motion.div>
+        )}
+
+        {mode === "done" && expansion && (
+          <motion.div key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="space-y-3">
+            <div className="p-5 rounded-2xl glass border" style={{ borderColor: `color-mix(in oklch, ${accentColor} 30%, transparent)` }}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold" style={{ color: accentColor }}>DEEPER DIVE — {pickedTopic?.toUpperCase()}</span>
+                <button onClick={reset} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                  <XCircle size={12} /> Close
+                </button>
+              </div>
+              <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap space-y-2">{expansion}</div>
+            </div>
+            {onReady && (
+              <div className="flex items-center gap-3">
+                <motion.button onClick={onReady} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-black"
+                  style={{ background: `linear-gradient(to right, ${accentColor}, oklch(0.65_0.22_200))` }}>
+                  <Check size={13} /> Got it, move on
+                </motion.button>
+                <button onClick={() => setMode("picking")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  Explore another topic
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 // ─── Narrator ─────────────────────────────────────────────────────────────────
 function Narrator({ text }: { text: string }) {
@@ -506,6 +616,8 @@ function AILiteracyModule2() {
                   </div>
                 ))}
               </div>
+              <SegmentFooter accentColor="oklch(0.72_0.2_260)"
+                topics={["How to evaluate an AI tool's data privacy", "What 'foundation models' vs. specialized tools means", "Why AI tools give different answers to the same question", "How to run a low-risk AI pilot at work"]} />
             </div>
 
             {/* Category filter */}
@@ -691,6 +803,8 @@ function AILiteracyModule2() {
                   </div>
                 ))}
               </div>
+              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
+                topics={["How to reverse-search a statistic to verify it", "What deepfakes are and how to detect them", "Why AI-generated text is hard to detect reliably", "How to fact-check AI output in under 2 minutes"]} />
             </div>
 
             <div className="glass rounded-2xl p-5 border border-white/8">
@@ -809,6 +923,8 @@ function AILiteracyModule2() {
                 </div>
               </motion.div>
             </AnimatePresence>
+            <SegmentFooter accentColor="oklch(0.72_0.2_290)"
+              topics={["How to write a STAR-format prompt for a workplace task", "How to give AI your 'voice' so outputs sound like you", "What prompt chaining is and when to use it", "How to evaluate whether an AI-generated work product is submission-ready"]} />
           </div>
         </M2Shell>
       )}
@@ -925,6 +1041,8 @@ function AILiteracyModule2() {
                 { id: "l9q3", question: "The most career-resilient combination in an AI-heavy workplace is:", options: ["Advanced Python coding skills", "A large social media following", "Deep domain expertise plus the ability to direct and evaluate AI", "Avoiding AI tools to stay sharp"], correct: 2, explanation: "The new premium is judgment plus AI fluency. Anyone can run an AI tool. The value is in knowing your field well enough to direct AI toward the right outcomes — and catch it when it's wrong." },
               ]} />
             </div>
+            <SegmentFooter accentColor="oklch(0.72_0.18_150)"
+              topics={["Which AI skills are most in-demand across industries right now", "How to add AI experience to a resume or LinkedIn profile", "What 'AI-augmented' roles look like in healthcare, education, and law", "How to self-teach AI fluency in 30 minutes a day"]} />
           </div>
         </M2Shell>
       )}
@@ -1299,6 +1417,15 @@ function AILiteracyTab() {
                 <h3 className="font-semibold text-foreground mb-3">{segments1[seg1].title}</h3>
                 <Narrator text={segments1[seg1].narration} />
                 {segments1[seg1].body}
+                <SegmentFooter
+                  accentColor="oklch(0.75_0.18_55)"
+                  onReady={seg1 < segments1.length - 1 ? () => setSeg1(seg1 + 1) : undefined}
+                  topics={[
+                    ["What narrow AI means in practice", "How neural networks actually work", "The difference between AI, ML, and deep learning", "Why LLMs predict text token by token"],
+                    ["How loss functions guide training", "What 'weights' are in a neural network", "Why AI can be brilliant and wrong at the same time", "How much data does training actually require"],
+                    ["Real examples of AI in healthcare today", "How AI is already changing the workforce", "What AI literacy means for everyday life", "Why civic AI literacy matters"],
+                  ][seg1]}
+                />
               </motion.div>
             </AnimatePresence>
             <div className="flex justify-between">
@@ -1334,6 +1461,8 @@ function AILiteracyTab() {
                   </div>
                 ))}
               </div>
+              <SegmentFooter accentColor="oklch(0.65_0.22_200)"
+                topics={["Why AI hallucination happens", "How media coverage distorts AI reality", "What AI consciousness actually means (or doesn't)", "Why 'AI is objective' is a myth"]} />
             </div>
             <QuizBlock questions={MYTH_QUIZ} accentColor="oklch(0.65_0.22_200)" />
           </div>
@@ -1353,6 +1482,8 @@ function AILiteracyTab() {
                   ))}
                 </div>
               </div>
+              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
+                topics={["Why persona instructions change AI output so much", "How to write effective context for AI", "What 'temperature' and model settings mean", "Why constraints produce better results than freedom"]} />
             </div>
             <div className="flex gap-2">
               {PROMPT_EXERCISES.map((e, i) => (
@@ -1453,6 +1584,8 @@ function AILiteracyTab() {
                   </div>
                 ))}
               </div>
+              <SegmentFooter accentColor="oklch(0.72_0.18_150)"
+                topics={["What algorithmic fairness actually means", "How AI accountability is handled legally", "Why AI transparency is harder than it sounds", "Real examples of AI bias causing harm"]} />
             </div>
             <div className="flex gap-2">
               {ETHICS_SCENARIOS.map((s, i) => (
@@ -1666,6 +1799,840 @@ function AILiteracyTab() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
               {[{ n: "Coherence", d: "No extraneous content" }, { n: "Segmenting", d: "Learner-paced chunks" }, { n: "Personalization", d: "Conversational tone" }, { n: "Modality", d: "Audio narration + visual" }, { n: "Signaling", d: "Clear structure & cues" }, { n: "Interactivity", d: "Active exercises" }].map(({ n, d }) => (
                 <div key={n} className="glass rounded-lg p-3 border border-white/8"><div className="text-xs font-semibold text-foreground mb-0.5">{n}</div><p className="text-xs text-muted-foreground">{d}</p></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Clear Thinking Data ───────────────────────────────────────────────────────
+type CTLessonId = "ct1" | "ct2" | "ct3" | "ct4" | "ct5";
+
+interface Fallacy {
+  id: string;
+  name: string;
+  definition: string;
+  example: string;
+  rebuttal: string;
+}
+
+interface Bias {
+  id: string;
+  name: string;
+  definition: string;
+  trigger: string;
+  antidote: string;
+}
+
+interface EvidenceItem {
+  id: string;
+  label: string;
+  description: string;
+  strength: number; // 1 (weak) to 5 (strong)
+}
+
+const CT_LESSON_META = [
+  { id: "ct1" as CTLessonId, title: "What Makes an Argument?", subtitle: "The anatomy of every claim worth listening to", duration: "20 min", color: "oklch(0.72_0.2_260)", xp: 50 },
+  { id: "ct2" as CTLessonId, title: "Logical Fallacies", subtitle: "The tricks bad arguments use — and how to name them", duration: "25 min", color: "oklch(0.68_0.22_20)", xp: 60 },
+  { id: "ct3" as CTLessonId, title: "Evidence & Sources", subtitle: "Not all evidence is created equal", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 60 },
+  { id: "ct4" as CTLessonId, title: "Cognitive Biases", subtitle: "The mental shortcuts that make us predictably wrong", duration: "25 min", color: "oklch(0.78_0.16_30)", xp: 70 },
+  { id: "ct5" as CTLessonId, title: "Capstone", subtitle: "Tear apart a real argument — then rebuild it", duration: "20 min", color: "oklch(0.75_0.18_55)", xp: 100 },
+];
+
+const FALLACIES: Fallacy[] = [
+  { id: "f1", name: "Ad Hominem", definition: "Attacking the person making the argument instead of the argument itself.", example: "\"You can't trust his views on climate policy — he's been divorced twice.\"", rebuttal: "A person's character or personal life is irrelevant to whether their argument is logically sound. Address the claim, not the claimant." },
+  { id: "f2", name: "Straw Man", definition: "Misrepresenting someone's position to make it easier to attack.", example: "Person A: 'We should reduce military spending.' Person B: 'So you want to leave the country completely defenseless?'", rebuttal: "Person A never said that. Identify the misrepresentation and restate the actual position before responding to it." },
+  { id: "f3", name: "False Dilemma", definition: "Presenting only two options when more exist.", example: "\"You're either with us or against us.\"", rebuttal: "Ask: are these really the only options? Almost always, there are middle positions, third paths, or more nuanced stances available." },
+  { id: "f4", name: "Appeal to Authority", definition: "Using an authority's endorsement as a substitute for evidence — especially when the authority is outside their area of expertise.", example: "\"This celebrity doctor says vaccines cause autism, so it must be true.\"", rebuttal: "Expertise is domain-specific. Evaluate the actual evidence, not just who endorses it. Even credible experts can be wrong." },
+  { id: "f5", name: "Slippery Slope", definition: "Claiming that one event will inevitably lead to extreme consequences, without evidence of that chain.", example: "\"If we allow same-sex marriage, next people will want to marry animals.\"", rebuttal: "Each step in a chain requires its own evidence. Naming the slope doesn't prove you'll slide all the way down it." },
+  { id: "f6", name: "Circular Reasoning", definition: "Using the conclusion as a premise — the argument assumes what it's trying to prove.", example: "\"The Bible is true because the Bible says it is true.\"", rebuttal: "Ask: what independent evidence supports the premise? If the only support is the conclusion itself, the argument is circular." },
+  { id: "f7", name: "Bandwagon", definition: "Arguing something is true or good because many people believe or do it.", example: "\"A billion people can't be wrong — this must be the best diet.\"", rebuttal: "Popular belief is not evidence of truth. Historical consensus has been wrong repeatedly. Evaluate the evidence independently." },
+  { id: "f8", name: "Appeal to Nature", definition: "Claiming something is good or safe because it is 'natural,' or bad because it is 'artificial.'", example: "\"This herbal remedy is completely natural, so it can't hurt you.\"", rebuttal: "Natural does not mean safe (arsenic is natural; penicillin is synthetic). Judge by evidence, not origin." },
+];
+
+const BIASES: Bias[] = [
+  { id: "b1", name: "Confirmation Bias", definition: "The tendency to search for, interpret, and remember information in a way that confirms what we already believe.", trigger: "You read three articles supporting your existing view and feel vindicated — but you didn't notice the seven that challenged it.", antidote: "Deliberately seek out the strongest counterargument to your position. If you can't steelman the other side, you don't understand the issue yet." },
+  { id: "b2", name: "Availability Heuristic", definition: "Judging how likely something is based on how easily an example comes to mind — usually because it was recent or dramatic.", trigger: "Plane crashes dominate the news, so you overestimate flying risk while underestimating car crash risk, which kills far more people.", antidote: "Ask: am I relying on vivid examples or actual statistics? Look up base rates before forming probability judgments." },
+  { id: "b3", name: "Anchoring Bias", definition: "Over-relying on the first piece of information you encounter when making decisions.", trigger: "A jacket is 'on sale' from $300 to $150. It feels like a deal — even if $150 is still overpriced for what it is.", antidote: "Establish your own reference point before receiving external information. Ask: what would I pay for this if I saw no original price?" },
+  { id: "b4", name: "Dunning-Kruger Effect", definition: "People with limited knowledge in a domain overestimate their competence; genuine experts often underestimate theirs.", trigger: "After reading one article on economics, you feel confident debating professional economists.", antidote: "Calibrate confidence to actual evidence of competence. Track your predictions and see how they land. Expertise is earned, not felt." },
+  { id: "b5", name: "Sunk Cost Fallacy", definition: "Continuing a course of action because of past investment (time, money, effort) rather than future value.", trigger: "You stay in a bad job for two more years because 'I've already given them six years of my life.'", antidote: "Ask: if I were deciding today from scratch — with no past investment — would I still choose this? Only future value should drive future decisions." },
+  { id: "b6", name: "In-Group Bias", definition: "Favoring members of your own group and viewing their actions more charitably than those of outsiders.", trigger: "When your team makes a mistake, it's a misunderstanding. When the rival team does the same thing, it reveals their true character.", antidote: "Apply the same evaluative standard to both groups. Ask: would I interpret this action the same way if the other group did it?" },
+];
+
+const EVIDENCE_ITEMS: EvidenceItem[] = [
+  { id: "ev1", label: "Systematic Review / Meta-Analysis", description: "Combines results from dozens of studies on the same question, controlled for quality. The gold standard.", strength: 5 },
+  { id: "ev2", label: "Randomized Controlled Trial (RCT)", description: "Participants randomly assigned to treatment/control groups. Eliminates many confounding variables.", strength: 4 },
+  { id: "ev3", label: "Peer-Reviewed Observational Study", description: "Tracks real-world populations without intervention. Can show correlation but not always causation.", strength: 3 },
+  { id: "ev4", label: "Expert Opinion / Position Statement", description: "What credentialed experts believe based on their training. Useful context — not a substitute for primary data.", strength: 2 },
+  { id: "ev5", label: "Anecdote / Personal Story", description: "One person's experience. Vivid and compelling — but tells us nothing about frequency or causation.", strength: 1 },
+];
+
+const CT_ARG_FLAWED = {
+  title: "The 4-Day Work Week Argument",
+  text: `A recent blog post by productivity influencer @WorkSmarter argued:
+
+"Every employee I've interviewed loves the idea of a 4-day work week, so it clearly increases productivity. Besides, everyone is talking about it — it's obviously the future of work. Companies that don't adopt it are run by out-of-touch executives who just want to control their employees. Studies show output goes up 20% when teams switch. And honestly, if working less were bad for the economy, it would already be illegal."`,
+  errors: [
+    { id: "ce1", label: "Bandwagon fallacy", explanation: "'Everyone is talking about it' is not evidence it works." },
+    { id: "ce2", label: "Ad hominem", explanation: "Dismissing opponents as 'out-of-touch' instead of addressing their concerns." },
+    { id: "ce3", label: "Unverified statistic", explanation: "'Studies show 20%' — which studies? This needs a citation." },
+    { id: "ce4", label: "Appeal to anecdote", explanation: "Interviewing a self-selected group of enthusiasts is not representative research." },
+    { id: "ce5", label: "False reasoning", explanation: "'If it were bad, it would be illegal' — legality has nothing to do with economic impact." },
+  ],
+};
+
+const CT_QUIZ_L1: QuizQuestion[] = [
+  { id: "ct1q1", question: "An argument requires which three components?", options: ["Opinion, feeling, and tone", "Claim, evidence, and inference", "Introduction, body, and conclusion", "Facts, statistics, and examples"], correct: 1, explanation: "Every argument has a claim (what you're asserting), evidence (the support for it), and an inference (the logical bridge connecting the two). Without all three, something may sound persuasive without actually being an argument." },
+  { id: "ct1q2", question: "What is the difference between a claim and a fact?", options: ["Claims are always false; facts are always true", "A claim requires acceptance; a fact is independently verifiable", "They mean the same thing in formal logic", "Claims are shorter than facts"], correct: 1, explanation: "A fact can be verified independently of who asserts it. A claim requires someone to accept it — it may be true or false, and requires evidence and reasoning to evaluate." },
+  { id: "ct1q3", question: "Which of these is a conclusion, not a premise?", options: ["Studies show a link between sleep and memory", "Therefore, improving sleep should be a health priority", "The average adult sleeps 6.8 hours per night", "Chronic sleep deprivation raises disease risk"], correct: 1, explanation: "The conclusion is what the premises are trying to establish — it follows from the evidence. 'Therefore' is a classic conclusion indicator. The other three are premises (evidence/reasons)." },
+];
+
+const CT_QUIZ_L2: QuizQuestion[] = [
+  { id: "ct2q1", question: "Which fallacy is this? 'You shouldn't listen to her argument about tax policy — she's never even run a business.'", options: ["Straw Man", "Ad Hominem", "Appeal to Authority", "Bandwagon"], correct: 1, explanation: "Ad hominem attacks the person rather than the argument. Whether she's run a business is irrelevant to whether her reasoning about tax policy is correct — evaluate the argument on its merits." },
+  { id: "ct2q2", question: "'If we legalize marijuana, next everyone will be doing heroin.' This is:", options: ["A valid causal chain", "Slippery Slope fallacy", "False Dilemma", "Appeal to Nature"], correct: 1, explanation: "Slippery slope assumes a chain of inevitable consequences without providing evidence for each step. Naming a possible downstream outcome doesn't prove it will occur." },
+  { id: "ct2q3", question: "'Nine out of ten dentists recommend this toothpaste.' Even if true, what makes this potentially misleading?", options: ["Dentists aren't experts in toothpaste", "We don't know what question was asked, or which toothpaste alternatives they compared it to", "Nine is not a significant sample size", "Appeal to authority is always a fallacy"], correct: 1, explanation: "Statistics can be technically true but deeply misleading depending on framing. 'Recommend' could mean 'over no toothpaste at all,' not 'over all competing brands.' Context and methodology matter enormously." },
+];
+
+const CT_QUIZ_L3: QuizQuestion[] = [
+  { id: "ct3q1", question: "A single dramatic personal story is shared to oppose a vaccine. Why is this weak evidence?", options: ["Personal stories are always fabricated", "Anecdotes tell us nothing about frequency, causation, or whether the event was typical", "The person sharing it isn't a doctor", "It's strong evidence — lived experience counts"], correct: 1, explanation: "Anecdotes are real and emotionally compelling, but they tell us nothing about how common an outcome is, what caused it, or whether millions of other people had the opposite experience. Evidence quality requires data at scale, not individual cases." },
+  { id: "ct3q2", question: "Which type of study provides the strongest evidence that X causes Y?", options: ["A survey of public opinion", "An expert panel consensus statement", "A randomized controlled trial with a large sample", "A compelling case study"], correct: 2, explanation: "RCTs randomly assign participants to conditions, which controls for confounding variables that observational studies cannot eliminate. They are the closest we can get to demonstrating causation rather than correlation." },
+  { id: "ct3q3", question: "A study shows that people who drink coffee live longer. The best conclusion is:", options: ["Coffee causes longevity", "There is an association between coffee drinking and longevity that warrants further investigation", "Everyone should drink more coffee", "The study is wrong"], correct: 1, explanation: "Correlation does not imply causation. Coffee drinkers may have other lifestyle factors (income, health habits) that explain the difference. Association is a starting point for investigation, not a conclusion." },
+];
+
+const CT_QUIZ_L4: QuizQuestion[] = [
+  { id: "ct4q1", question: "You've been working on a failing project for 18 months. The rational reason to continue is:", options: ["The 18 months of work already invested", "Evidence that future effort will produce future value", "Your team's emotional attachment to it", "Fairness to past effort"], correct: 1, explanation: "The sunk cost fallacy causes people to continue losing endeavors because of past investment. Rational decision-making is forward-looking — only future costs and future benefits should drive future choices." },
+  { id: "ct4q2", question: "Which describes the Dunning-Kruger effect?", options: ["Experts overestimate how much others know", "Low-knowledge individuals overestimate their own competence", "Competent people refuse to share their knowledge", "Learning reduces confidence permanently"], correct: 1, explanation: "People with limited knowledge in a domain often lack the metacognitive ability to recognize what they don't know — producing unearned confidence. Expertise develops alongside the ability to recognize complexity and uncertainty." },
+  { id: "ct4q3", question: "Your political party's candidate makes a mistake. You call it a misunderstanding. The rival party's candidate makes the same mistake. You call it incompetence. This illustrates:", options: ["Confirmation Bias", "Availability Heuristic", "In-Group Bias", "Anchoring"], correct: 2, explanation: "In-group bias causes us to apply different interpretive standards to the same behavior depending on who performs it. Recognizing this requires deliberately applying consistent standards regardless of group membership." },
+];
+
+const CT_CAPSTONE_STEPS = [
+  { label: "Spot the Errors", q: "Read the argument above carefully. List every logical error, fallacy, or unsupported claim you can find. Be specific — name the problem and quote the exact phrase it applies to.", ph: "e.g., 1. Bandwagon fallacy — 'everyone is talking about it' treats popularity as evidence of effectiveness. 2. Ad hominem — 'out-of-touch executives' dismisses opponents without addressing their concerns. 3. Unverified statistic — '20% output increase' cites no study, no author, no sample size..." },
+  { label: "Steelman It", q: "Now argue the best possible version of the 4-day work week case — using only claims you could actually support with real evidence. No fallacies, no unsourced statistics, no personal attacks.", ph: "e.g., The strongest case for a 4-day work week rests on a growing body of controlled trials. Microsoft Japan's 2019 pilot reported a 40% productivity increase (measured by output per hour, not total output). Iceland's 2015–2019 trial — the largest of its kind — found sustained or improved productivity in most sectors. The mechanism is plausible: cognitive fatigue reduces output quality; recovery time improves focus..." },
+  { label: "Your Verdict", q: "Based only on evidence you trust — do you think 4-day work weeks are beneficial? State your position, the two strongest pieces of evidence for it, and one significant counterargument you genuinely cannot dismiss.", ph: "e.g., My position: likely beneficial in knowledge-work sectors, with important caveats. Evidence for: (1) Iceland trial — large scale, government-coordinated, found sustained productivity. (2) Reduced burnout is well-documented in the literature, and burnout has measurable productivity costs. Counterargument I can't dismiss: manufacturing and client-service sectors face genuine output constraints that hourly workers can't absorb without overtime pay shifts — the research on these sectors is weaker..." },
+];
+
+// ─── Clear Thinking Tab ────────────────────────────────────────────────────────
+function ClearThinkingTab() {
+  const [activeLesson, setActiveLesson] = useState<CTLessonId | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+  const { addXP } = usePersonalization();
+
+  // L1 state — segmented
+  const [ct1Seg, setCt1Seg] = useState(0);
+
+  // L2 state — fallacy explorer + identifier game
+  const [activeFallacy, setActiveFallacy] = useState<string | null>(null);
+  const [gameStatement, setGameStatement] = useState("");
+  const [gameResult, setGameResult] = useState("");
+  const [gameLoading, setGameLoading] = useState(false);
+  const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
+
+  // L3 state — evidence ranking
+  const [ranked, setRanked] = useState<string[]>([]);
+  const [rankRevealed, setRankRevealed] = useState(false);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [sourceResult, setSourceResult] = useState("");
+  const [sourceLoading, setSourceLoading] = useState(false);
+
+  // L4 state — bias self-assessment
+  const [activeBias, setActiveBias] = useState<string | null>(null);
+  const [biasReflections, setBiasReflections] = useState<Record<string, string>>({});
+  const [savedBiasReflections, setSavedBiasReflections] = useState<Set<string>>(new Set());
+
+  // L5 capstone state
+  const [ctStep, setCtStep] = useState(0);
+  const [ctAnswers, setCtAnswers] = useState(["", "", ""]);
+  const [ctDone, setCtDone] = useState(false);
+  const [errorChecks, setErrorChecks] = useState<Record<string, boolean>>({});
+
+  const analyzeMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setGameResult(data.explanation); setGameLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setGameLoading(false); },
+  });
+
+  const sourceMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setSourceResult(data.explanation); setSourceLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setSourceLoading(false); },
+  });
+
+  const handleCTComplete = (id: CTLessonId) => {
+    if (completedLessons.has(id)) return;
+    const meta = CT_LESSON_META.find((l) => l.id === id)!;
+    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson complete!`);
+  };
+
+  const handleAnalyzeFallacy = () => {
+    if (!gameStatement.trim()) { toast.error("Enter a statement first."); return; }
+    setGameLoading(true); setGameResult(""); setSelectedGuess(null);
+    analyzeMutation.mutate({
+      concept: `Analyze this statement for logical fallacies: "${gameStatement}". Identify any fallacies present (or confirm it's a sound argument). Name each fallacy, quote the exact part of the statement that contains it, and briefly explain why it qualifies. Be direct and educational.`,
+      level: "student",
+    });
+  };
+
+  const handleSourceCheck = () => {
+    if (!sourceUrl.trim()) { toast.error("Paste a claim or URL first."); return; }
+    setSourceLoading(true); setSourceResult("");
+    sourceMutation.mutate({
+      concept: `Evaluate the credibility of this source or claim: "${sourceUrl}". Apply the SIFT method (Stop, Investigate the source, Find better coverage, Trace claims). Rate its credibility (High / Medium / Low / Unknown) and explain what signals you used to reach that judgment. Be specific and educational.`,
+      level: "student",
+    });
+  };
+
+  const overallPct = Math.round((completedLessons.size / CT_LESSON_META.length) * 100);
+
+  const ct1Segments = [
+    {
+      title: "Claims, Evidence & Inference",
+      narration: "Every argument — whether it's a news headline, a friend's opinion, or a policy debate — has the same three parts: a claim, evidence, and an inference. Learning to spot all three is the foundation of clear thinking.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">An argument is not a fight. It is a structured attempt to show that a <strong className="text-foreground">claim</strong> is true, supported by <strong className="text-foreground">evidence</strong>, connected by <strong className="text-foreground">inference</strong>.</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Claim", def: "What you're asserting is true.", ex: "\"Regular exercise improves mood.\"", color: "oklch(0.72_0.2_260)", icon: <Target size={18} /> },
+              { label: "Evidence", def: "The support for the claim — data, studies, observations.", ex: "\"A meta-analysis of 49 RCTs found exercise reduces depression symptoms.\"", color: "oklch(0.72_0.18_150)", icon: <FlaskConical size={18} /> },
+              { label: "Inference", def: "The logical bridge from evidence to claim.", ex: "\"Since the evidence shows reduced symptoms, the claim about mood is supported.\"", color: "oklch(0.78_0.16_30)", icon: <ArrowRight size={18} /> },
+            ].map(({ label, def, ex, color, icon }) => (
+              <div key={label} className="glass rounded-xl p-4 border border-white/8">
+                <div className="flex items-center gap-2 mb-2" style={{ color }}>{icon}<span className="font-bold text-sm">{label}</span></div>
+                <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{def}</p>
+                <div className="text-xs italic text-foreground/70 leading-relaxed border-l-2 pl-2" style={{ borderColor: color }}>{ex}</div>
+              </div>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-white/10">
+            <div className="flex items-start gap-2"><Info size={13} className="text-[oklch(0.72_0.2_260)] mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground"><strong className="text-foreground">Key insight:</strong> A claim can sound like evidence ("studies show...") but still require you to ask: which studies? How rigorous? What did they actually measure? The structure of an argument is just the starting point — quality of evidence is where critical thinking begins.</p>
+            </div>
+          </div>
+        </div>
+      ),
+      topics: ["What makes a claim falsifiable", "The difference between deductive and inductive reasoning", "How to identify hidden premises in an argument", "What 'burden of proof' actually means"],
+    },
+    {
+      title: "Valid vs. Sound Arguments",
+      narration: "An argument can be perfectly logical in structure and still lead you to a false conclusion. Validity and soundness are different — and confusing them is one of the most common reasoning errors people make.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Valid", color: "oklch(0.78_0.16_30)", desc: "The conclusion follows logically from the premises — IF the premises were true, the conclusion must be true.", example: "All cats are reptiles. (False)\nMy pet is a cat. (True)\n∴ My pet is a reptile. (Logically valid — but unsound!)", verdict: "Valid but NOT sound" },
+              { label: "Sound", color: "oklch(0.72_0.18_150)", desc: "Valid structure AND true premises. Both requirements must be met for an argument to be genuinely convincing.", example: "All mammals have hearts. (True)\nDogs are mammals. (True)\n∴ Dogs have hearts. (True)", verdict: "Valid AND sound" },
+            ].map(({ label, color, desc, example, verdict }) => (
+              <div key={label} className="glass rounded-xl p-4 border border-white/8 space-y-2">
+                <div className="text-sm font-bold" style={{ color }}>{label}</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                <div className="font-mono text-xs text-foreground/70 bg-white/3 rounded-lg p-3 whitespace-pre leading-relaxed">{example}</div>
+                <div className="text-xs font-semibold" style={{ color }}>{verdict}</div>
+              </div>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-white/10">
+            <div className="flex items-start gap-2"><AlertTriangle size={13} className="text-[oklch(0.78_0.16_30)] mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground"><strong className="text-foreground">Why this matters:</strong> Propaganda and misinformation often use valid logical structures with false premises. The argument sounds airtight — but only if you never question the starting assumptions. Always examine the premises, not just the logic.</p>
+            </div>
+          </div>
+        </div>
+      ),
+      topics: ["What a syllogism is and why it matters", "How to spot false premises disguised as facts", "The difference between correlation and causation in arguments", "How to construct a deductively valid argument"],
+    },
+    {
+      title: "Spotting Arguments in the Wild",
+      narration: "Arguments don't announce themselves. They show up in news articles, social media posts, conversations, and product marketing — often dressed as facts. The skill is learning to pause and ask: is this an argument or just an assertion?",
+      body: (
+        <div className="space-y-4 mt-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">An <strong className="text-foreground">assertion</strong> is a statement made without support. An <strong className="text-foreground">argument</strong> attempts to provide reasons. In everyday discourse, the two are constantly confused.</p>
+          <div className="space-y-3">
+            {[
+              { type: "Assertion", text: "\"Social media is destroying young people's mental health.\"", verdict: "No evidence, no inference — this is a claim presented as established fact.", color: "oklch(0.68_0.22_20)" },
+              { type: "Weak Argument", text: "\"Social media is harmful because I can see teenagers are unhappy and they're all on their phones.\"", verdict: "Has a reason, but it's anecdotal and conflates correlation with causation.", color: "oklch(0.78_0.16_30)" },
+              { type: "Proper Argument", text: "\"A 2022 systematic review of 72 studies found significant associations between heavy social media use and depression in adolescents, though the effect size varies by platform and usage type.\"", verdict: "Cites specific evidence, acknowledges nuance, and draws a proportionate conclusion.", color: "oklch(0.72_0.18_150)" },
+            ].map(({ type, text, verdict, color }) => (
+              <div key={type} className="glass rounded-xl p-4 border border-white/8">
+                <div className="text-xs font-semibold mb-2" style={{ color }}>{type}</div>
+                <p className="text-sm text-foreground italic mb-2">{text}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{verdict}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      topics: ["What indicator words signal conclusions vs. premises", "How to diagram a complex argument", "Why appeals to emotion aren't inherently fallacious", "The difference between an argument and an explanation"],
+    },
+  ];
+
+  function CTLessonShell({ id, children }: { id: CTLessonId; children: React.ReactNode }) {
+    const meta = CT_LESSON_META.find((l) => l.id === id)!;
+    const done = completedLessons.has(id);
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to all lessons
+        </button>
+        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Clear Thinking · Module 1 · The Architecture of an Argument</div>
+              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
+              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
+              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
+              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
+            </div>
+          </div>
+        </div>
+        {children}
+        <div className="mt-8 pt-6 border-t border-white/8">
+          {done
+            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
+            : <motion.button onClick={() => handleCTComplete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
+                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.72_0.18_150))` }}>
+                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
+              </motion.button>
+          }
+        </div>
+        {id !== "ct5" && (
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => { const ids: CTLessonId[] = ["ct1","ct2","ct3","ct4","ct5"]; const idx = ids.indexOf(id); setActiveLesson(ids[idx + 1]); }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next lesson <ChevronRight size={13} />
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  if (activeLesson !== null) return (
+    <AnimatePresence mode="wait">
+
+      {/* ── Lesson 1: What Makes an Argument? ── */}
+      {activeLesson === "ct1" && (
+        <CTLessonShell key="ct1" id="ct1">
+          <div className="space-y-4">
+            {/* Segment tabs */}
+            <div className="flex gap-2">
+              {ct1Segments.map((s, i) => (
+                <button key={i} onClick={() => setCt1Seg(i)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
+                    ct1Seg === i ? "bg-[oklch(0.72_0.2_260_/_0.15)] border-[oklch(0.72_0.2_260_/_0.4)] text-[oklch(0.82_0.2_260)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>{i + 1}. {s.title}</button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={ct1Seg} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-white/8">
+                <h3 className="font-semibold text-foreground mb-3">{ct1Segments[ct1Seg].title}</h3>
+                <Narrator text={ct1Segments[ct1Seg].narration} />
+                {ct1Segments[ct1Seg].body}
+                <SegmentFooter
+                  accentColor="oklch(0.72_0.2_260)"
+                  onReady={ct1Seg < ct1Segments.length - 1 ? () => setCt1Seg(ct1Seg + 1) : undefined}
+                  topics={ct1Segments[ct1Seg].topics}
+                />
+              </motion.div>
+            </AnimatePresence>
+            <div className="flex justify-between">
+              <button onClick={() => setCt1Seg(Math.max(0, ct1Seg - 1))} disabled={ct1Seg === 0}
+                className="flex items-center gap-1 px-4 py-2 rounded-lg glass border border-white/8 text-sm text-muted-foreground disabled:opacity-40">
+                <ChevronLeft size={13} /> Previous
+              </button>
+              {ct1Seg < ct1Segments.length - 1 && (
+                <button onClick={() => setCt1Seg(ct1Seg + 1)}
+                  className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[oklch(0.72_0.2_260_/_0.15)] border border-[oklch(0.72_0.2_260_/_0.3)] text-sm text-[oklch(0.82_0.2_260)]">
+                  Next <ChevronRight size={13} />
+                </button>
+              )}
+            </div>
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT_QUIZ_L1} accentColor="oklch(0.72_0.2_260)" />
+            </div>
+          </div>
+        </CTLessonShell>
+      )}
+
+      {/* ── Lesson 2: Logical Fallacies ── */}
+      {activeLesson === "ct2" && (
+        <CTLessonShell key="ct2" id="ct2">
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="A logical fallacy is a flaw in reasoning that makes an argument invalid — even when the conclusion might happen to be true. Learning to name fallacies gives you the vocabulary to dismantle bad arguments without losing your temper." />
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { label: "Attack the person", name: "Ad Hominem", icon: <Users size={14} /> },
+                  { label: "Misrepresent position", name: "Straw Man", icon: <Flame size={14} /> },
+                  { label: "Only two options", name: "False Dilemma", icon: <Scale size={14} /> },
+                  { label: "Popular = true", name: "Bandwagon", icon: <TrendingUp size={14} /> },
+                ].map(({ label, name, icon }) => (
+                  <div key={name} className="glass rounded-xl p-3 border border-white/8 text-center">
+                    <div className="flex justify-center mb-1.5 text-[oklch(0.68_0.22_20)]">{icon}</div>
+                    <div className="text-xs font-semibold text-foreground">{name}</div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
+                topics={["Why fallacies can still lead to true conclusions", "The difference between informal and formal fallacies", "How to respond to a fallacy without sounding condescending", "Why ad hominem is sometimes relevant (character witnesses)"]} />
+            </div>
+
+            {/* Fallacy explorer */}
+            <div className="text-sm font-semibold text-foreground">Click any fallacy to study it in depth:</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {FALLACIES.map((f) => (
+                <button key={f.id} onClick={() => setActiveFallacy(activeFallacy === f.id ? null : f.id)}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-medium transition-all border text-left ${
+                    activeFallacy === f.id
+                      ? "bg-[oklch(0.68_0.22_20_/_0.15)] border-[oklch(0.68_0.22_20_/_0.4)] text-[oklch(0.78_0.22_20)]"
+                      : "glass border-white/8 text-muted-foreground hover:border-white/20"
+                  }`}>{f.name}</button>
+              ))}
+            </div>
+
+            <AnimatePresence>
+              {activeFallacy && (() => {
+                const f = FALLACIES.find((x) => x.id === activeFallacy)!;
+                return (
+                  <motion.div key={activeFallacy} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}
+                    className="glass rounded-2xl p-6 border border-[oklch(0.68_0.22_20_/_0.3)] space-y-3">
+                    <h3 className="font-bold text-foreground text-lg">{f.name}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{f.definition}</p>
+                    <div className="glass rounded-xl p-4 border border-[oklch(0.68_0.22_20_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-2">EXAMPLE</div>
+                      <p className="text-sm text-foreground italic leading-relaxed">{f.example}</p>
+                    </div>
+                    <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">HOW TO RESPOND</div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{f.rebuttal}</p>
+                    </div>
+                  </motion.div>
+                );
+              })()}
+            </AnimatePresence>
+
+            {/* Live fallacy detector */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.68_0.22_20_/_0.2)]">
+              <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-1">FALLACY DETECTOR</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste any argument, headline, or statement. The AI will identify any fallacies present.</p>
+              <textarea value={gameStatement} onChange={(e) => setGameStatement(e.target.value)}
+                placeholder="e.g., 'You can't criticize the government's climate policy — you drive a car.'"
+                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_20_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={handleAnalyzeFallacy} disabled={gameLoading || !gameStatement.trim()}
+                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.68_0.22_20)" }}>
+                {gameLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Search size={13} /> Detect Fallacies</>}
+              </motion.button>
+              <AnimatePresence>
+                {gameResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.68_0.22_20_/_0.08)] border border-[oklch(0.68_0.22_20_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{gameResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT_QUIZ_L2} accentColor="oklch(0.68_0.22_20)" />
+            </div>
+          </div>
+        </CTLessonShell>
+      )}
+
+      {/* ── Lesson 3: Evidence & Sources ── */}
+      {activeLesson === "ct3" && (
+        <CTLessonShell key="ct3" id="ct3">
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="The quality of an argument is only as good as its evidence. Not all evidence is created equal. A personal story and a randomized controlled trial can both support the same claim — but they carry very different weight." />
+              <div className="mt-4 space-y-2">
+                {EVIDENCE_ITEMS.map((ev) => (
+                  <div key={ev.id} className="glass rounded-xl p-4 border border-white/8 flex items-center gap-4">
+                    <div className="flex gap-1 shrink-0">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className={`w-2.5 h-6 rounded-sm ${i < ev.strength ? "bg-[oklch(0.72_0.18_150)]" : "bg-white/10"}`} />
+                      ))}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-foreground">{ev.label}</div>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{ev.description}</p>
+                    </div>
+                    <div className="shrink-0 text-xs font-bold text-[oklch(0.72_0.18_150)]">{ev.strength}/5</div>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.72_0.18_150)"
+                topics={["What makes an RCT more reliable than an observational study", "Why meta-analyses can still be flawed", "How publication bias distorts scientific literature", "What 'peer review' actually means — and its limits"]} />
+            </div>
+
+            {/* Ranking game */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.18_150_/_0.2)]">
+              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">RANKING CHALLENGE</div>
+              <p className="text-xs text-muted-foreground mb-4">Rank these five evidence types from strongest (1) to weakest (5) — tap in order.</p>
+              {!rankRevealed ? (
+                <>
+                  <div className="space-y-2 mb-4">
+                    {EVIDENCE_ITEMS.map((ev) => {
+                      const pos = ranked.indexOf(ev.id);
+                      return (
+                        <button key={ev.id} onClick={() => {
+                          if (pos >= 0) setRanked(ranked.filter((r) => r !== ev.id));
+                          else if (ranked.length < 5) setRanked([...ranked, ev.id]);
+                        }}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm border transition-all text-left ${
+                            pos >= 0
+                              ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-foreground"
+                              : "glass border-white/8 text-muted-foreground hover:border-white/20"
+                          }`}>
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 border ${
+                            pos >= 0 ? "bg-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150)] text-white" : "border-white/20 text-muted-foreground"
+                          }`}>{pos >= 0 ? pos + 1 : ""}</span>
+                          <span className="flex-1">{ev.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <motion.button onClick={() => setRankRevealed(true)} disabled={ranked.length < 5}
+                      whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                      className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-medium text-black disabled:opacity-40"
+                      style={{ background: "linear-gradient(to right, oklch(0.72_0.18_150), oklch(0.72_0.2_260))" }}>
+                      <CheckCircle2 size={13} /> Reveal answer
+                    </motion.button>
+                    {ranked.length > 0 && (
+                      <button onClick={() => setRanked([])} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Reset</button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                  {EVIDENCE_ITEMS.slice().sort((a, b) => b.strength - a.strength).map((ev, i) => {
+                    const userPos = ranked.indexOf(ev.id);
+                    const correct = userPos === i;
+                    return (
+                      <div key={ev.id} className={`flex items-center gap-3 p-3 rounded-xl border text-sm ${
+                        correct ? "bg-[oklch(0.72_0.18_150_/_0.1)] border-[oklch(0.72_0.18_150_/_0.3)] text-foreground" : "glass border-white/8 text-muted-foreground"
+                      }`}>
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-[oklch(0.72_0.18_150)] text-white">{i + 1}</span>
+                        <span className="flex-1">{ev.label}</span>
+                        {correct ? <CheckCircle2 size={13} className="text-[oklch(0.72_0.18_150)] shrink-0" /> : <span className="text-xs text-muted-foreground shrink-0">You ranked: {userPos + 1}</span>}
+                      </div>
+                    );
+                  })}
+                  <button onClick={() => { setRanked([]); setRankRevealed(false); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors mt-2">Try again</button>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Live source evaluator */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.18_150_/_0.2)]">
+              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">SOURCE EVALUATOR</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste a claim, headline, or URL. Get a credibility analysis using the SIFT method.</p>
+              <div className="flex gap-2">
+                <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSourceCheck()}
+                  placeholder="e.g., 'Scientists say coffee prevents cancer' or paste a URL…"
+                  className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] transition-colors" />
+                <motion.button onClick={handleSourceCheck} disabled={sourceLoading || !sourceUrl.trim()}
+                  whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                  style={{ background: "oklch(0.72_0.18_150)" }}>
+                  {sourceLoading ? <><RefreshCw size={13} className="animate-spin" /> Checking…</> : <><Search size={13} /> Evaluate</>}
+                </motion.button>
+              </div>
+              <AnimatePresence>
+                {sourceResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.72_0.18_150_/_0.08)] border border-[oklch(0.72_0.18_150_/_0.2)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{sourceResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT_QUIZ_L3} accentColor="oklch(0.72_0.18_150)" />
+            </div>
+          </div>
+        </CTLessonShell>
+      )}
+
+      {/* ── Lesson 4: Cognitive Biases ── */}
+      {activeLesson === "ct4" && (
+        <CTLessonShell key="ct4" id="ct4">
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="Cognitive biases are systematic errors in thinking that affect everyone — regardless of intelligence. They aren't character flaws, they are features of how the human brain processes information efficiently. Understanding them is the first step to overriding them when it counts." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { label: "Social", d: "Biases from group dynamics", icon: <Users size={16} className="text-[oklch(0.72_0.2_260)]" /> },
+                  { label: "Memory", d: "Biases in what we remember", icon: <Brain size={16} className="text-[oklch(0.78_0.16_30)]" /> },
+                  { label: "Decision", d: "Biases in how we choose", icon: <Scale size={16} className="text-[oklch(0.72_0.18_150)]" /> },
+                ].map(({ label, d, icon }) => (
+                  <div key={label} className="glass rounded-xl p-3 border border-white/8 text-center">
+                    <div className="flex justify-center mb-2">{icon}</div>
+                    <div className="text-xs font-semibold text-foreground">{label}</div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">{d}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.78_0.16_30)"
+                topics={["Why intelligent people are just as biased as everyone else", "What System 1 vs System 2 thinking means", "How biases interact and amplify each other", "Whether cognitive biases can actually be eliminated"]} />
+            </div>
+
+            <div className="text-sm font-medium text-foreground">Select a bias to explore it — and reflect on when it's affected you:</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {BIASES.map((b) => (
+                <button key={b.id} onClick={() => setActiveBias(activeBias === b.id ? null : b.id)}
+                  className={`py-3 px-4 rounded-xl text-sm font-medium transition-all border text-left ${
+                    activeBias === b.id
+                      ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]"
+                      : "glass border-white/8 text-muted-foreground hover:border-white/20"
+                  }`}>{b.name}</button>
+              ))}
+            </div>
+
+            <AnimatePresence>
+              {activeBias && (() => {
+                const b = BIASES.find((x) => x.id === activeBias)!;
+                const saved = savedBiasReflections.has(b.id);
+                return (
+                  <motion.div key={activeBias} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.3)] space-y-4">
+                    <h3 className="font-bold text-foreground text-lg">{b.name}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{b.definition}</p>
+                    <div className="glass rounded-xl p-4 border border-[oklch(0.78_0.16_30_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-2">REAL-WORLD TRIGGER</div>
+                      <p className="text-sm text-muted-foreground italic leading-relaxed">{b.trigger}</p>
+                    </div>
+                    <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">ANTIDOTE</div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{b.antidote}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-foreground mb-2 block">Has this bias affected a decision you've made? Describe it briefly:</label>
+                      <textarea value={biasReflections[b.id] ?? ""} onChange={(e) => setBiasReflections((prev) => ({ ...prev, [b.id]: e.target.value }))}
+                        placeholder="Think of a specific moment — a purchase, an opinion you held, a conflict…"
+                        rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.5)] resize-none" />
+                      {!saved
+                        ? <button onClick={() => { if (!(biasReflections[b.id] ?? "").trim()) { toast.error("Write something first."); return; } setSavedBiasReflections((prev) => new Set(Array.from(prev).concat(b.id))); addXP(5); toast.success("+5 XP — reflection saved!"); }}
+                            className="mt-2 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.78_0.16_30_/_0.2)] border border-[oklch(0.78_0.16_30_/_0.3)] text-sm text-[oklch(0.88_0.16_30)]">
+                            <Check size={13} /> Save Reflection
+                          </button>
+                        : <p className="mt-2 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Saved — +5 XP</p>
+                      }
+                    </div>
+                  </motion.div>
+                );
+              })()}
+            </AnimatePresence>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT_QUIZ_L4} accentColor="oklch(0.78_0.16_30)" />
+            </div>
+          </div>
+        </CTLessonShell>
+      )}
+
+      {/* ── Lesson 5: Capstone ── */}
+      {activeLesson === "ct5" && (
+        <CTLessonShell key="ct5" id="ct5">
+          <div className="space-y-5">
+            {completedLessons.size < 4 && (
+              <div className="glass rounded-xl p-5 border border-[oklch(0.75_0.18_55_/_0.3)]">
+                <div className="flex items-start gap-3">
+                  <Lock size={16} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
+                    <p className="text-sm text-muted-foreground">Completed {completedLessons.size}/4 lessons. The capstone requires all four skills working together.</p>
+                    <div className="flex gap-1 mt-2">
+                      {(["ct1","ct2","ct3","ct4"] as CTLessonId[]).map((id) => (
+                        <div key={id} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                          completedLessons.has(id) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground"
+                        }`}>{completedLessons.has(id) ? <Check size={12} /> : id.replace("ct","")}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="This capstone puts all four skills to work on a single flawed argument. You'll identify the errors, construct the strongest possible version of the argument, then deliver your own reasoned verdict." />
+              <div className="mt-4 glass rounded-xl p-5 border border-white/10">
+                <div className="text-xs font-semibold text-[oklch(0.75_0.18_55)] mb-2">{CT_ARG_FLAWED.title.toUpperCase()}</div>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap italic">{CT_ARG_FLAWED.text}</p>
+              </div>
+            </div>
+
+            {/* Error checklist — interactive pre-work for step 1 */}
+            {ctStep === 0 && (
+              <div className="glass rounded-2xl p-5 border border-white/8">
+                <div className="text-xs font-semibold text-foreground mb-3">QUICK SCAN — Check any errors you can already spot before writing:</div>
+                <div className="space-y-2">
+                  {CT_ARG_FLAWED.errors.map((e) => (
+                    <label key={e.id} className="flex items-start gap-3 cursor-pointer">
+                      <div onClick={() => setErrorChecks((prev) => ({ ...prev, [e.id]: !prev[e.id] }))}
+                        className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                          errorChecks[e.id] ? "bg-[oklch(0.75_0.18_55)] border-[oklch(0.75_0.18_55)]" : "border-white/20"
+                        }`}>
+                        {errorChecks[e.id] && <Check size={11} className="text-white" />}
+                      </div>
+                      <div>
+                        <div className={`text-sm font-medium ${errorChecks[e.id] ? "text-foreground" : "text-muted-foreground"}`}>{e.label}</div>
+                        {errorChecks[e.id] && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{e.explanation}</p>}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {CT_CAPSTONE_STEPS.map((p, i) => (
+                <button key={i} onClick={() => setCtStep(i)}
+                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
+                    ctStep === i ? "bg-[oklch(0.75_0.18_55_/_0.15)] border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>
+                  {p.label} {ctAnswers[i].length > 20 && <CheckCircle2 size={11} className="inline text-[oklch(0.72_0.18_150)]" />}
+                </button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={ctStep} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.15)]">
+                <div className="text-xs font-semibold text-[oklch(0.75_0.18_55)] mb-3">CAPSTONE — {CT_CAPSTONE_STEPS[ctStep].label.toUpperCase()}</div>
+                <p className="text-sm font-medium text-foreground mb-4 leading-snug">{CT_CAPSTONE_STEPS[ctStep].q}</p>
+                <textarea value={ctAnswers[ctStep]}
+                  onChange={(e) => { const u = [...ctAnswers]; u[ctStep] = e.target.value; setCtAnswers(u); }}
+                  placeholder={CT_CAPSTONE_STEPS[ctStep].ph} rows={7}
+                  className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none leading-relaxed" />
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-xs text-muted-foreground">{ctAnswers[ctStep].length} chars</span>
+                  <div className="flex gap-2">
+                    {ctStep > 0 && (
+                      <button onClick={() => setCtStep(ctStep - 1)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
+                        <ChevronLeft size={12} /> Previous
+                      </button>
+                    )}
+                    {ctStep < CT_CAPSTONE_STEPS.length - 1
+                      ? <button onClick={() => setCtStep(ctStep + 1)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.3)] text-xs text-[oklch(0.85_0.18_55)]">
+                          Next <ChevronRight size={12} />
+                        </button>
+                      : !ctDone && (
+                          <motion.button
+                            onClick={() => {
+                              if (ctAnswers.filter((a) => a.length > 20).length < 3) { toast.error(`Complete all 3 parts (${ctAnswers.filter((a) => a.length > 20).length}/3 done).`); return; }
+                              setCtDone(true); handleCTComplete("ct5"); toast.success("Module 1 complete!");
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-black text-xs font-semibold"
+                            style={{ background: "linear-gradient(to right, oklch(0.75_0.18_55), oklch(0.72_0.2_260))" }}>
+                            <Trophy size={12} /> Submit
+                          </motion.button>
+                        )
+                    }
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            {ctDone && (
+              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                className="glass rounded-2xl p-8 border border-[oklch(0.75_0.18_55_/_0.3)] text-center">
+                <Lightbulb size={40} className="mx-auto mb-3 text-[oklch(0.75_0.18_55)]" />
+                <h3 className="text-2xl font-bold text-foreground mb-2">Module 1 Complete!</h3>
+                <p className="text-muted-foreground mb-4 max-w-lg mx-auto">You have earned your <strong className="text-foreground">Clear Thinking Certificate — Module 1</strong>.</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {["Argument Analysis", "Fallacy Spotter", "Evidence Ranker", "Bias Aware", "Capstone"].map((b) => (
+                    <span key={b} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
+                      <CheckCircle2 size={11} className="inline mr-1" />{b}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </CTLessonShell>
+      )}
+    </AnimatePresence>
+  );
+
+  // ── Lesson overview ──
+  return (
+    <div className="space-y-4">
+      <div className="glass rounded-2xl p-6 border border-[oklch(0.72_0.2_260_/_0.2)]">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)] border border-[oklch(0.72_0.2_260_/_0.3)]">Clear Thinking</span>
+              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Beginner · ~2 hrs · 340 XP</span>
+            </div>
+            <h3 className="text-lg font-bold text-foreground">Module 1: The Architecture of an Argument</h3>
+            <p className="text-sm text-muted-foreground">Arguments, fallacies, evidence, and the biases that trip us all up</p>
+          </div>
+          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.72_0.2_260)" }}>{overallPct}%</span>}
+        </div>
+        {completedLessons.size > 0 && (
+          <div className="w-full h-2 rounded-full bg-white/8 mt-2">
+            <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.72_0.2_260)] to-[oklch(0.72_0.18_150)] transition-all" style={{ width: `${overallPct}%` }} />
+          </div>
+        )}
+      </div>
+      <div className="space-y-2">
+        {CT_LESSON_META.map((lesson, i) => {
+          const done = completedLessons.has(lesson.id);
+          return (
+            <motion.div key={lesson.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className={`glass rounded-2xl border overflow-hidden transition-all ${done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : "border-white/8 hover:border-white/15"}`}>
+              <button onClick={() => setActiveLesson(lesson.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
+                  style={{ background: `color-mix(in oklch, ${lesson.color} 15%, transparent)`, border: `1px solid color-mix(in oklch, ${lesson.color} 30%, transparent)`, color: lesson.color }}>
+                  {i + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground">{lesson.title}</div>
+                  <p className="text-sm text-muted-foreground truncate">{lesson.subtitle}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
+                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp} XP</span>
+                  {done ? <span className="text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={10} /> Done</span> : <ChevronRight size={13} className="text-muted-foreground" />}
+                </div>
+              </button>
+            </motion.div>
+          );
+        })}
+      </div>
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="flex items-start gap-3">
+          <Scale size={15} className="text-[oklch(0.72_0.2_260)] mt-0.5 shrink-0" />
+          <div>
+            <h4 className="font-semibold text-foreground mb-1 text-sm">What you will be able to do after Module 1</h4>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {[
+                { n: "Argument Analysis", d: "Identify claim, evidence, and inference in any text" },
+                { n: "Fallacy Detection", d: "Name and counter 8 common logical fallacies" },
+                { n: "Evidence Evaluation", d: "Rank sources by reliability and spot weak evidence" },
+                { n: "Bias Awareness", d: "Recognize 6 biases in your own and others' thinking" },
+              ].map(({ n, d }) => (
+                <div key={n} className="glass rounded-lg p-3 border border-white/8">
+                  <div className="text-xs font-semibold text-foreground mb-0.5">{n}</div>
+                  <p className="text-xs text-muted-foreground">{d}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -2255,7 +3222,7 @@ const featuredPaths = [
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Learn() {
-  const [activeTab, setActiveTab] = useState<"ailiteracy" | "curriculum" | "socratic" | "paths">("ailiteracy");
+  const [activeTab, setActiveTab] = useState<"ailiteracy" | "clearthinking" | "curriculum" | "socratic" | "paths">("ailiteracy");
   const [prefillGoal, setPrefillGoal] = useState("");
   const handleSelectPath = (pathTitle: string) => {
     setPrefillGoal(`I want to learn: ${pathTitle}`);
@@ -2263,6 +3230,7 @@ export default function Learn() {
   };
   const tabs = [
     { id: "ailiteracy" as const, label: "AI Literacy", icon: BookOpen, desc: "Intro to AI for Adults" },
+    { id: "clearthinking" as const, label: "Clear Thinking", icon: Lightbulb, desc: "Logic & critical reasoning" },
     { id: "curriculum" as const, label: "AI Curriculum", icon: Target, desc: "Build your personalized path" },
     { id: "socratic" as const, label: "Socratic Mode", icon: MessageSquare, desc: "Learn by questioning" },
     { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated starting points" },
@@ -2351,6 +3319,7 @@ export default function Learn() {
                 transition={{ duration: 0.2 }}
               >
                 {activeTab === "ailiteracy" && <AILiteracyTab />}
+                {activeTab === "clearthinking" && <ClearThinkingTab />}
                 {activeTab === "curriculum" && <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />}
                 {activeTab === "socratic" && <SocraticTutor />}
                 {activeTab === "paths" && <PathsTab onSelectPath={handleSelectPath} />}
