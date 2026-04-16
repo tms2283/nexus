@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Sparkles, Target, ChevronRight, Loader2,
   Brain, MessageSquare, CheckCircle2, ArrowRight,
   GraduationCap, Zap, RotateCcw, Send, ChevronDown,
-  Clock, Star, Play, Lock
+  Clock, Star, Play, Lock, ChevronLeft, XCircle, Check,
+  Volume2, VolumeX, Pause, HelpCircle, Shield, Trophy,
+  Eye, Info, Award, RefreshCw
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
@@ -37,7 +39,758 @@ interface SocraticMessage {
   content: string;
 }
 
-type FoundationCourseId = "ai-clarity" | "reason-well";
+// ─── AI Literacy Types & Data ────────────────────────────────────────────────
+type LessonId = 1 | 2 | 3 | 4 | 5;
+
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+}
+
+interface PromptExercise {
+  id: string;
+  title: string;
+  scenario: string;
+  vague: string;
+  hint: string;
+  rubric: string[];
+}
+
+interface EthicsScenario {
+  id: string;
+  title: string;
+  setup: string;
+  stakeholders: { name: string; concern: string }[];
+  discussion: string;
+}
+
+const LESSON_META = [
+  { id: 1 as LessonId, title: "What Is AI?", subtitle: "A stable mental model — no buzzwords", duration: "25 min", color: "oklch(0.75_0.18_55)", xp: 50 },
+  { id: 2 as LessonId, title: "Myths vs. Reality", subtitle: "Separate hype and fear from fact", duration: "20 min", color: "oklch(0.65_0.22_200)", xp: 60 },
+  { id: 3 as LessonId, title: "Prompt Engineering", subtitle: "Speak AI fluently — craft prompts that work", duration: "30 min", color: "oklch(0.72_0.2_290)", xp: 80 },
+  { id: 4 as LessonId, title: "Ethics & Society", subtitle: "Navigate the human side of AI", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 70 },
+  { id: 5 as LessonId, title: "Capstone", subtitle: "Apply everything you've learned", duration: "20 min", color: "oklch(0.78_0.16_30)", xp: 100 },
+];
+
+const MYTH_QUIZ: QuizQuestion[] = [
+  { id: "m1", question: "AI systems like ChatGPT are conscious and have feelings.", options: ["True — they learn from human emotion", "False — they process patterns, not feelings", "Partly true", "Scientists disagree"], correct: 1, explanation: "LLMs are statistical pattern-matchers. They predict likely next tokens. There is no subjective experience or consciousness — however convincing the output feels." },
+  { id: "m2", question: "AI will replace ALL jobs within the next decade.", options: ["True — automation eliminates everything", "False — it transforms and creates new roles too", "Only blue-collar jobs", "Only white-collar jobs"], correct: 1, explanation: "History shows automation displaces tasks, not entire occupations. New jobs emerge. The risk is real for some roles but 'all jobs' is unsupported by any economic consensus." },
+  { id: "m3", question: "What does 'machine learning' actually mean?", options: ["A robot physically learning to walk", "Algorithms improving from data without explicit rules", "A computer memorizing a textbook", "Software that mimics human thought step by step"], correct: 1, explanation: "Machine learning finds patterns in data to make predictions — without being explicitly programmed with every rule. It's statistics at scale." },
+  { id: "m4", question: "AI is 100% objective because it's just math.", options: ["True — algorithms can't be biased", "False — AI inherits bias from training data and designers", "True — bias is human only", "Partially true"], correct: 1, explanation: "AI reflects its training data. If historical data encodes racial, gender, or socioeconomic bias, the model will too. 'It's just math' doesn't eliminate bias — it can amplify it at scale." },
+  { id: "m5", question: "Which best describes a Large Language Model (LLM)?", options: ["A database that looks up answers", "A model trained to predict the next most likely token", "Software that understands language like a human", "A search engine with a chat interface"], correct: 1, explanation: "LLMs are trained to predict what comes next, token by token. They don't 'understand' in a human sense — they model statistical relationships between words." },
+  { id: "m6", question: "AI systems always give accurate, truthful answers.", options: ["True — trained on verified data", "False — they can 'hallucinate' plausible-sounding falsehoods", "True if premium tier", "Only false for open-source models"], correct: 1, explanation: "AI hallucination is well-documented: models produce confident-sounding but factually wrong answers because they optimize for plausibility, not truth." },
+];
+
+const DEF_QUIZ: QuizQuestion[] = [
+  { id: "d1", question: "AI stands for:", options: ["Automated Intelligence", "Artificial Intelligence", "Advanced Integration", "Algorithmic Interface"], correct: 1, explanation: "Artificial Intelligence — the simulation of human-like reasoning by machines, encompassing machine learning, NLP, computer vision, and more." },
+  { id: "d2", question: "Which term describes AI that can perform any intellectual task a human can?", options: ["Narrow AI", "Strong AI / AGI", "Supervised Learning", "Neural Network"], correct: 1, explanation: "AGI is hypothetical AI matching human cognitive flexibility across all domains. Today's AI is narrow — excellent at specific tasks, brittle outside them." },
+  { id: "d3", question: "A 'neural network' in AI is inspired by:", options: ["Internet networks", "Electrical grids", "The human brain's neuron structure", "Social networks"], correct: 2, explanation: "Neural networks use layers of interconnected nodes loosely inspired by neurons and synapses that learn to recognize patterns through training." },
+  { id: "d4", question: "When an AI is 'trained', what happens?", options: ["It reads a manual", "It adjusts its parameters by processing large amounts of data", "It copies a human's behavior", "Engineers manually program every rule"], correct: 1, explanation: "Training is where a model processes data, makes predictions, receives feedback via loss functions, and adjusts millions of weights to improve future predictions." },
+];
+
+const PROMPT_EXERCISES: PromptExercise[] = [
+  { id: "p1", title: "Job Application Letter", scenario: "You need to write a cover letter for a marketing manager position at a tech startup. You have 5 years of experience and led a team that grew social media by 300%.", vague: "Write me a cover letter.", hint: "Add: role + company type, your specific achievements, desired tone, length, and what to emphasize.", rubric: ["Specifies the role and company type", "Includes at least one concrete achievement with a number", "States desired tone (professional, energetic, etc.)", "Mentions approximate length or format"] },
+  { id: "p2", title: "Explaining to Family", scenario: "Your 70-year-old grandmother asks you to have AI explain what a 'blockchain' is. She's comfortable with everyday technology but not technical jargon.", vague: "Explain blockchain.", hint: "Use: persona instruction, audience description, analogy request, length limit, and plain language requirement.", rubric: ["Specifies the audience (older adult, non-technical)", "Requests an analogy or comparison", "Sets a length limit (e.g., 3 sentences)", "Explicitly says 'no jargon' or 'plain language'"] },
+  { id: "p3", title: "Business Name Ideas", scenario: "You're starting a local bakery that specializes in sourdough bread and pastries. You want a name that feels warm, artisan, and slightly whimsical — not corporate.", vague: "Give me bakery names.", hint: "Specify: specialty, tone/mood, style, and ask for a certain number with brief reasoning.", rubric: ["Describes the bakery's specialty", "Describes the desired tone or mood", "Specifies how many options", "Asks for a brief reason per name"] },
+];
+
+const ETHICS_SCENARIOS: EthicsScenario[] = [
+  { id: "e1", title: "The Hiring Algorithm", setup: "A major employer uses an AI system to screen 50,000 job applications. An audit reveals it consistently scores women 15% lower for engineering roles — because historically, fewer women were hired for those roles.", stakeholders: [{ name: "Job Applicant", concern: "Qualified but unfairly filtered out before a human sees her application." }, { name: "HR Manager", concern: "Trusted the system to be objective; now liable." }, { name: "AI Developer", concern: "Trained on available data; wasn't asked to audit for demographic parity." }, { name: "Company CEO", concern: "Wants efficiency AND legal compliance. A lawsuit could cost millions." }], discussion: "Who is responsible? Should the system be halted immediately? Can debiasing the data solve it — or does it require rethinking from scratch? What oversight should exist before AI makes high-stakes decisions?" },
+  { id: "e2", title: "The Medical Chatbot", setup: "A hospital deploys an AI chatbot that triages patients. Studies show it performs well on average — but has higher error rates for patients who describe symptoms in non-standard dialects.", stakeholders: [{ name: "Patient", concern: "Risk of being incorrectly triaged to home care when ER is needed." }, { name: "ER Nurse", concern: "Overtaxed if AI sends everyone to ER; undertrained if it filters too aggressively." }, { name: "Hospital Administrator", concern: "Reduced wait times — but liability for AI errors." }, { name: "Regulator", concern: "AI medical devices need approval. What testing standard applies?" }], discussion: "Should language-unequal AI be deployed in healthcare at all? What minimum accuracy threshold across all demographic groups should be required? Who bears responsibility when an AI misdiagnosis causes harm?" },
+  { id: "e3", title: "The AI School Tutor", setup: "A school district deploys an AI writing tutor. Teachers report improved grades. But a parent discovers the system stores all student writing indefinitely and the privacy policy allows using this data to train future models.", stakeholders: [{ name: "Student (14 yrs)", concern: "Their personal writing and struggles are data — forever." }, { name: "Teacher", concern: "Great tool, but didn't consent students to data collection." }, { name: "Parent", concern: "Their child's data is used commercially without informed consent." }, { name: "EdTech Company", concern: "Student data is core to improving the product. Anonymization is expensive." }], discussion: "Does 'better outcomes' justify data collection from minors? Should there be a legal right to be forgotten for student data? What's the difference between anonymized and de-identified — and does it matter?" },
+];
+
+// ─── Narrator ─────────────────────────────────────────────────────────────────
+function Narrator({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false);
+  const [muted, setMuted] = useState(false);
+
+  const speak = useCallback(() => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.92;
+    utter.volume = muted ? 0 : 1;
+    utter.onend = () => setSpeaking(false);
+    utter.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(utter);
+  }, [text, muted]);
+
+  const stop = useCallback(() => { window.speechSynthesis?.cancel(); setSpeaking(false); }, []);
+  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
+
+  return (
+    <div className="flex items-center gap-2 p-3 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)]">
+      {speaking ? (
+        <motion.div className="flex items-end gap-0.5 h-4">
+          {[0, 1, 2, 3].map((i) => (
+            <motion.div key={i} className="w-1 bg-[oklch(0.75_0.18_55)] rounded-full"
+              animate={{ height: ["4px", "14px", "4px"] }}
+              transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.1 }} />
+          ))}
+        </motion.div>
+      ) : <Volume2 size={13} className="text-[oklch(0.75_0.18_55)]" />}
+      <span className="text-xs text-muted-foreground flex-1">AI Narrator</span>
+      <button onClick={() => setMuted(!muted)} className="p-1 rounded hover:bg-white/10 text-muted-foreground transition-colors">
+        {muted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+      </button>
+      {speaking
+        ? <button onClick={stop} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 text-xs text-foreground"><Pause size={11} /> Stop</button>
+        : <button onClick={speak} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.3)] text-xs text-[oklch(0.85_0.18_55)]"><Play size={11} /> Listen</button>
+      }
+    </div>
+  );
+}
+
+// ─── Quiz Block ───────────────────────────────────────────────────────────────
+function QuizBlock({ questions, accentColor }: { questions: QuizQuestion[]; accentColor: string }) {
+  const [qi, setQi] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [showExp, setShowExp] = useState(false);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const [started, setStarted] = useState(false);
+
+  const q = questions[qi];
+
+  const handleAnswer = (idx: number) => {
+    if (selected !== null) return;
+    setSelected(idx);
+    setShowExp(true);
+    if (idx === q.correct) setScore(s => s + 1);
+  };
+
+  const handleNext = () => {
+    if (qi + 1 < questions.length) { setQi(i => i + 1); setSelected(null); setShowExp(false); }
+    else setDone(true);
+  };
+
+  const reset = () => { setQi(0); setSelected(null); setShowExp(false); setScore(0); setDone(false); setStarted(true); };
+
+  if (!started) return (
+    <div className="text-center py-4">
+      <button onClick={() => setStarted(true)}
+        className="px-6 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2 text-black"
+        style={{ background: `linear-gradient(to right, ${accentColor}, oklch(0.65_0.22_200))` }}>
+        <Brain size={15} /> Start Quiz ({questions.length} questions)
+      </button>
+    </div>
+  );
+
+  if (done) return (
+    <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+      className="glass rounded-xl p-6 border border-white/10 text-center">
+      <div className="text-4xl mb-3">{score === questions.length ? "🌟" : score >= questions.length / 2 ? "✅" : "📚"}</div>
+      <div className="text-xl font-bold text-foreground mb-1">{score}/{questions.length} correct</div>
+      <p className="text-sm text-muted-foreground mb-4">
+        {score === questions.length ? "Perfect score!" : score >= questions.length / 2 ? "Solid foundation — keep going!" : "Good effort — review the explanations to reinforce these concepts."}
+      </p>
+      <button onClick={reset} className="flex items-center gap-1.5 mx-auto px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground">
+        <RotateCcw size={13} /> Retake
+      </button>
+    </motion.div>
+  );
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      className="glass rounded-xl p-5 border border-white/10 space-y-4">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+        <span>Question {qi + 1} / {questions.length}</span>
+        <span>{score} correct</span>
+      </div>
+      <div className="w-full h-1 rounded-full bg-white/8">
+        <div className="h-full rounded-full bg-[oklch(0.75_0.18_55)] transition-all" style={{ width: `${(qi / questions.length) * 100}%` }} />
+      </div>
+      <p className="text-sm font-medium text-foreground">{q.question}</p>
+      <div className="space-y-2">
+        {q.options.map((opt, i) => (
+          <button key={i} onClick={() => handleAnswer(i)}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm border transition-all ${
+              selected === null ? "glass border-white/10 text-foreground hover:border-white/25"
+              : i === q.correct ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-foreground"
+              : selected === i ? "bg-white/5 border-white/10 text-muted-foreground opacity-60"
+              : "glass border-white/5 text-muted-foreground opacity-50"
+            }`}>
+            <div className="flex items-center gap-3">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs border border-current shrink-0">{String.fromCharCode(65 + i)}</span>
+              {opt}
+              {selected !== null && i === q.correct && <CheckCircle2 size={13} className="ml-auto text-[oklch(0.72_0.18_150)] shrink-0" />}
+              {selected === i && i !== q.correct && <XCircle size={13} className="ml-auto text-muted-foreground shrink-0" />}
+            </div>
+          </button>
+        ))}
+      </div>
+      <AnimatePresence>
+        {showExp && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+            className="p-4 rounded-xl bg-white/3 border border-white/10">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-foreground">Why: </span>{q.explanation}
+            </p>
+            <button onClick={handleNext} className="mt-3 flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] hover:opacity-80">
+              {qi + 1 < questions.length ? "Next question" : "See results"} <ChevronRight size={12} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── AI Literacy Tab (replaces Nexus Foundation) ──────────────────────────────
+function AILiteracyTab() {
+  const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
+  const [totalXP, setTotalXP] = useState(0);
+  const { addXP } = usePersonalization();
+
+  // ── Lesson 3 prompt exercise state ──
+  const [activeEx, setActiveEx] = useState(0);
+  const [userPrompt, setUserPrompt] = useState("");
+  const [showHint, setShowHint] = useState(false);
+  const [checklist, setChecklist] = useState<boolean[]>([false, false, false, false]);
+  const [promptResponse, setPromptResponse] = useState("");
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [promptSubmitted, setPromptSubmitted] = useState(false);
+  const [allScores, setAllScores] = useState<Record<string, number>>({});
+
+  // ── Lesson 4 ethics state ──
+  const [activeScenario, setActiveScenario] = useState(0);
+  const [expandedStakeholder, setExpandedStakeholder] = useState<number | null>(null);
+  const [userReflections, setUserReflections] = useState<Record<string, string>>({});
+  const [savedReflections, setSavedReflections] = useState<Record<string, boolean>>({});
+
+  // ── Lesson 5 capstone ──
+  const [capstoneStep, setCapstoneStep] = useState(0);
+  const [capstoneAnswers, setCapstoneAnswers] = useState(["", "", ""]);
+  const [capstoneDone, setCapstoneDone] = useState(false);
+
+  const explainMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => {
+      setPromptResponse(data.explanation);
+      setPromptLoading(false);
+      setPromptSubmitted(true);
+    },
+    onError: (err: { message: string }) => { toast.error(err.message); setPromptLoading(false); },
+  });
+
+  const handleComplete = (id: LessonId) => {
+    if (completedLessons.has(id)) return;
+    const meta = LESSON_META.find(l => l.id === id)!;
+    setCompletedLessons(prev => new Set(Array.from(prev).concat(id)));
+    setTotalXP(prev => prev + meta.xp);
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson ${id} complete!`);
+  };
+
+  const handlePromptSubmit = () => {
+    if (!userPrompt.trim()) { toast.error("Write a prompt first."); return; }
+    setPromptLoading(true);
+    setPromptResponse("");
+    explainMutation.mutate({ concept: userPrompt.substring(0, 500), level: "student" });
+  };
+
+  const handleCheck = (i: number) => {
+    const updated = [...checklist];
+    updated[i] = !updated[i];
+    setChecklist(updated);
+    const score = updated.filter(Boolean).length;
+    const ex = PROMPT_EXERCISES[activeEx];
+    setAllScores(prev => ({ ...prev, [ex.id]: score }));
+    if (score === 4) { addXP(15); toast.success("+15 XP — perfect prompt!"); }
+  };
+
+  const switchEx = (idx: number) => {
+    setActiveEx(idx);
+    setUserPrompt("");
+    setShowHint(false);
+    setChecklist([false, false, false, false]);
+    setPromptSubmitted(false);
+    setPromptResponse("");
+  };
+
+  const overallPct = Math.round((completedLessons.size / LESSON_META.length) * 100);
+
+  const CAPSTONE_PROMPTS = [
+    { label: "Real-World AI", q: "Identify one AI system you encounter daily (recommendations, search, voice assistant, etc.). How does it work? What data does it need? Who benefits and who might be harmed?", ph: "e.g., Netflix's recommendation algorithm uses viewing history from millions of users to predict what I'll watch next. Netflix benefits from longer engagement; I benefit from discovery but risk a filter bubble..." },
+    { label: "Myth Detection", q: 'A headline reads: "AI Chatbot Passes Medical Board Exam — Human Doctors Now Obsolete." Using what you learned, break down what is misleading about this framing.', ph: "e.g., Passing a multiple-choice exam tests pattern recognition on a static dataset, not clinical judgment in ambiguous real-world situations. 'Obsolete' overstates the case — doctors do far more than answer exam questions..." },
+    { label: "Ethical Reasoning", q: "A city plans to use AI to predict which neighborhoods need more police patrols. Identify at least two ethical concerns and one safeguard you would require before deployment.", ph: "e.g., Concern 1: Predictive policing can amplify historical bias — past over-policing creates more data from those areas, producing a self-fulfilling loop. Concern 2: Lack of transparency — residents can't contest an algorithmic decision they can't see..." },
+  ];
+
+  // ── Lesson shells ──
+  function LessonShell({ id, children }: { id: LessonId; children: React.ReactNode }) {
+    const meta = LESSON_META.find(l => l.id === id)!;
+    const done = completedLessons.has(id);
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to all lessons
+        </button>
+        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Lesson {id} · Mayer Multimedia Principles</div>
+              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
+              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
+              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
+              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
+            </div>
+          </div>
+        </div>
+        {children}
+        <div className="mt-8 pt-6 border-t border-white/8">
+          {done
+            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
+            : <motion.button onClick={() => handleComplete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
+                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.65_0.22_200))` }}>
+                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
+              </motion.button>
+          }
+        </div>
+        {id < 5 && (
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => setActiveLesson((id + 1) as LessonId)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next lesson <ChevronRight size={13} />
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  // ── Lesson 1 ──
+  const [seg1, setSeg1] = useState(0);
+  const segments1 = [
+    { title: "The 60-Second Definition", narration: "Artificial Intelligence is the ability of a computer system to perform tasks that typically require human intelligence — understanding language, recognizing patterns, making decisions, and learning from experience.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <p className="text-sm text-muted-foreground leading-relaxed"><strong className="text-foreground">Artificial Intelligence</strong> is the ability of a computer system to perform tasks that typically require human intelligence — recognizing patterns, making decisions, and learning from experience.</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[{ l: "Narrow AI", d: "Excels at one task (chess, translation, image recognition). All AI today is narrow.", e: "🎯" }, { l: "Machine Learning", d: "A subfield where systems learn from data rather than explicit rules.", e: "📊" }, { l: "Deep Learning", d: "ML using layered neural networks — the engine behind LLMs and image AI.", e: "🧠" }, { l: "LLMs", d: "Large Language Models like ChatGPT — trained on vast text to generate and understand language.", e: "💬" }].map(({ l, d, e }) => (
+              <div key={l} className="glass rounded-xl p-4 border border-white/8"><div className="text-2xl mb-2">{e}</div><div className="font-semibold text-sm text-foreground mb-1">{l}</div><p className="text-xs text-muted-foreground leading-relaxed">{d}</p></div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    { title: "How AI Actually Learns", narration: "Training is the core process. The model sees data, makes a prediction, gets feedback on how wrong it was, and adjusts millions of internal numbers to improve. Repeat billions of times.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">Training is the core process: the model sees data, makes a prediction, receives feedback on how wrong it was (the loss), and adjusts millions of internal weights to improve. Repeat billions of times.</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            {[{ n: "1", l: "Data In", d: "Text, images, audio" }, { n: "→", l: "", d: "" }, { n: "2", l: "Prediction", d: "Model guesses" }, { n: "→", l: "", d: "" }, { n: "3", l: "Feedback", d: "Loss score" }, { n: "→", l: "", d: "" }, { n: "4", l: "Adjust", d: "Update weights" }].map(({ n, l, d }, i) => (
+              n === "→" ? <div key={i} className="hidden sm:flex items-center justify-center text-muted-foreground self-center"><ChevronRight size={14} /></div>
+              : <div key={i} className="flex-1 glass rounded-xl p-3 border border-white/8 text-center"><div className="text-base font-bold text-[oklch(0.75_0.18_55)] mb-1">{n}</div><div className="text-xs font-semibold text-foreground">{l}</div><p className="text-xs text-muted-foreground">{d}</p></div>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-white/10">
+            <div className="flex items-start gap-2"><Info size={13} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground"><strong className="text-foreground">Key insight:</strong> AI doesn't "understand" the way humans do. It finds statistical patterns so strong that outputs look like understanding — which is why it can be brilliant at some things and completely wrong about others.</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    { title: "The AI Landscape Today", narration: "We are living through the most rapid technological transition in history. Understanding what AI is, and what it isn't, is now a basic literacy skill — as important as understanding how to evaluate a news source.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">In 2024, over <strong className="text-foreground">200 million people</strong> used AI writing tools. Hospitals use AI for diagnosis. Courts use it for recommendations. AI literacy isn't just for technologists — it's civic literacy.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[{ dom: "Healthcare", uses: "Medical imaging, drug discovery, symptom triage", risk: "Misdiagnosis at scale, dataset bias" }, { dom: "Education", uses: "Personalized tutoring, essay feedback, accessibility", risk: "Over-reliance, academic dishonesty" }, { dom: "Work", uses: "Code generation, document drafting, logistics", risk: "Job displacement, deskilling" }].map(({ dom, uses, risk }) => (
+              <div key={dom} className="glass rounded-xl p-4 border border-white/8">
+                <div className="font-semibold text-sm text-foreground mb-2">{dom}</div>
+                <p className="text-xs text-muted-foreground mb-2"><strong>Uses:</strong> {uses}</p>
+                <p className="text-xs text-[oklch(0.72_0.18_150)]"><strong>Risks:</strong> {risk}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+  ];
+
+  if (activeLesson !== null) return (
+    <AnimatePresence mode="wait">
+      {activeLesson === 1 && (
+        <LessonShell key={1} id={1}>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              {segments1.map((s, i) => (
+                <button key={i} onClick={() => setSeg1(i)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
+                    seg1 === i ? "bg-[oklch(0.75_0.18_55_/_0.15)] border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>{i + 1}. {s.title}</button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={seg1} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-white/8">
+                <h3 className="font-semibold text-foreground mb-3">{segments1[seg1].title}</h3>
+                <Narrator text={segments1[seg1].narration} />
+                {segments1[seg1].body}
+              </motion.div>
+            </AnimatePresence>
+            <div className="flex justify-between">
+              <button onClick={() => setSeg1(Math.max(0, seg1 - 1))} disabled={seg1 === 0}
+                className="flex items-center gap-1 px-4 py-2 rounded-lg glass border border-white/8 text-sm text-muted-foreground disabled:opacity-40">
+                <ChevronLeft size={13} /> Previous
+              </button>
+              {seg1 < segments1.length - 1
+                ? <button onClick={() => setSeg1(seg1 + 1)} className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-sm text-[oklch(0.85_0.18_55)]">
+                    Next <ChevronRight size={13} />
+                  </button>
+                : null
+              }
+            </div>
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={DEF_QUIZ} accentColor="oklch(0.75_0.18_55)" />
+            </div>
+          </div>
+        </LessonShell>
+      )}
+
+      {activeLesson === 2 && (
+        <LessonShell key={2} id={2}>
+          <div className="space-y-4">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="This lesson debunks the most common AI myths. For each statement, decide: fact or fiction? The explanation afterward is where the real learning happens." />
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[{ l: "Media Fear", t: "'Robots will take over.' 'AI is sentient.' 'AI never makes mistakes.'", c: "oklch(0.72_0.2_290)" }, { l: "Reality", t: "Narrow tools, statistical patterns, useful but brittle, trained — not conscious.", c: "oklch(0.72_0.18_150)" }, { l: "Media Hype", t: "'AI will solve cancer.' 'AI reads minds.' 'AI is 100% objective.'", c: "oklch(0.78_0.16_30)" }].map(({ l, t, c }) => (
+                  <div key={l} className="glass rounded-xl p-4 border border-white/8">
+                    <div className="text-xs font-semibold mb-2" style={{ color: c }}>{l}</div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <QuizBlock questions={MYTH_QUIZ} accentColor="oklch(0.65_0.22_200)" />
+          </div>
+        </LessonShell>
+      )}
+
+      {activeLesson === 3 && (
+        <LessonShell key={3} id={3}>
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="Prompt engineering is communication design. You're writing instructions for a capable but literal assistant with no context about you. Precision wins." />
+              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
+                <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-3">5 PROMPT PRINCIPLES</div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[{ n: "Persona", d: "Tell AI who to act as" }, { n: "Context", d: "Provide background" }, { n: "Specifics", d: "Concrete details & numbers" }, { n: "Constraints", d: "Length, format, tone" }, { n: "Goal", d: "State desired outcome" }].map(({ n, d }) => (
+                    <div key={n} className="glass rounded-lg p-3 border border-white/8"><div className="text-xs font-bold text-foreground mb-1">{n}</div><p className="text-xs text-muted-foreground leading-snug">{d}</p></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {PROMPT_EXERCISES.map((e, i) => (
+                <button key={i} onClick={() => switchEx(i)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
+                    activeEx === i ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)] text-[oklch(0.82_0.2_290)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>
+                  {i + 1}. {e.title} {allScores[e.id] !== undefined ? <span className="text-[oklch(0.72_0.18_150)]">({allScores[e.id]}/4)</span> : null}
+                </button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={activeEx} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
+                <h3 className="font-semibold text-foreground">{PROMPT_EXERCISES[activeEx].title}</h3>
+                <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.15)]">
+                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-1.5">SCENARIO</div>
+                  <p className="text-sm text-muted-foreground">{PROMPT_EXERCISES[activeEx].scenario}</p>
+                </div>
+                <div className="glass rounded-xl p-3 border border-white/8">
+                  <div className="text-xs text-muted-foreground mb-1">A weak prompt:</div>
+                  <p className="text-sm text-foreground font-mono italic">"{PROMPT_EXERCISES[activeEx].vague}"</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Your improved prompt:</label>
+                  <textarea value={userPrompt} onChange={e => setUserPrompt(e.target.value)}
+                    placeholder="Write a detailed, specific prompt using the 5 principles..."
+                    rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none font-mono transition-colors" />
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowHint(!showHint)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
+                    <HelpCircle size={12} /> {showHint ? "Hide hint" : "Show hint"}
+                  </button>
+                  <motion.button onClick={handlePromptSubmit} disabled={promptLoading || !userPrompt.trim()}
+                    whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[oklch(0.72_0.2_290)] text-white text-sm font-medium disabled:opacity-50">
+                    {promptLoading ? <><RefreshCw size={13} className="animate-spin" /> Sending...</> : <><Send size={13} /> Test Prompt</>}
+                  </motion.button>
+                </div>
+                <AnimatePresence>
+                  {showHint && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                      className="px-4 py-3 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)] text-sm text-muted-foreground">
+                      <strong className="text-foreground">Hint: </strong>{PROMPT_EXERCISES[activeEx].hint}
+                    </motion.div>
+                  )}
+                  {promptSubmitted && promptResponse && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                      className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">AI RESPONSE</div>
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{promptResponse}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.15)]">
+                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">SELF-EVALUATION RUBRIC</div>
+                  <div className="space-y-2">
+                    {PROMPT_EXERCISES[activeEx].rubric.map((criterion, i) => (
+                      <label key={i} className="flex items-start gap-3 cursor-pointer">
+                        <div onClick={() => handleCheck(i)}
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                            checklist[i] ? "bg-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150)]" : "border-white/20"
+                          }`}>
+                          {checklist[i] && <Check size={11} className="text-white" />}
+                        </div>
+                        <span className={`text-sm ${checklist[i] ? "text-foreground" : "text-muted-foreground"}`}>{criterion}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/8">
+                      <div className="h-full rounded-full bg-[oklch(0.72_0.18_150)] transition-all" style={{ width: `${((allScores[PROMPT_EXERCISES[activeEx].id] ?? 0) / 4) * 100}%` }} />
+                    </div>
+                    <span className="text-xs font-medium text-foreground">{allScores[PROMPT_EXERCISES[activeEx].id] ?? 0}/4</span>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </LessonShell>
+      )}
+
+      {activeLesson === 4 && (
+        <LessonShell key={4} id={4}>
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="AI ethics is not about being anti-technology. It's about asking: Who benefits? Who bears the risk? Who decides? These scenarios have no single correct answer — the point is to reason carefully through competing values." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[{ l: "Fairness", d: "Does the system treat all groups equitably?", e: "⚖️" }, { l: "Accountability", d: "When AI causes harm, who is responsible?", e: "🔍" }, { l: "Transparency", d: "Can people understand how decisions are made?", e: "🪟" }].map(({ l, d, e }) => (
+                  <div key={l} className="glass rounded-xl p-3 border border-white/8 text-center">
+                    <div className="text-2xl mb-1">{e}</div>
+                    <div className="text-xs font-semibold text-foreground mb-1">{l}</div>
+                    <p className="text-xs text-muted-foreground leading-snug">{d}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {ETHICS_SCENARIOS.map((s, i) => (
+                <button key={i} onClick={() => { setActiveScenario(i); setExpandedStakeholder(null); }}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
+                    activeScenario === i ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.82_0.18_150)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>{s.title}</button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={activeScenario} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
+                <h3 className="font-semibold text-foreground">{ETHICS_SCENARIOS[activeScenario].title}</h3>
+                <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.15)]">
+                  <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">THE SITUATION</div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{ETHICS_SCENARIOS[activeScenario].setup}</p>
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground mb-2">Who is affected?</div>
+                  <div className="space-y-2">
+                    {ETHICS_SCENARIOS[activeScenario].stakeholders.map((s, i) => (
+                      <div key={i} className="glass rounded-xl border border-white/8 overflow-hidden">
+                        <button onClick={() => setExpandedStakeholder(expandedStakeholder === i ? null : i)}
+                          className="w-full flex items-center justify-between p-3 hover:bg-white/3 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)] flex items-center justify-center text-xs font-bold text-[oklch(0.72_0.18_150)]">{s.name.charAt(0)}</div>
+                            <span className="text-sm font-medium text-foreground">{s.name}</span>
+                          </div>
+                          <ChevronDown size={13} className={`text-muted-foreground transition-transform ${expandedStakeholder === i ? "rotate-180" : ""}`} />
+                        </button>
+                        <AnimatePresence>
+                          {expandedStakeholder === i && (
+                            <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+                              <p className="px-4 pb-3 pt-2 text-sm text-muted-foreground border-t border-white/5 leading-relaxed">{s.concern}</p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                  <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">DISCUSSION</div>
+                  <p className="text-sm text-muted-foreground mb-3">{ETHICS_SCENARIOS[activeScenario].discussion}</p>
+                  <label className="text-xs font-medium text-foreground mb-2 block">Your perspective:</label>
+                  <textarea
+                    value={userReflections[ETHICS_SCENARIOS[activeScenario].id] ?? ""}
+                    onChange={e => setUserReflections(prev => ({ ...prev, [ETHICS_SCENARIOS[activeScenario].id]: e.target.value }))}
+                    placeholder="Reason through it — there's no single right answer..."
+                    rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
+                  {!savedReflections[ETHICS_SCENARIOS[activeScenario].id]
+                    ? <button onClick={() => { if (!(userReflections[ETHICS_SCENARIOS[activeScenario].id] ?? "").trim()) { toast.error("Write your perspective first."); return; } setSavedReflections(prev => ({ ...prev, [ETHICS_SCENARIOS[activeScenario].id]: true })); toast.success("Reflection saved!"); }}
+                        className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
+                        <MessageSquare size={13} /> Save Reflection
+                      </button>
+                    : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Reflection saved.</p>
+                  }
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </LessonShell>
+      )}
+
+      {activeLesson === 5 && (
+        <LessonShell key={5} id={5}>
+          <div className="space-y-5">
+            {completedLessons.size < 4 && (
+              <div className="glass rounded-xl p-5 border border-[oklch(0.78_0.16_30_/_0.3)]">
+                <div className="flex items-start gap-3">
+                  <Lock size={16} className="text-[oklch(0.78_0.16_30)] mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
+                    <p className="text-sm text-muted-foreground">You've completed {completedLessons.size}/4 previous lessons. The capstone works best after building the full foundation.</p>
+                    <div className="flex gap-1 mt-2">
+                      {[1, 2, 3, 4].map(n => (
+                        <div key={n} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                          completedLessons.has(n) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground"
+                        }`}>{completedLessons.has(n) ? <Check size={12} /> : n}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="This capstone applies everything: AI definitions, myth-busting, prompt engineering, and ethical reasoning to real-world situations. Write your answers thoughtfully — this is your AI literacy demonstration." />
+            </div>
+            <div className="flex gap-2">
+              {CAPSTONE_PROMPTS.map((p, i) => (
+                <button key={i} onClick={() => setCapstoneStep(i)}
+                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
+                    capstoneStep === i ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>
+                  {p.label} {capstoneAnswers[i].length > 20 && <span className="text-[oklch(0.72_0.18_150)]">✓</span>}
+                </button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={capstoneStep} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.15)]">
+                <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">CAPSTONE — {CAPSTONE_PROMPTS[capstoneStep].label.toUpperCase()}</div>
+                <p className="text-sm font-medium text-foreground mb-4 leading-snug">{CAPSTONE_PROMPTS[capstoneStep].q}</p>
+                <textarea value={capstoneAnswers[capstoneStep]}
+                  onChange={e => { const u = [...capstoneAnswers]; u[capstoneStep] = e.target.value; setCapstoneAnswers(u); }}
+                  placeholder={CAPSTONE_PROMPTS[capstoneStep].ph} rows={6}
+                  className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.5)] resize-none leading-relaxed" />
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-xs text-muted-foreground">{capstoneAnswers[capstoneStep].length} chars</span>
+                  <div className="flex gap-2">
+                    {capstoneStep > 0 && <button onClick={() => setCapstoneStep(capstoneStep - 1)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground"><ChevronLeft size={12} /> Previous</button>}
+                    {capstoneStep < CAPSTONE_PROMPTS.length - 1
+                      ? <button onClick={() => setCapstoneStep(capstoneStep + 1)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[oklch(0.78_0.16_30_/_0.2)] border border-[oklch(0.78_0.16_30_/_0.3)] text-xs text-[oklch(0.88_0.16_30)]">Next <ChevronRight size={12} /></button>
+                      : !capstoneDone && <motion.button onClick={() => { if (capstoneAnswers.filter(a => a.length > 20).length < 3) { toast.error(`Complete all 3 parts (${capstoneAnswers.filter(a => a.length > 20).length}/3 done).`); return; } setCapstoneDone(true); toast.success("Capstone submitted!"); }} whileHover={{ scale: 1.02 }} className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-black text-xs font-semibold" style={{ background: "linear-gradient(to right, oklch(0.78_0.16_30), oklch(0.75_0.18_55))" }}><Trophy size={12} /> Submit</motion.button>
+                    }
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            {capstoneDone && (
+              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                className="glass rounded-2xl p-8 border border-[oklch(0.75_0.18_55_/_0.3)] text-center">
+                <div className="text-5xl mb-3">🏆</div>
+                <h3 className="text-2xl font-bold text-foreground mb-2">Module 1 Complete!</h3>
+                <p className="text-muted-foreground mb-4 max-w-lg mx-auto">You've earned your <strong className="text-foreground">AI Literacy Certificate — Module 1</strong>.</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {["AI Definitions", "Myth Buster", "Prompt Engineer", "Ethics Reasoning", "Capstone"].map(b => (
+                    <span key={b} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">✓ {b}</span>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </LessonShell>
+      )}
+    </AnimatePresence>
+  );
+
+  // ── Lesson list (overview) ──
+  return (
+    <div className="space-y-4">
+      <div className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.2)]">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)]">AI Literacy</span>
+              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Beginner · ~2 hrs · 360 XP</span>
+            </div>
+            <h3 className="text-lg font-bold text-foreground">Introduction to AI for Adults</h3>
+            <p className="text-sm text-muted-foreground">Built on Mayer's 12 Multimedia Learning Principles</p>
+          </div>
+          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.75_0.18_55)" }}>{overallPct}%</span>}
+        </div>
+        {completedLessons.size > 0 && (
+          <div className="w-full h-2 rounded-full bg-white/8 mt-2">
+            <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] transition-all" style={{ width: `${overallPct}%` }} />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {LESSON_META.map((lesson, i) => {
+          const done = completedLessons.has(lesson.id);
+          return (
+            <motion.div key={lesson.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className={`glass rounded-2xl border overflow-hidden transition-all ${
+                done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : "border-white/8 hover:border-white/15"
+              }`}>
+              <button onClick={() => setActiveLesson(lesson.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
+                  style={{ background: `color-mix(in oklch, ${lesson.color} 15%, transparent)`, border: `1px solid color-mix(in oklch, ${lesson.color} 30%, transparent)`, color: lesson.color }}>
+                  {lesson.id}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground">{lesson.title}</div>
+                  <p className="text-sm text-muted-foreground truncate">{lesson.subtitle}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
+                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp} XP</span>
+                  {done ? <span className="text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={10} /> Done</span> : <ChevronRight size={13} className="text-muted-foreground" />}
+                </div>
+              </button>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="flex items-start gap-3">
+          <Brain size={15} className="text-[oklch(0.65_0.22_200)] mt-0.5 shrink-0" />
+          <div>
+            <h4 className="font-semibold text-foreground mb-1 text-sm">Built on Mayer's Multimedia Learning Theory</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+              {[{ n: "Coherence", d: "No extraneous content" }, { n: "Segmenting", d: "Learner-paced chunks" }, { n: "Personalization", d: "Conversational tone" }, { n: "Modality", d: "Audio narration + visual" }, { n: "Signaling", d: "Clear structure & cues" }, { n: "Interactivity", d: "Active exercises" }].map(({ n, d }) => (
+                <div key={n} className="glass rounded-lg p-3 border border-white/8"><div className="text-xs font-semibold text-foreground mb-0.5">{n}</div><p className="text-xs text-muted-foreground">{d}</p></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Curriculum Generator ─────────────────────────────────────────────────────
 function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
@@ -509,245 +1262,7 @@ function SocraticTutor() {
   );
 }
 
-function FoundationTrackTab() {
-  const [, setLocation] = useLocation();
-  const { cookieId } = usePersonalization();
-  const [activeCourseId, setActiveCourseId] = useState<FoundationCourseId>("ai-clarity");
-  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
-  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
-
-  const foundationTrackQuery = trpc.foundation.getTrack.useQuery();
-  const foundationProgressQuery = trpc.foundation.getProgress.useQuery(
-    { cookieId: cookieId || "" },
-    { enabled: !!cookieId }
-  );
-  const createTemplateLesson = trpc.foundation.createTemplateLesson.useMutation();
-
-  const track = foundationTrackQuery.data;
-  const activeCourse = track?.courses.find((course) => course.id === activeCourseId);
-  const activeCourseProgress = foundationProgressQuery.data?.courseProgress.find((course) => course.courseId === activeCourseId);
-
-  const handleStartLesson = async (moduleId: string, lessonId: string) => {
-    if (!cookieId) {
-      toast.error("Missing session cookie. Refresh and try again.");
-      return;
-    }
-    try {
-      const result = await createTemplateLesson.mutateAsync({
-        cookieId,
-        courseId: activeCourseId,
-        moduleId,
-        lessonId,
-      });
-      toast.success(result.created ? "Foundation lesson ready." : "Opening your existing foundation lesson.");
-      setLocation(`/lesson/${result.lessonId}`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to open lesson.";
-      toast.error(message);
-    }
-  };
-
-  if (foundationTrackQuery.isLoading) {
-    return (
-      <div className="glass rounded-2xl p-6 border border-white/8 text-sm text-muted-foreground inline-flex items-center gap-2">
-        <Loader2 size={14} className="animate-spin" /> Loading foundation curriculum...
-      </div>
-    );
-  }
-
-  if (!track || !activeCourse) {
-    return (
-      <div className="glass rounded-2xl p-6 border border-red-500/30 text-sm text-red-300">
-        Foundation curriculum is unavailable right now.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-5">
-      <div className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.25)]">
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.16)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.35)]">
-            {track.label}
-          </span>
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-muted-foreground">
-            Reward: {track.completionReward}
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground mb-3">{track.positioning}</p>
-        {foundationProgressQuery.data && (
-          <div className="mb-4 rounded-xl border border-white/10 bg-white/4 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div>
-                <div className="text-sm font-semibold text-foreground">Foundation Progress</div>
-                <div className="text-xs text-muted-foreground">
-                  {foundationProgressQuery.data.completedLessons}/{foundationProgressQuery.data.totalLessons} lessons completed
-                </div>
-              </div>
-              <div className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                foundationProgressQuery.data.badgeUnlocked
-                  ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.35)] text-[oklch(0.82_0.18_150)]"
-                  : "bg-white/5 border-white/10 text-muted-foreground"
-              }`}>
-                {foundationProgressQuery.data.badgeUnlocked ? "Foundation Thinker unlocked" : "Reward locked"}
-              </div>
-            </div>
-            <div className="w-full h-2 rounded-full bg-white/8 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)]"
-                style={{ width: `${Math.round((foundationProgressQuery.data.completedLessons / foundationProgressQuery.data.totalLessons) * 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {track.differentiation.map((item) => (
-            <div key={item} className="text-xs text-muted-foreground border border-white/10 rounded-lg p-3 bg-white/3">
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        {track.courses.map((course) => (
-          <button
-            key={course.id}
-            onClick={() => {
-              setActiveCourseId(course.id as FoundationCourseId);
-              setExpandedModuleId(null);
-              setExpandedLessonId(null);
-            }}
-            className={`flex-1 rounded-xl border px-4 py-3 text-left transition-all ${
-              activeCourseId === course.id
-                ? "bg-[oklch(0.65_0.22_200_/_0.18)] border-[oklch(0.65_0.22_200_/_0.4)]"
-                : "glass border-white/10 hover:border-white/20"
-            }`}
-          >
-            <div className="text-xs text-muted-foreground mb-1">{course.badge}</div>
-            <div className="text-sm font-semibold text-foreground">{course.title}</div>
-            <div className="text-xs text-muted-foreground mt-1">{course.modules.length} modules • {course.totalHours}h</div>
-          </button>
-        ))}
-      </div>
-
-      <div className="glass rounded-2xl p-6 border border-white/8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">{activeCourse.subtitle}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{activeCourse.description}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-              {activeCourse.outcomes.map((outcome) => (
-                <div key={outcome} className="text-xs text-muted-foreground border border-white/10 rounded-lg p-2.5 bg-white/3">
-                  {outcome}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {activeCourse.differentiationEdge.map((item) => (
-                <span key={item} className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-            <img src={activeCourse.posterPath} alt={activeCourse.title} className="w-full h-full object-cover" />
-          </div>
-        </div>
-        {activeCourseProgress && (
-          <div className="mb-5 rounded-xl border border-white/10 bg-white/4 p-4">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div className="text-sm font-semibold text-foreground">{activeCourse.title} progress</div>
-              <div className="text-xs text-muted-foreground">
-                {activeCourseProgress.completedLessons}/{activeCourseProgress.totalLessons} completed
-              </div>
-            </div>
-            <div className="w-full h-2 rounded-full bg-white/8 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)]"
-                style={{ width: `${Math.round((activeCourseProgress.completedLessons / activeCourseProgress.totalLessons) * 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {activeCourse.modules.map((module) => {
-            const expanded = expandedModuleId === module.id;
-            return (
-              <div key={module.id} className="rounded-xl border border-white/10 bg-white/3 overflow-hidden">
-                <button
-                  onClick={() => setExpandedModuleId(expanded ? null : module.id)}
-                  className="w-full text-left px-4 py-3 flex items-start justify-between gap-4 hover:bg-white/5"
-                >
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{module.title}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{module.purpose}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{module.lessons.length} lessons • {module.estimatedMinutes} min</div>
-                  </div>
-                  <ChevronDown size={14} className={`mt-1 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
-                </button>
-                {expanded && (
-                  <div className="px-4 pb-4 space-y-2 border-t border-white/10 pt-3">
-                    <div className="rounded-xl overflow-hidden border border-white/10 bg-white/4 mb-3">
-                      <img src={module.modulePosterPath} alt={module.title} className="w-full h-auto" />
-                    </div>
-                    {module.lessons.map((lesson) => {
-                      const lessonExpanded = expandedLessonId === lesson.id;
-                      return (
-                        <div key={lesson.id} className="rounded-lg border border-white/10 bg-white/4">
-                          <button
-                            onClick={() => setExpandedLessonId(lessonExpanded ? null : lesson.id)}
-                            className="w-full text-left px-3 py-2.5 flex items-center justify-between gap-3"
-                          >
-                            <div>
-                              <div className="text-sm text-foreground">{lesson.title}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">{lesson.durationMinutes} min • Hook/Explain/Visualize/Check/Apply/Reflect</div>
-                            </div>
-                            <ChevronDown size={12} className={`text-muted-foreground transition-transform ${lessonExpanded ? "rotate-180" : ""}`} />
-                          </button>
-                          {lessonExpanded && (
-                            <div className="px-3 pb-3 pt-1 border-t border-white/10">
-                              <div className="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-3 items-start mb-3">
-                                <div className="rounded-lg overflow-hidden border border-white/10 bg-white/4">
-                                  <img src={lesson.posterPath} alt={lesson.title} className="w-full h-auto" />
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-2">{lesson.scenario}</p>
-                                  <div className="text-[11px] text-muted-foreground mb-2">
-                                    Retrieval: {lesson.checkpoint.question}
-                                  </div>
-                                  <div className="text-[11px] text-muted-foreground mb-2">
-                                    Common trap: {lesson.misconceptions[0]}
-                                  </div>
-                                  <div className="text-[11px] text-muted-foreground">
-                                    Why this is different: {lesson.whyThisWins}
-                                  </div>
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleStartLesson(module.id, lesson.id)}
-                                disabled={createTemplateLesson.isPending}
-                                className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[oklch(0.75_0.18_55)] text-black disabled:opacity-60"
-                              >
-                                {createTemplateLesson.isPending ? "Preparing..." : "Start Lesson"}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
+// FoundationTrackTab removed — replaced by AILiteracyTab above
 
 // ─── Paths Tab Component ────────────────────────────────────────────
 function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
@@ -857,14 +1372,14 @@ const featuredPaths = [
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Learn() {
-  const [activeTab, setActiveTab] = useState<"foundation" | "curriculum" | "socratic" | "paths">("foundation");
+  const [activeTab, setActiveTab] = useState<"ailiteracy" | "curriculum" | "socratic" | "paths">("ailiteracy");
   const [prefillGoal, setPrefillGoal] = useState("");
   const handleSelectPath = (pathTitle: string) => {
     setPrefillGoal(`I want to learn: ${pathTitle}`);
     setActiveTab("curriculum");
   };
   const tabs = [
-    { id: "foundation" as const, label: "Nexus Foundation", icon: BookOpen, desc: "AI Literacy + Logic & Reason" },
+    { id: "ailiteracy" as const, label: "AI Literacy", icon: BookOpen, desc: "Intro to AI for Adults" },
     { id: "curriculum" as const, label: "AI Curriculum", icon: Target, desc: "Build your personalized path" },
     { id: "socratic" as const, label: "Socratic Mode", icon: MessageSquare, desc: "Learn by questioning" },
     { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated starting points" },
@@ -952,7 +1467,7 @@ export default function Learn() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {activeTab === "foundation" && <FoundationTrackTab />}
+                {activeTab === "ailiteracy" && <AILiteracyTab />}
                 {activeTab === "curriculum" && <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />}
                 {activeTab === "socratic" && <SocraticTutor />}
                 {activeTab === "paths" && <PathsTab onSelectPath={handleSelectPath} />}
