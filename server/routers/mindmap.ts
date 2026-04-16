@@ -1,16 +1,16 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { addXP, getMindMaps, getMindMapById, saveMindMap, updateMindMap, deleteMindMap } from "../db";
 import { callAI } from "./shared";
 import { type MindMapNode } from "../../drizzle/schema";
 
 export const mindmapRouter = router({
-  list: publicProcedure
+  list: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => getMindMaps(input.cookieId)),
 
-  get: publicProcedure
+  get: protectedProcedure
     .input(z.object({ id: z.number(), cookieId: z.string() }))
     .query(async ({ input }) => {
       const map = await getMindMapById(input.id);
@@ -22,7 +22,7 @@ export const mindmapRouter = router({
       return map;
     }),
 
-  generate: publicProcedure
+  generate: protectedProcedure
     .input(z.object({ cookieId: z.string(), topic: z.string().max(500), depth: z.number().min(1).max(3).default(2) }))
     .mutation(async ({ input }) => {
       const prompt = `Generate a comprehensive mind map for "${input.topic}" at depth ${input.depth}. Return ONLY valid JSON:
@@ -39,7 +39,7 @@ Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 child
       return { mapId, nodes, success: true };
     }),
 
-  expandNode: publicProcedure
+  expandNode: protectedProcedure
     .input(z.object({
       cookieId: z.string(), mapId: z.number(), nodeId: z.string(), nodeLabel: z.string(),
       existingNodes: z.array(z.object({ id: z.string(), label: z.string(), parentId: z.string().nullable(), category: z.string().optional(), x: z.number(), y: z.number() })),
@@ -66,14 +66,14 @@ Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 child
       return { newNodes, success: true };
     }),
 
-  save: publicProcedure
+  save: protectedProcedure
     .input(z.object({ cookieId: z.string(), title: z.string().max(512), rootTopic: z.string().max(256), nodesJson: z.array(z.any()) }))
     .mutation(async ({ input }) => {
       const mapId = await saveMindMap({ cookieId: input.cookieId, title: input.title, rootTopic: input.rootTopic, nodesJson: input.nodesJson as MindMapNode[] });
       return { mapId, success: true };
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.number(), cookieId: z.string(), title: z.string().optional(), nodesJson: z.array(z.any()).optional() }))
     .mutation(async ({ input }) => {
       // Ownership check before update
@@ -85,7 +85,7 @@ Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 child
       return { success: true };
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number(), cookieId: z.string() }))
     .mutation(async ({ input }) => {
       // Ownership check before delete

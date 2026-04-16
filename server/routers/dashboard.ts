@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { visitorProfiles } from "../../drizzle/schema";
 import { eq, sql, desc as descOrder } from "drizzle-orm";
@@ -15,7 +15,7 @@ export const leaderboardRouter = router({
       return { users: rows.map((r, i) => ({ ...r, rank: i + 1, displayName: `Explorer #${r.cookieId.slice(-6).toUpperCase()}` })) };
     }),
 
-  getMyRank: publicProcedure
+  getMyRank: protectedProcedure
     .input(z.object({ cookieId: z.string(), metric: z.enum(["xp", "streak", "visitCount"]).default("xp") }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -31,7 +31,7 @@ export const leaderboardRouter = router({
 });
 
 export const dashboardRouter = router({
-  getActivity: publicProcedure
+  getActivity: protectedProcedure
     .input(z.object({ cookieId: z.string().min(1) }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -57,7 +57,7 @@ export const dashboardRouter = router({
       return { days, totalActions: allDates.length, avgPerDay: allDates.length > 0 ? Math.round((allDates.length / 84) * 10) / 10 : 0 };
     }),
 
-  getInsight: publicProcedure
+  getInsight: protectedProcedure
     .input(z.object({ cookieId: z.string().min(1) }))
     .query(async ({ input }) => {
       const db = await getDb();

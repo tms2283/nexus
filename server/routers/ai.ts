@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import {
   getChatHistory, saveChatMessage, addXP,
   saveLesson, getLessonById, getLessonsByCurriculum, markLessonComplete,
@@ -84,7 +84,7 @@ Topics: technical background, creative interests, learning goals, work style. Ex
       return { explanation, level: input.level };
     }),
 
-  generateCurriculum: publicProcedure
+  generateCurriculum: protectedProcedure
     .input(z.object({
       cookieId: z.string().optional(), goal: z.string().max(500),
       currentLevel: z.enum(["beginner", "intermediate", "advanced"]),
@@ -119,7 +119,7 @@ Create 3-4 phases with real resources and actual URLs.`;
       return { ...curriculum, curriculumId };
     }),
 
-  generateLesson: publicProcedure
+  generateLesson: protectedProcedure
     .input(z.object({ cookieId: z.string(), curriculumId: z.string(), title: z.string(), objectives: z.array(z.string()), duration: z.string(), order: z.number() }))
     .mutation(async ({ input }) => {
       const response = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.title}". Objectives: ${input.objectives.join(", ")}. Duration: ${input.duration}. Detailed, practical, engaging markdown content with examples.`, undefined, 3000);
@@ -129,9 +129,9 @@ Create 3-4 phases with real resources and actual URLs.`;
     }),
 
   getLesson: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => getLessonById(input.lessonId)),
-  getLessonsByCurriculum: publicProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string() })).query(async ({ input }) => getLessonsByCurriculum(input.cookieId, input.curriculumId)),
+  getLessonsByCurriculum: protectedProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string() })).query(async ({ input }) => getLessonsByCurriculum(input.cookieId, input.curriculumId)),
 
-  completeLesson: publicProcedure
+  completeLesson: protectedProcedure
     .input(z.object({ lessonId: z.number(), cookieId: z.string() }))
     .mutation(async ({ input }) => {
       await markLessonComplete(input.lessonId);
@@ -139,7 +139,7 @@ Create 3-4 phases with real resources and actual URLs.`;
       return { success: true };
     }),
 
-  askLessonQuestion: publicProcedure
+  askLessonQuestion: protectedProcedure
     .input(z.object({ lessonId: z.number(), cookieId: z.string(), question: z.string().max(1000) }))
     .mutation(async ({ input }) => {
       const q = await askLessonQuestion(input.lessonId, input.cookieId, input.question);
@@ -158,7 +158,7 @@ Create 3-4 phases with real resources and actual URLs.`;
   }),
   markAnswerHelpful: publicProcedure.input(z.object({ answerId: z.number() })).mutation(async ({ input }) => { await markAnswerHelpful(input.answerId); return { success: true }; }),
 
-  exploreOffTopic: publicProcedure
+  exploreOffTopic: protectedProcedure
     .input(z.object({ cookieId: z.string(), currentTopic: z.string(), relatedTopic: z.string() }))
     .mutation(async ({ input }) => {
       const content = await callAI(input.cookieId, `Create a comprehensive lesson on: "${input.relatedTopic}" related to "${input.currentTopic}".`, undefined, 3000);
@@ -168,14 +168,14 @@ Create 3-4 phases with real resources and actual URLs.`;
 
   searchSharedLessons: publicProcedure.input(z.object({ query: z.string().max(200) })).query(async ({ input }) => searchSharedLessons(input.query)),
 
-  startSocraticSession: publicProcedure
+  startSocraticSession: protectedProcedure
     .input(z.object({ cookieId: z.string().optional(), topic: z.string().max(500), userLevel: z.string() }))
     .mutation(async ({ input }) => {
       const question = await callAI(input.cookieId, `You are a Socratic tutor. The student wants to learn about: "${input.topic}". Level: ${input.userLevel}. Start with ONE opening question to reveal what they know. Don't explain — only ask.`, undefined, 256);
       return { question, sessionId: Date.now().toString() };
     }),
 
-  continueSocraticSession: publicProcedure
+  continueSocraticSession: protectedProcedure
     .input(z.object({ cookieId: z.string().optional(), topic: z.string().max(500), history: z.array(z.object({ role: z.enum(["tutor", "student"]), content: z.string() })), userResponse: z.string().max(2000) }))
     .mutation(async ({ input }) => {
       const historyText = input.history.map((h) => `${h.role === "tutor" ? "Tutor" : "Student"}: ${h.content}`).join("\n");
@@ -183,7 +183,7 @@ Create 3-4 phases with real resources and actual URLs.`;
       return { response };
     }),
 
-  chat: publicProcedure
+  chat: protectedProcedure
     .input(z.object({ cookieId: z.string(), message: z.string().max(2000), profile: z.object({ visitCount: z.number(), pagesVisited: z.array(z.string()), preferredTopics: z.array(z.string()), xp: z.number(), level: z.number() }).optional() }))
     .mutation(async ({ input }) => {
       const history = await getChatHistory(input.cookieId, 10);
@@ -197,7 +197,7 @@ Create 3-4 phases with real resources and actual URLs.`;
       return { response, ...xpResult };
     }),
 
-  composeMessage: publicProcedure
+  composeMessage: protectedProcedure
     .input(z.object({ cookieId: z.string().optional(), intent: z.string(), context: z.string().optional() }))
     .mutation(async ({ input }) => {
       const draft = await callAI(input.cookieId, `Help compose a professional message for someone reaching out to the creator of Nexus. Intent: "${input.intent}". Context: "${input.context || "none"}". Write a polished, concise message (3-4 sentences).`);

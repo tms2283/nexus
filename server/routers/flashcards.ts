@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import {
   addXP, createFlashcardDeck, addFlashcardsToDecks,
   getFlashcardDecks, getFlashcardsForDeck, getDueFlashcards,
@@ -16,25 +16,25 @@ async function assertDeckOwnership(deckId: number, cookieId: string): Promise<vo
 }
 
 export const flashcardsRouter = router({
-  getDecks: publicProcedure
+  getDecks: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => getFlashcardDecks(input.cookieId)),
 
-  getCards: publicProcedure
+  getCards: protectedProcedure
     .input(z.object({ deckId: z.number(), cookieId: z.string() }))
     .query(async ({ input }) => {
       await assertDeckOwnership(input.deckId, input.cookieId);
       return getFlashcardsForDeck(input.deckId);
     }),
 
-  getDueCards: publicProcedure
+  getDueCards: protectedProcedure
     .input(z.object({ deckId: z.number(), cookieId: z.string() }))
     .query(async ({ input }) => {
       await assertDeckOwnership(input.deckId, input.cookieId);
       return getDueFlashcards(input.deckId);
     }),
 
-  createDeckFromResearch: publicProcedure
+  createDeckFromResearch: protectedProcedure
     .input(z.object({
       cookieId: z.string(),
       title: z.string().max(512),
@@ -52,7 +52,7 @@ export const flashcardsRouter = router({
       return { deckId, success: true };
     }),
 
-  generateDeck: publicProcedure
+  generateDeck: protectedProcedure
     .input(z.object({ cookieId: z.string(), topic: z.string().max(500), count: z.number().min(5).max(30).default(10) }))
     .mutation(async ({ input }) => {
       const prompt = `Generate ${input.count} high-quality spaced repetition flashcards for: "${input.topic}". Return ONLY valid JSON: {"cards":[{"front":"question","back":"answer"}]}`;
@@ -68,7 +68,7 @@ export const flashcardsRouter = router({
       return { deckId, cardCount: cards.length, success: true };
     }),
 
-  review: publicProcedure
+  review: protectedProcedure
     .input(z.object({
       cardId: z.number(), deckId: z.number(), cookieId: z.string(),
       rating: z.enum(["again", "hard", "good", "easy"]),
@@ -81,7 +81,7 @@ export const flashcardsRouter = router({
       return { success: true };
     }),
 
-  completeSession: publicProcedure
+  completeSession: protectedProcedure
     .input(z.object({ cookieId: z.string(), cardsReviewed: z.number().int().min(0).max(500) }))
     .mutation(async ({ input }) => addXP(input.cookieId, Math.min(input.cardsReviewed * 3, 50))),
 });

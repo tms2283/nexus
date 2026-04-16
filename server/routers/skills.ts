@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { skillMastery } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
@@ -31,7 +31,7 @@ export const skillsRouter = router({
     }),
 
   // Update mastery for skills inferred from topic tags
-  updateFromTopics: publicProcedure
+  updateFromTopics: protectedProcedure
     .input(z.object({
       cookieId: z.string(),
       topics: z.array(z.string()),

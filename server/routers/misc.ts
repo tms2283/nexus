@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import {
   addXP, getDb,
   saveContactSubmission,
@@ -73,7 +73,7 @@ export const aiProviderRouter = router({
       return { provider: s?.provider ?? "gemini", model: s?.model ?? null, hasCustomKey: !!(s?.apiKey), defaultModels: DEFAULT_MODELS };
     }),
 
-  set: publicProcedure
+  set: protectedProcedure
     .input(z.object({
       cookieId: z.string(),
       provider: z.enum(["gemini", "perplexity", "openai"]),
@@ -89,7 +89,7 @@ export const aiProviderRouter = router({
     .input(z.object({ provider: z.enum(["gemini", "perplexity", "openai"]), apiKey: z.string().optional(), model: z.string().optional() }))
     .mutation(async ({ input }) => testProviderConnection({ provider: input.provider as AIProvider, apiKey: input.apiKey ?? null, model: input.model ?? null })),
 
-  clearKey: publicProcedure
+  clearKey: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .mutation(async ({ input }) => {
       const s = await getAIProviderSettings(input.cookieId);
@@ -136,7 +136,7 @@ Seed: ${seed}`;
       }
     }),
 
-  complete: publicProcedure
+  complete: protectedProcedure
     .input(z.object({ cookieId: z.string().min(1), challengeDate: z.string() }))
     .mutation(async ({ input }) => {
       const result = await addXP(input.cookieId, 75);

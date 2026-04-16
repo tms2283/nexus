@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { addXP, getDb } from "../db";
 import { callAI } from "./shared";
@@ -7,7 +7,7 @@ import { testResults, iqResults } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
 export const testingRouter = router({
-  saveResult: publicProcedure
+  saveResult: protectedProcedure
     .input(z.object({ cookieId: z.string().min(1), testId: z.string().min(1), score: z.number(), totalQuestions: z.number(), answers: z.record(z.string(), z.number()), timeTakenSeconds: z.number().optional() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -19,7 +19,7 @@ export const testingRouter = router({
       return { success: true, xpAwarded: xp, ...xpResult };
     }),
 
-  saveIQResult: publicProcedure
+  saveIQResult: protectedProcedure
     .input(z.object({ cookieId: z.string().min(1), iqScore: z.number().min(40).max(200), percentile: z.number(), rawScore: z.number(), categoryScores: z.record(z.string(), z.number()), timeTakenSeconds: z.number().optional() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -29,7 +29,7 @@ export const testingRouter = router({
       return { success: true, xpAwarded: 75, ...xpResult };
     }),
 
-  getResults: publicProcedure
+  getResults: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -41,7 +41,7 @@ export const testingRouter = router({
       return { testResults: tests, iqResults: iqs };
     }),
 
-  getScoreHistory: publicProcedure
+  getScoreHistory: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => {
       const db = await getDb();

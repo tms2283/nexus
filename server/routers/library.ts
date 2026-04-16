@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getLibraryResources, getDb, addXP } from "../db";
 import { callAI } from "./shared";
@@ -21,7 +21,7 @@ export const libraryRouter = router({
       return { results: resources, aiSummary };
     }),
 
-  contribute: publicProcedure
+  contribute: protectedProcedure
     .input(z.object({
       cookieId: z.string(), title: z.string().min(3).max(200), url: z.string().url(),
       description: z.string().min(10).max(1000), category: z.string(),
@@ -37,7 +37,7 @@ export const libraryRouter = router({
       return { success: true, message: "Resource added to the Library! +50 XP", ...xpResult };
     }),
 
-  rateResource: publicProcedure
+  rateResource: protectedProcedure
     .input(z.object({ resourceId: z.number().int().positive(), rating: z.number().int().min(1).max(5) }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -66,7 +66,7 @@ export const libraryRouter = router({
     }),
 
   // ─── Reading list ────────────────────────────────────────────────────────
-  getReadingList: publicProcedure
+  getReadingList: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -75,7 +75,7 @@ export const libraryRouter = router({
       return { items };
     }),
 
-  addToReadingList: publicProcedure
+  addToReadingList: protectedProcedure
     .input(z.object({ cookieId: z.string(), resourceId: z.number().optional(), url: z.string().optional(), title: z.string(), description: z.string().optional(), category: z.string().optional() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -94,7 +94,7 @@ export const libraryRouter = router({
       return { success: true };
     }),
 
-  markRead: publicProcedure
+  markRead: protectedProcedure
     .input(z.object({ id: z.number(), cookieId: z.string() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -106,7 +106,7 @@ export const libraryRouter = router({
       return { success: true };
     }),
 
-  moveToStatus: publicProcedure
+  moveToStatus: protectedProcedure
     .input(z.object({
       id: z.number(),
       cookieId: z.string(),
@@ -123,7 +123,7 @@ export const libraryRouter = router({
       return { success: true };
     }),
 
-  removeFromReadingList: publicProcedure
+  removeFromReadingList: protectedProcedure
     .input(z.object({ id: z.number(), cookieId: z.string() }))
     .mutation(async ({ input }) => {
       const db = await getDb();

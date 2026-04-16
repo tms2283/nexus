@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import {
   addXP, saveLesson, getLessonById, markLessonComplete, searchSharedLessons,
   rateLessonAndFeedback, getLessonRating, getLessonStats,
@@ -10,17 +10,17 @@ import { callAI } from "./shared";
 import { type InsertLesson } from "../../drizzle/schema";
 
 export const lessonRouter = router({
-  rateLessonAndFeedback: publicProcedure.input(z.object({ lessonId: z.number(), cookieId: z.string(), rating: z.number().min(1).max(5), feedback: z.string().optional(), category: z.string().optional() })).mutation(async ({ input }) => { await rateLessonAndFeedback(input.lessonId, input.cookieId, input.rating, input.feedback || "", input.category || "other"); return { success: true }; }),
-  getLessonRating: publicProcedure.input(z.object({ lessonId: z.number(), cookieId: z.string() })).query(async ({ input }) => getLessonRating(input.lessonId, input.cookieId)),
+  rateLessonAndFeedback: protectedProcedure.input(z.object({ lessonId: z.number(), cookieId: z.string(), rating: z.number().min(1).max(5), feedback: z.string().optional(), category: z.string().optional() })).mutation(async ({ input }) => { await rateLessonAndFeedback(input.lessonId, input.cookieId, input.rating, input.feedback || "", input.category || "other"); return { success: true }; }),
+  getLessonRating: protectedProcedure.input(z.object({ lessonId: z.number(), cookieId: z.string() })).query(async ({ input }) => getLessonRating(input.lessonId, input.cookieId)),
   getLessonStats: publicProcedure.input(z.object({ lessonId: z.number() })).query(async ({ input }) => getLessonStats(input.lessonId)),
-  startLessonProgress: publicProcedure.input(z.object({ cookieId: z.string(), lessonId: z.number() })).mutation(async ({ input }) => startLessonProgress(input.cookieId, input.lessonId)),
-  completeLessonProgress: publicProcedure.input(z.object({ cookieId: z.string(), lessonId: z.number(), timeSpentSeconds: z.number() })).mutation(async ({ input }) => { await completeLessonProgress(input.cookieId, input.lessonId, input.timeSpentSeconds); return { success: true }; }),
-  getUserProgress: publicProcedure.input(z.object({ cookieId: z.string() })).query(async ({ input }) => getUserProgress(input.cookieId)),
-  getStudyStats: publicProcedure.input(z.object({ cookieId: z.string() })).query(async ({ input }) => getStudyStats(input.cookieId)),
-  startCurriculumProgress: publicProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string(), totalLessons: z.number() })).mutation(async ({ input }) => startCurriculumProgress(input.cookieId, input.curriculumId, input.totalLessons)),
-  getCurriculumProgress: publicProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string() })).query(async ({ input }) => getCurriculumProgress(input.cookieId, input.curriculumId)),
+  startLessonProgress: protectedProcedure.input(z.object({ cookieId: z.string(), lessonId: z.number() })).mutation(async ({ input }) => startLessonProgress(input.cookieId, input.lessonId)),
+  completeLessonProgress: protectedProcedure.input(z.object({ cookieId: z.string(), lessonId: z.number(), timeSpentSeconds: z.number() })).mutation(async ({ input }) => { await completeLessonProgress(input.cookieId, input.lessonId, input.timeSpentSeconds); return { success: true }; }),
+  getUserProgress: protectedProcedure.input(z.object({ cookieId: z.string() })).query(async ({ input }) => getUserProgress(input.cookieId)),
+  getStudyStats: protectedProcedure.input(z.object({ cookieId: z.string() })).query(async ({ input }) => getStudyStats(input.cookieId)),
+  startCurriculumProgress: protectedProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string(), totalLessons: z.number() })).mutation(async ({ input }) => startCurriculumProgress(input.cookieId, input.curriculumId, input.totalLessons)),
+  getCurriculumProgress: protectedProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string() })).query(async ({ input }) => getCurriculumProgress(input.cookieId, input.curriculumId)),
 
-  getOrCreateLesson: publicProcedure
+  getOrCreateLesson: protectedProcedure
     .input(z.object({ cookieId: z.string(), title: z.string(), topic: z.string(), curriculumId: z.string() }))
     .query(async ({ input }) => {
       const existing = await searchSharedLessons(input.title);
@@ -28,7 +28,7 @@ export const lessonRouter = router({
       return null;
     }),
 
-  createLessonWithResources: publicProcedure
+  createLessonWithResources: protectedProcedure
     .input(z.object({ cookieId: z.string(), title: z.string(), topic: z.string(), objectives: z.array(z.string()), curriculumId: z.string() }))
     .mutation(async ({ input }) => {
       const content = await callAI(input.cookieId, `Create a comprehensive lesson for: "${input.title}"\nObjectives: ${input.objectives.join(", ")}\n\nDetailed markdown content with examples.`, undefined, 3000);
@@ -46,7 +46,7 @@ export const lessonRouter = router({
     }),
 
   // ─── Audio overview for lessons ───────────────────────────────────────────
-  generateAudioOverview: publicProcedure
+  generateAudioOverview: protectedProcedure
     .input(z.object({ cookieId: z.string(), lessonId: z.number() }))
     .mutation(async ({ input }) => {
       const lesson = await getLessonById(input.lessonId);

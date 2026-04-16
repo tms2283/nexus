@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   saveResearchSession, getResearchSessions, getDb, addXP,
@@ -42,7 +42,7 @@ async function callResearchService<T>(path: string, body?: unknown): Promise<T> 
 
 export const researchRouter = router({
   // ─── Existing analysis (text/URL paste) ──────────────────────────────────
-  analyze: publicProcedure
+  analyze: protectedProcedure
     .input(z.object({
       cookieId: z.string().optional(),
       content: z.string().max(50000),
@@ -73,7 +73,7 @@ Content:\n${textToAnalyze.slice(0, 12000)}`;
       return { title: "Analysis Complete", summary: response, keyInsights: ["See full summary"], flashcards: [], tags: [] };
     }),
 
-  save: publicProcedure
+  save: protectedProcedure
     .input(z.object({
       cookieId: z.string(), title: z.string(),
       sourceText: z.string().optional(), sourceUrl: z.string().optional(),
@@ -86,11 +86,11 @@ Content:\n${textToAnalyze.slice(0, 12000)}`;
       return { id, success: true };
     }),
 
-  getSessions: publicProcedure
+  getSessions: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => getResearchSessions(input.cookieId)),
 
-  generateCitation: publicProcedure
+  generateCitation: protectedProcedure
     .input(z.object({
       cookieId: z.string().optional(), title: z.string(),
       url: z.string().optional(), author: z.string().optional(),
@@ -109,7 +109,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       return { citation: response, inText: "", notes: "" };
     }),
 
-  compareTopics: publicProcedure
+  compareTopics: protectedProcedure
     .input(z.object({
       cookieId: z.string().optional(),
       topicA: z.string().min(2).max(500), topicB: z.string().min(2).max(500),
@@ -127,7 +127,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── NEW: Source discovery via Python microservice ────────────────────────
-  discover: publicProcedure
+  discover: protectedProcedure
     .input(z.object({ cookieId: z.string(), topic: z.string().min(2).max(300), maxResults: z.number().min(5).max(50).default(20) }))
     .mutation(async ({ input }) => {
       try {
@@ -144,7 +144,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── NEW: Ingest selected sources (scrape + embed) ────────────────────────
-  ingest: publicProcedure
+  ingest: protectedProcedure
     .input(z.object({
       cookieId: z.string(), projectName: z.string().min(1).max(200),
       sources: z.array(z.object({ url: z.string().url(), title: z.string(), description: z.string().optional(), score: z.number().optional() })),
@@ -174,7 +174,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── Semantic search across embedded sources ─────────────────────────────
-  globalSearch: publicProcedure
+  globalSearch: protectedProcedure
     .input(z.object({ cookieId: z.string(), query: z.string().min(2).max(500), topK: z.number().min(1).max(20).default(8) }))
     .query(async ({ input }) => {
       try {
@@ -188,7 +188,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── RAG chat over a project's sources ───────────────────────────────────
-  ragChat: publicProcedure
+  ragChat: protectedProcedure
     .input(z.object({ cookieId: z.string(), projectId: z.number(), question: z.string().min(2).max(2000) }))
     .mutation(async ({ input }) => {
       // Ownership check — verify the project belongs to this visitor
@@ -213,7 +213,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── Export a research project (uses Python service project ID) ──────────
-  exportSession: publicProcedure
+  exportSession: protectedProcedure
     .input(z.object({
       cookieId: z.string(),
       projectId: z.number().int().positive(),
@@ -241,7 +241,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── NEW: List research projects ──────────────────────────────────────────
-  listProjects: publicProcedure
+  listProjects: protectedProcedure
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -251,7 +251,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── Generate audio overview (ElevenLabs) ───────────────────────────────
-  generateAudioOverview: publicProcedure
+  generateAudioOverview: protectedProcedure
     .input(z.object({ cookieId: z.string(), sessionId: z.number(), title: z.string(), summary: z.string(), keyInsights: z.array(z.string()) }))
     .mutation(async ({ input }) => {
       // Ownership check — verify session belongs to caller
@@ -271,7 +271,7 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }),
 
   // ─── Get audio overviews for a source ────────────────────────────────────
-  getAudioOverviews: publicProcedure
+  getAudioOverviews: protectedProcedure
     .input(z.object({ cookieId: z.string(), sourceType: z.enum(["research_session", "lesson"]), sourceId: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
