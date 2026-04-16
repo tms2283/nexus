@@ -103,6 +103,119 @@ const ETHICS_SCENARIOS: EthicsScenario[] = [
   { id: "e3", title: "The AI School Tutor", setup: "A school district deploys an AI writing tutor. Teachers report improved grades. But a parent discovers the system stores all student writing indefinitely and the privacy policy allows using this data to train future models.", stakeholders: [{ name: "Student (14 yrs)", concern: "Their personal writing and struggles are data — forever." }, { name: "Teacher", concern: "Great tool, but didn't consent students to data collection." }, { name: "Parent", concern: "Their child's data is used commercially without informed consent." }, { name: "EdTech Company", concern: "Student data is core to improving the product. Anonymization is expensive." }], discussion: "Does 'better outcomes' justify data collection from minors? Should there be a legal right to be forgotten for student data? What's the difference between anonymized and de-identified — and does it matter?" },
 ];
 
+// ─── Module 2 Types & Data ────────────────────────────────────────────────────
+type M2LessonId = 6 | 7 | 8 | 9 | 10;
+
+interface ToolCard {
+  id: string;
+  name: string;
+  category: string;
+  useCases: string[];
+  bestFor: string;
+  caution: string;
+}
+
+interface OutputSample {
+  id: string;
+  label: string;
+  text: string;
+  issues: string[];
+  score: "strong" | "mixed" | "weak";
+}
+
+interface CareerScenario {
+  id: string;
+  field: string;
+  icon: string;
+  aiImpact: string;
+  tasksAutomated: string[];
+  tasksAugmented: string[];
+  newOpportunities: string[];
+  advice: string;
+}
+
+const M2_LESSON_META = [
+  { id: 6 as M2LessonId, title: "AI Tools Landscape", subtitle: "Know your toolkit before you pick it up", duration: "20 min", color: "oklch(0.72_0.2_260)", xp: 50 },
+  { id: 7 as M2LessonId, title: "Evaluating AI Output", subtitle: "The critical skill no one talks about", duration: "25 min", color: "oklch(0.68_0.22_20)", xp: 60 },
+  { id: 8 as M2LessonId, title: "Prompting for Work", subtitle: "Workplace prompts that actually deliver", duration: "30 min", color: "oklch(0.72_0.2_290)", xp: 80 },
+  { id: 9 as M2LessonId, title: "AI & Your Career", subtitle: "Navigate the shift before it navigates you", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 70 },
+  { id: 10 as M2LessonId, title: "Workplace Capstone", subtitle: "Apply Module 2 to a real scenario", duration: "20 min", color: "oklch(0.78_0.16_30)", xp: 100 },
+];
+
+const AI_TOOLS: ToolCard[] = [
+  { id: "t1", name: "ChatGPT / Claude", category: "Writing & Chat", useCases: ["Draft emails", "Summarize documents", "Brainstorm ideas", "Explain complex topics"], bestFor: "Anything text-based: drafting, editing, Q&A, research support", caution: "Verify facts independently. Confident ≠ correct." },
+  { id: "t2", name: "Copilot (Microsoft 365)", category: "Productivity Suite", useCases: ["Summarize Word docs", "Draft PowerPoint slides", "Analyze Excel data", "Recap Teams meetings"], bestFor: "People already deep in the Microsoft ecosystem", caution: "Data stays inside your Microsoft tenant — check your org's Copilot license." },
+  { id: "t3", name: "Gemini (Google Workspace)", category: "Productivity Suite", useCases: ["Write in Docs", "Summarize Gmail threads", "Build Sheets formulas", "Generate Slides content"], bestFor: "Google Workspace users who want AI inside their existing apps", caution: "Review privacy settings — by default, your data may train Google models." },
+  { id: "t4", name: "Perplexity", category: "Research", useCases: ["Cited web research", "Competitive analysis", "Fact-checking", "Up-to-date answers"], bestFor: "Research tasks where source citations matter", caution: "Still hallucinate-prone. Always click through to the cited source." },
+  { id: "t5", name: "Otter.ai / Fireflies", category: "Meetings", useCases: ["Transcribe meetings", "Generate action items", "Create meeting summaries", "Search past meetings"], bestFor: "Teams with lots of meetings and inadequate note-taking", caution: "Participants must consent to being recorded. Check local laws." },
+  { id: "t6", name: "Midjourney / DALL·E", category: "Image Generation", useCases: ["Marketing visuals", "Presentation graphics", "Concept mockups", "Social media assets"], bestFor: "Creating draft visuals fast when a designer isn't available", caution: "Review copyright rules — generated images may have usage restrictions." },
+  { id: "t7", name: "GitHub Copilot", category: "Coding", useCases: ["Code completion", "Explain legacy code", "Generate tests", "Debug errors"], bestFor: "Developers — dramatically speeds up routine coding tasks", caution: "Review every suggestion. Copilot can suggest insecure or incorrect code." },
+  { id: "t8", name: "Zapier / Make AI", category: "Automation", useCases: ["Automate repetitive workflows", "Connect apps via AI logic", "Trigger actions from emails", "Build no-code pipelines"], bestFor: "Operations teams who want to eliminate manual data-shuffling tasks", caution: "Test automations thoroughly before deploying to production data." },
+];
+
+const OUTPUT_SAMPLES: OutputSample[] = [
+  { id: "o1", label: "Meeting Summary", score: "strong",
+    text: "Meeting summary (April 15 — Q2 Planning):\n\nDecisions made:\n• Budget for Q2 marketing approved at $45,000\n• Sarah will lead the redesign project, deadline June 1\n• Weekly check-ins moved to Thursdays at 2pm\n\nAction items:\n• Marcus: send vendor quotes by April 22\n• Priya: draft redesign brief by April 19\n• All: review attached Q1 analytics before Thursday",
+    issues: [] },
+  { id: "o2", label: "Research Summary", score: "mixed",
+    text: "According to recent studies, remote work increases productivity by up to 47% across all industries. Employees who work from home report higher job satisfaction and companies save an average of $11,000 per employee annually. All major tech companies now offer permanent remote options, and most HR experts agree remote work is the future of employment.",
+    issues: ["'Up to 47%' cherry-picks one outlier study — most research shows 0–15% variation depending on role type", "'All major tech companies' is false — Apple, Amazon, and others have mandated returns to office", "'Most HR experts agree' is an unverifiable appeal to authority — no source cited", "Presents a nuanced, contested topic as settled fact"] },
+  { id: "o3", label: "Policy Explanation", score: "weak",
+    text: "The new data privacy regulation that was enacted in 2019 requires all companies with more than 250 employees to appoint a Data Protection Officer and submit annual compliance reports to the Federal Privacy Commission. Violations result in fines of up to $50,000 per incident. The regulation also gives consumers the right to request deletion of their data within 30 days.",
+    issues: ["Mixes details from GDPR (EU, 2018), CCPA (California, 2020), and possibly fictional elements", "'Federal Privacy Commission' does not exist in US law — this is fabricated", "The 250-employee threshold and $50k fine figures are invented", "High-confidence legal claims with zero citations — classic hallucination pattern"] },
+];
+
+const CAREER_SCENARIOS: CareerScenario[] = [
+  { id: "cs1", field: "Administrative & Office", icon: "office",
+    aiImpact: "AI is automating routine data entry, scheduling, and standard document drafting — but human judgment, relationship management, and complex coordination remain irreplaceable.",
+    tasksAutomated: ["Data entry and form processing", "Meeting scheduling and calendar management", "Standard email acknowledgments", "Basic report generation"],
+    tasksAugmented: ["Drafting complex correspondence (with AI as first draft)", "Research and competitive analysis", "Preparing executive briefings", "Managing multi-party coordination"],
+    newOpportunities: ["AI workflow coordinator", "Prompt specialist for office tools", "Process automation analyst", "AI output reviewer / quality assurance"],
+    advice: "Master AI tools in your current stack (Copilot, Gemini). The people who survive this shift are those who become the bridge between AI capabilities and human needs." },
+  { id: "cs2", field: "Healthcare & Social Work", icon: "health",
+    aiImpact: "AI is entering diagnostics, documentation, and triage — but clinical judgment, emotional support, and ethical decision-making require human professionals more than ever.",
+    tasksAutomated: ["Clinical documentation (AI scribes)", "Medical image pre-screening", "Insurance pre-authorization research", "Appointment scheduling and reminders"],
+    tasksAugmented: ["Diagnosis support (AI flags, human decides)", "Treatment research and literature review", "Patient communication drafting", "Care plan coordination"],
+    newOpportunities: ["Clinical AI validator", "Health informatics specialist", "AI ethics reviewer for medical tools", "Patient AI literacy educator"],
+    advice: "AI will be your colleague, not your replacement. The critical skill is knowing when to trust AI suggestions and when to override them — that requires deep domain knowledge." },
+  { id: "cs3", field: "Education & Training", icon: "education",
+    aiImpact: "AI personalizes learning content and automates grading — but teaching, mentorship, and the human relationship at the core of education cannot be replicated.",
+    tasksAutomated: ["Multiple choice grading", "Generating first-draft lesson materials", "Answering factual student questions", "Tracking student progress data"],
+    tasksAugmented: ["Personalized content scaffolding", "Identifying struggling students earlier", "Creating differentiated learning materials", "Parent communication drafting"],
+    newOpportunities: ["AI curriculum designer", "EdTech implementation specialist", "Learning analytics interpreter", "AI literacy educator (like this course!)"],
+    advice: "Your relationship with students is the moat. Invest in becoming the expert at using AI tools to save time on tasks, so you can spend more time on what humans do best — mentorship and inspiration." },
+  { id: "cs4", field: "Business, Finance & Marketing", icon: "business",
+    aiImpact: "AI is transforming analysis, content creation, and customer service — accelerating output while raising the bar on strategic thinking and creative judgment.",
+    tasksAutomated: ["Routine financial reporting", "First-draft marketing copy", "Social media content calendars", "Standard customer service responses"],
+    tasksAugmented: ["Market research and competitive analysis", "Data visualization and insight framing", "Personalized customer outreach", "Financial modeling and scenario analysis"],
+    newOpportunities: ["AI marketing strategist", "Prompt engineer for business applications", "AI risk and compliance analyst", "Revenue operations with AI tooling"],
+    advice: "The new skill premium is judgment + AI fluency. Anyone can run an AI tool. The value is in knowing which output is right, which is wrong, and how to direct AI toward business outcomes." },
+];
+
+const WORK_PROMPT_EXERCISES: PromptExercise[] = [
+  { id: "wp1", title: "Professional Email",
+    scenario: "Your team missed a deadline that affects a client. You need to write an email to the client acknowledging the delay, explaining briefly what happened (server migration took longer than expected), and proposing a new delivery date of Friday EOD. Tone should be professional but human — not robotic.",
+    vague: "Write an apology email to a client.",
+    hint: "Include: recipient context (client relationship), specific reason, new commitment with date, tone guidance, and any action you want from the client.",
+    rubric: ["Specifies the type of client relationship", "Includes the specific reason for delay", "States a concrete new deadline", "Requests a specific response or confirmation from client"] },
+  { id: "wp2", title: "Data Insight Summary",
+    scenario: "You have Q1 sales data showing: total revenue $1.2M (up 18% YoY), but unit sales dropped 3%. Average order value rose 22%. Your top 3 products account for 71% of revenue. You need a 3-bullet executive summary for a leadership slide.",
+    vague: "Summarize my sales data.",
+    hint: "Provide all the numbers directly in the prompt. Specify format (3 bullets), audience (executives), and ask for insight framing not just raw repetition of numbers.",
+    rubric: ["Includes all relevant numbers in the prompt", "Specifies bullet-point format and count", "States the audience (executives / leadership)", "Asks for insight framing, not just data restatement"] },
+  { id: "wp3", title: "Meeting Action Items",
+    scenario: "You attended a 45-minute planning meeting. You paste the rough transcript below and want AI to extract a clean action items list with owner names, tasks, and due dates. The transcript has crosstalk and filler words.",
+    vague: "Get action items from this meeting.",
+    hint: "Tell AI the format you want (table or bullets), what fields to extract (owner, task, deadline), how to handle uncertainty (flag unclear owners), and what to ignore (small talk).",
+    rubric: ["Specifies output format (table or bullet list)", "Lists the fields needed (owner, task, deadline)", "Instructs AI on how to handle unclear or missing owners", "Tells AI to ignore filler conversation"] },
+];
+
+const M2_CAPSTONE_PROMPTS = [
+  { label: "Tool Selection", q: "Your manager asks you to recommend one AI tool the team should adopt in the next 90 days. Describe the tool, what specific problem it solves, and two risks your team should mitigate before using it.", ph: "e.g., I'd recommend Copilot for Microsoft 365. Our team spends ~6 hours/week on meeting notes and status emails — Copilot's summarization can reclaim at least half that. Two risks: (1) people may trust summaries without reading them — mitigate with a 'verify before sending' policy; (2) sensitive data may be processed outside our security perimeter — we need IT to confirm tenant data boundaries first..." },
+  { label: "Output Audit", q: "You receive this AI-generated paragraph from a colleague who plans to use it in a client proposal: 'Our approach is based on the McKinsey 2024 Global Productivity Report, which found that AI adoption increases team output by 73% within 6 months for companies with 100+ employees.' What questions do you ask before approving it?", ph: "e.g., First: does this report exist? I'd search McKinsey's publication database directly — AI frequently cites plausible-sounding but nonexistent reports. Second: even if the report exists, '73%' is a very specific number — I'd check what it actually measured (self-reported perception vs. objective metrics), for what type of work, and what the full context is. Third: 'within 6 months' is a strong causal claim — most productivity research is correlational..." },
+  { label: "Career Strategy", q: "Based on your own field or the one you're targeting: name two specific AI tools entering your industry, one task category you expect to decrease in demand, and one new skill you plan to develop to stay competitive. Be specific.", ph: "e.g., In marketing, Jasper and Adobe Firefly are already replacing entry-level copywriting and basic image creation work. I expect junior content creation roles to shrink significantly. The skill I'm building is AI campaign strategy — knowing how to direct AI tools, evaluate output quality, and translate business goals into effective AI workflows. I'm also prioritizing client relationship skills since that's the human layer AI can't replace..." },
+];
+
 // ─── Narrator ─────────────────────────────────────────────────────────────────
 function Narrator({ text }: { text: string }) {
   const [speaking, setSpeaking] = useState(false);
@@ -241,11 +354,756 @@ function QuizBlock({ questions, accentColor }: { questions: QuizQuestion[]; acce
   );
 }
 
+// ─── Module 2 Component ───────────────────────────────────────────────────────
+function AILiteracyModule2() {
+  const [activeLesson, setActiveLesson] = useState<M2LessonId | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
+  const { addXP, profile } = usePersonalization();
+
+  // Lesson 6 state
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [toolFilter, setToolFilter] = useState("All");
+  const [matchTask, setMatchTask] = useState("");
+  const [matchResult, setMatchResult] = useState("");
+  const [matchLoading, setMatchLoading] = useState(false);
+
+  // Lesson 7 state
+  const [activeSample, setActiveSample] = useState(0);
+  const [userVerdict, setUserVerdict] = useState<Record<string, string>>({});
+  const [revealedIssues, setRevealedIssues] = useState<Record<string, boolean>>({});
+
+  // Lesson 8 state
+  const [activeWorkEx, setActiveWorkEx] = useState(0);
+  const [workPrompt, setWorkPrompt] = useState("");
+  const [workHint, setWorkHint] = useState(false);
+  const [workChecklist, setWorkChecklist] = useState<boolean[]>([false, false, false, false]);
+  const [workResponse, setWorkResponse] = useState("");
+  const [workLoading, setWorkLoading] = useState(false);
+  const [workSubmitted, setWorkSubmitted] = useState(false);
+  const [workScores, setWorkScores] = useState<Record<string, number>>({});
+
+  // Lesson 9 state
+  const [activeCareer, setActiveCareer] = useState<number | null>(null);
+  const [careerTab, setCareerTab] = useState<"automated" | "augmented" | "opportunities">("automated");
+  const [careerReflection, setCareerReflection] = useState("");
+  const [careerReflectionSaved, setCareerReflectionSaved] = useState(false);
+
+  // Lesson 10 state
+  const [m2Step, setM2Step] = useState(0);
+  const [m2Answers, setM2Answers] = useState(["", "", ""]);
+  const [m2Done, setM2Done] = useState(false);
+
+  const matchMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setMatchResult(data.explanation); setMatchLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setMatchLoading(false); },
+  });
+
+  const workMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setWorkResponse(data.explanation); setWorkLoading(false); setWorkSubmitted(true); },
+    onError: (err: { message: string }) => { toast.error(err.message); setWorkLoading(false); },
+  });
+
+  const handleM2Complete = (id: M2LessonId) => {
+    if (completedLessons.has(id)) return;
+    const meta = M2_LESSON_META.find((l) => l.id === id)!;
+    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson ${id - 5} complete!`);
+  };
+
+  const switchWorkEx = (idx: number) => {
+    setActiveWorkEx(idx); setWorkPrompt(""); setWorkHint(false);
+    setWorkChecklist([false, false, false, false]); setWorkSubmitted(false); setWorkResponse("");
+  };
+
+  const handleWorkCheck = (i: number) => {
+    const updated = [...workChecklist]; updated[i] = !updated[i]; setWorkChecklist(updated);
+    const score = updated.filter(Boolean).length;
+    setWorkScores((prev) => ({ ...prev, [WORK_PROMPT_EXERCISES[activeWorkEx].id]: score }));
+    if (score === 4) { addXP(15); toast.success("+15 XP — perfect work prompt!"); }
+  };
+
+  const handleMatchTask = () => {
+    if (!matchTask.trim()) { toast.error("Describe your task first."); return; }
+    setMatchLoading(true); setMatchResult("");
+    const ctx = profile.preferredTopics?.length ? ` The user's interests include: ${profile.preferredTopics.join(", ")}.` : "";
+    matchMutation.mutate({
+      concept: `I need to pick the best AI tool for this task: "${matchTask}".${ctx} Available tools: ChatGPT/Claude (writing, summarization, Q&A), Microsoft Copilot (Word/Excel/Teams/PowerPoint), Google Gemini (Docs/Gmail/Sheets), Perplexity (cited research), Otter.ai/Fireflies (meeting transcription), Midjourney/DALL-E (image generation), GitHub Copilot (coding), Zapier/Make (workflow automation). Recommend the 1-2 best fits with a short explanation tailored to the task.`,
+      level: "student",
+    });
+  };
+
+  const overallPct = Math.round((completedLessons.size / M2_LESSON_META.length) * 100);
+  const toolCategories = ["All", ...Array.from(new Set(AI_TOOLS.map((t) => t.category)))];
+  const filteredTools = toolFilter === "All" ? AI_TOOLS : AI_TOOLS.filter((t) => t.category === toolFilter);
+
+  const scoreMeta = {
+    strong: { label: "Strong Output", textCls: "text-[oklch(0.72_0.18_150)]", bgCls: "bg-[oklch(0.72_0.18_150_/_0.1)] border-[oklch(0.72_0.18_150_/_0.3)]" },
+    mixed:  { label: "Review Carefully", textCls: "text-[oklch(0.78_0.16_30)]",  bgCls: "bg-[oklch(0.78_0.16_30_/_0.1)] border-[oklch(0.78_0.16_30_/_0.3)]" },
+    weak:   { label: "High Risk — Verify", textCls: "text-[oklch(0.68_0.22_20)]", bgCls: "bg-[oklch(0.68_0.22_20_/_0.1)] border-[oklch(0.68_0.22_20_/_0.3)]" },
+  };
+
+  // Shell shared by all Module 2 lessons
+  function M2Shell({ id, children }: { id: M2LessonId; children: React.ReactNode }) {
+    const meta = M2_LESSON_META.find((l) => l.id === id)!;
+    const done = completedLessons.has(id);
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to lessons
+        </button>
+        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Module 2 · Lesson {id - 5} · AI in the Workplace</div>
+              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
+              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
+              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
+              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
+            </div>
+          </div>
+        </div>
+        {children}
+        <div className="mt-8 pt-6 border-t border-white/8">
+          {done
+            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
+            : <motion.button onClick={() => handleM2Complete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
+                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.65_0.22_200))` }}>
+                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
+              </motion.button>
+          }
+        </div>
+        {id < 10 && (
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => setActiveLesson((id + 1) as M2LessonId)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next lesson <ChevronRight size={13} />
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  if (activeLesson !== null) return (
+    <AnimatePresence mode="wait">
+
+      {/* ── Lesson 6: AI Tools Landscape ── */}
+      {activeLesson === 6 && (
+        <M2Shell key={6} id={6}>
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="Every AI tool is built for a different job. Picking the wrong one is like using a screwdriver to cut wood. This lesson gives you a map of the AI tools landscape so you can match the right tool to any task — and know what to watch out for." />
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                {[{ l: "Writing", icon: <MessageSquare size={16} /> }, { l: "Research", icon: <BookOpen size={16} /> }, { l: "Meetings", icon: <GraduationCap size={16} /> }, { l: "Automation", icon: <Zap size={16} /> }].map(({ l, icon }) => (
+                  <div key={l} className="glass rounded-xl p-3 border border-white/8 flex flex-col items-center gap-1.5 text-center">
+                    <span className="text-[oklch(0.72_0.2_260)]">{icon}</span>
+                    <span className="text-xs font-medium text-foreground">{l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Category filter */}
+            <div className="flex flex-wrap gap-2">
+              {toolCategories.map((cat) => (
+                <button key={cat} onClick={() => setToolFilter(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                    toolFilter === cat
+                      ? "bg-[oklch(0.72_0.2_260_/_0.15)] border-[oklch(0.72_0.2_260_/_0.4)] text-[oklch(0.82_0.2_260)]"
+                      : "glass border-white/8 text-muted-foreground"
+                  }`}>{cat}</button>
+              ))}
+            </div>
+
+            {/* Tool grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filteredTools.map((tool) => (
+                <motion.div key={tool.id} layout
+                  onClick={() => setSelectedTool(selectedTool === tool.id ? null : tool.id)}
+                  className={`glass rounded-xl border cursor-pointer transition-all overflow-hidden ${
+                    selectedTool === tool.id ? "border-[oklch(0.72_0.2_260_/_0.5)]" : "border-white/8 hover:border-white/20"
+                  }`}>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-semibold text-sm text-foreground">{tool.name}</div>
+                        <div className="text-xs text-[oklch(0.72_0.2_260)] mt-0.5">{tool.category}</div>
+                      </div>
+                      <ChevronDown size={13} className={`text-muted-foreground mt-1 shrink-0 transition-transform ${selectedTool === tool.id ? "rotate-180" : ""}`} />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {tool.useCases.map((uc) => (
+                        <span key={uc} className="px-2 py-0.5 rounded-md text-xs bg-white/5 border border-white/8 text-muted-foreground">{uc}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <AnimatePresence>
+                    {selectedTool === tool.id && (
+                      <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+                        <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-2">
+                          <p className="text-xs"><span className="font-semibold text-[oklch(0.72_0.18_150)]">Best for: </span><span className="text-muted-foreground">{tool.bestFor}</span></p>
+                          <p className="text-xs"><span className="font-semibold text-[oklch(0.68_0.22_20)]">Watch out: </span><span className="text-muted-foreground">{tool.caution}</span></p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* AI-powered task matcher */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.2_260_/_0.2)]">
+              <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-1">ADAPTIVE TOOL MATCHER</div>
+              <p className="text-xs text-muted-foreground mb-3">Describe your actual work task and get a personalized recommendation.</p>
+              <div className="flex gap-2">
+                <input value={matchTask} onChange={(e) => setMatchTask(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleMatchTask()}
+                  placeholder="e.g., I need to summarize 3 hours of weekly team meetings…"
+                  className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_260_/_0.5)] transition-colors" />
+                <motion.button onClick={handleMatchTask} disabled={matchLoading || !matchTask.trim()}
+                  whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                  style={{ background: "oklch(0.72_0.2_260)" }}>
+                  {matchLoading ? <><RefreshCw size={13} className="animate-spin" /> Matching…</> : <><Sparkles size={13} /> Match</>}
+                </motion.button>
+              </div>
+              <AnimatePresence>
+                {matchResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 p-4 rounded-xl bg-[oklch(0.72_0.2_260_/_0.08)] border border-[oklch(0.72_0.2_260_/_0.2)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{matchResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock accentColor="oklch(0.72_0.2_260)" questions={[
+                { id: "l6q1", question: "You need to transcribe and summarize weekly stakeholder meetings. Which tool category fits best?", options: ["Image generation (Midjourney / DALL·E)", "Meeting transcription AI (Otter.ai / Fireflies)", "Code assistant (GitHub Copilot)", "General chat AI with no integrations"], correct: 1, explanation: "Meeting transcription tools join calls live, identify speakers, and generate summaries and action items automatically. A general chat AI needs the transcript first — an extra manual step that these tools eliminate." },
+                { id: "l6q2", question: "Before using any AI tool for work, the most important question is:", options: ["How many parameters does the model have?", "Is it free or paid?", "What data does it collect, and where does it go?", "Which company built it?"], correct: 2, explanation: "Data privacy is the top professional concern. Sensitive company information entered into AI tools may leave your organization, be used for model training, or violate client confidentiality agreements. Check before you paste." },
+                { id: "l6q3", question: "Your org uses Google Workspace. You want AI to help draft documents and summarize email threads inside the apps you already use. The best-integrated option is:", options: ["GitHub Copilot", "Gemini for Google Workspace", "Zapier", "Midjourney"], correct: 1, explanation: "Gemini is built directly into Google Workspace apps — Docs, Gmail, Sheets, Slides. It surfaces inline, no copy-pasting required. When you already live in Google's ecosystem, Gemini is the lowest-friction choice." },
+              ]} />
+            </div>
+          </div>
+        </M2Shell>
+      )}
+
+      {/* ── Lesson 7: Evaluating AI Output ── */}
+      {activeLesson === 7 && (
+        <M2Shell key={7} id={7}>
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="The most dangerous moment with AI isn't when it's obviously wrong — it's when it sounds completely right, but isn't. Learning to audit AI output before you act on it is the highest-value skill this course will give you." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { label: "Plausibility", d: "Does it sound right?", icon: <HelpCircle size={18} className="text-[oklch(0.72_0.2_260)]" /> },
+                  { label: "Verifiability", d: "Can claims be checked?", icon: <Eye size={18} className="text-[oklch(0.78_0.16_30)]" /> },
+                  { label: "Source Quality", d: "Are citations real?", icon: <Shield size={18} className="text-[oklch(0.68_0.22_20)]" /> },
+                ].map(({ label, d, icon }) => (
+                  <div key={label} className="glass rounded-xl p-3 border border-white/8 text-center">
+                    <div className="flex justify-center mb-2">{icon}</div>
+                    <div className="text-xs font-semibold text-foreground">{label}</div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">{d}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="text-sm font-semibold text-foreground">Audit these 3 AI-generated outputs. Spot the problems before the reveal.</div>
+            <div className="flex gap-2">
+              {OUTPUT_SAMPLES.map((s, i) => (
+                <button key={i} onClick={() => setActiveSample(i)}
+                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
+                    activeSample === i ? `${scoreMeta[s.score].bgCls} text-foreground` : "glass border-white/8 text-muted-foreground"
+                  }`}>{s.label}</button>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div key={activeSample} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">{OUTPUT_SAMPLES[activeSample].label}</h3>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${scoreMeta[OUTPUT_SAMPLES[activeSample].score].bgCls} ${scoreMeta[OUTPUT_SAMPLES[activeSample].score].textCls}`}>
+                    {scoreMeta[OUTPUT_SAMPLES[activeSample].score].label}
+                  </span>
+                </div>
+                <div className="glass rounded-xl p-4 border border-white/10 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono">
+                  {OUTPUT_SAMPLES[activeSample].text}
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-2 block">What issues do you spot? What would you verify?</label>
+                  <textarea value={userVerdict[OUTPUT_SAMPLES[activeSample].id] ?? ""}
+                    onChange={(e) => setUserVerdict((prev) => ({ ...prev, [OUTPUT_SAMPLES[activeSample].id]: e.target.value }))}
+                    placeholder="Note any claims that seem suspicious, vague, or unverifiable…"
+                    rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_20_/_0.5)] resize-none" />
+                </div>
+                <button onClick={() => setRevealedIssues((prev) => ({ ...prev, [OUTPUT_SAMPLES[activeSample].id]: true }))}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.68_0.22_20_/_0.12)] border border-[oklch(0.68_0.22_20_/_0.3)] text-sm text-[oklch(0.78_0.22_20)] font-medium">
+                  <Eye size={13} /> Reveal expert analysis
+                </button>
+                <AnimatePresence>
+                  {revealedIssues[OUTPUT_SAMPLES[activeSample].id] && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                      {OUTPUT_SAMPLES[activeSample].issues.length === 0 ? (
+                        <div className="p-4 rounded-xl bg-[oklch(0.72_0.18_150_/_0.1)] border border-[oklch(0.72_0.18_150_/_0.3)]">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-[oklch(0.72_0.18_150)] mb-1"><CheckCircle2 size={14} /> This output is clean</div>
+                          <p className="text-xs text-muted-foreground">Well-structured, specific, and actionable — no unsupported claims. This is what good AI output looks like. Use it as your benchmark.</p>
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-[oklch(0.68_0.22_20_/_0.08)] border border-[oklch(0.68_0.22_20_/_0.25)] space-y-2">
+                          <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-2">ISSUES FOUND ({OUTPUT_SAMPLES[activeSample].issues.length})</div>
+                          {OUTPUT_SAMPLES[activeSample].issues.map((issue, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                              <XCircle size={13} className="text-[oklch(0.68_0.22_20)] mt-0.5 shrink-0" />
+                              <p className="text-xs text-muted-foreground leading-relaxed">{issue}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* CRAAP test */}
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <div className="text-xs font-semibold text-foreground mb-3">THE CRAAP TEST — A verification framework you can apply to any AI output</div>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { letter: "C", word: "Currency", q: "Is this up to date?" },
+                  { letter: "R", word: "Relevance", q: "Does it fit my context?" },
+                  { letter: "A", word: "Authority", q: "Is there a real source?" },
+                  { letter: "A", word: "Accuracy", q: "Is it verifiable?" },
+                  { letter: "P", word: "Purpose", q: "Any bias or agenda?" },
+                ].map(({ letter, word, q }) => (
+                  <div key={word} className="glass rounded-xl p-3 border border-white/8 text-center">
+                    <div className="text-lg font-bold text-[oklch(0.68_0.22_20)] mb-1">{letter}</div>
+                    <div className="text-xs font-semibold text-foreground mb-1">{word}</div>
+                    <p className="text-xs text-muted-foreground leading-snug">{q}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Quick Check</h4>
+              <QuizBlock accentColor="oklch(0.68_0.22_20)" questions={[
+                { id: "l7q1", question: "An AI confidently states: 'Harvard University published a 2023 study showing X.' Your first move is:", options: ["Trust it — Harvard is reputable", "Search Harvard's actual publications for the study", "Ask a second AI if it's true", "Quote it and add a disclaimer"], correct: 1, explanation: "AI tools routinely fabricate academic citations. The study title, authors, journal, and year can all sound perfectly plausible but be completely invented. Always locate the primary source before quoting it." },
+                { id: "l7q2", question: "Which AI output type carries the highest risk of silent error?", options: ["A bulleted brainstorm with no external claims", "A confident statistic with no source cited", "A creative tagline list", "A summary of text you wrote yourself"], correct: 1, explanation: "Unsourced statistics are the highest-risk AI output. Models optimize for plausibility, not truth — they predict likely-sounding numbers, not real ones. A specific figure with no citation is a red flag requiring independent verification." },
+                { id: "l7q3", question: "AI summarizes a legal contract for you and the summary looks clean. What's still required?", options: ["Nothing — AI legal summaries are reliable", "Compare the summary against the original clause by clause", "Run it through a second AI", "Ask a lawyer to review just the summary"], correct: 1, explanation: "AI summaries of contracts can omit key terms, misstate obligations, or introduce inaccuracies. For any legal or financial document, compare the summary to the source material before relying on it — the stakes are too high to skip." },
+              ]} />
+            </div>
+          </div>
+        </M2Shell>
+      )}
+
+      {/* ── Lesson 8: Prompting for Work ── */}
+      {activeLesson === 8 && (
+        <M2Shell key={8} id={8}>
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="Workplace prompts require a different mindset than casual AI use. You're writing for specific professional outcomes — precision directly determines the quality of the deliverable. Let's practice with real work scenarios." />
+              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
+                <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-3">THE WORK PROMPT FORMULA</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[{ n: "Role", d: "Who should AI act as?" }, { n: "Context", d: "Background AI needs" }, { n: "Task", d: "Exactly what to produce" }, { n: "Format", d: "Length, structure, style" }, { n: "Audience", d: "Who reads the output?" }, { n: "Constraints", d: "What to avoid or include" }].map(({ n, d }) => (
+                    <div key={n} className="glass rounded-lg p-3 border border-white/8">
+                      <div className="text-xs font-bold text-foreground mb-1">{n}</div>
+                      <p className="text-xs text-muted-foreground">{d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              {WORK_PROMPT_EXERCISES.map((ex, i) => (
+                <button key={i} onClick={() => switchWorkEx(i)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
+                    activeWorkEx === i ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)] text-[oklch(0.82_0.2_290)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>
+                  {i + 1}. {ex.title}
+                  {workScores[ex.id] !== undefined && <span className="text-[oklch(0.72_0.18_150)]"> ({workScores[ex.id]}/4)</span>}
+                </button>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div key={activeWorkEx} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
+                <h3 className="font-semibold text-foreground">{WORK_PROMPT_EXERCISES[activeWorkEx].title}</h3>
+                <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.15)]">
+                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-1.5">SCENARIO</div>
+                  <p className="text-sm text-muted-foreground">{WORK_PROMPT_EXERCISES[activeWorkEx].scenario}</p>
+                </div>
+                <div className="glass rounded-xl p-3 border border-white/8">
+                  <div className="text-xs text-muted-foreground mb-1">A weak prompt:</div>
+                  <p className="text-sm text-foreground font-mono italic">"{WORK_PROMPT_EXERCISES[activeWorkEx].vague}"</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Your improved prompt:</label>
+                  <textarea value={workPrompt} onChange={(e) => setWorkPrompt(e.target.value)}
+                    placeholder="Use the formula: Role, Context, Task, Format, Audience, Constraints…"
+                    rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none font-mono" />
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setWorkHint(!workHint)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
+                    <HelpCircle size={12} /> {workHint ? "Hide hint" : "Show hint"}
+                  </button>
+                  <motion.button
+                    onClick={() => {
+                      if (!workPrompt.trim()) { toast.error("Write a prompt first."); return; }
+                      setWorkLoading(true); setWorkResponse("");
+                      workMutation.mutate({ concept: workPrompt.substring(0, 500), level: "student" });
+                    }}
+                    disabled={workLoading || !workPrompt.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[oklch(0.72_0.2_290)] text-white text-sm font-medium disabled:opacity-50">
+                    {workLoading ? <><RefreshCw size={13} className="animate-spin" /> Sending…</> : <><Send size={13} /> Test Prompt</>}
+                  </motion.button>
+                </div>
+                <AnimatePresence>
+                  {workHint && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                      className="px-4 py-3 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)] text-sm text-muted-foreground">
+                      <strong className="text-foreground">Hint: </strong>{WORK_PROMPT_EXERCISES[activeWorkEx].hint}
+                    </motion.div>
+                  )}
+                  {workSubmitted && workResponse && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                      className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">AI RESPONSE</div>
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{workResponse}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.15)]">
+                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">SELF-EVALUATION RUBRIC</div>
+                  <div className="space-y-2">
+                    {WORK_PROMPT_EXERCISES[activeWorkEx].rubric.map((criterion, i) => (
+                      <label key={i} className="flex items-start gap-3 cursor-pointer">
+                        <div onClick={() => handleWorkCheck(i)}
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                            workChecklist[i] ? "bg-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150)]" : "border-white/20"
+                          }`}>
+                          {workChecklist[i] && <Check size={11} className="text-white" />}
+                        </div>
+                        <span className={`text-sm ${workChecklist[i] ? "text-foreground" : "text-muted-foreground"}`}>{criterion}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/8">
+                      <div className="h-full rounded-full bg-[oklch(0.72_0.18_150)] transition-all"
+                        style={{ width: `${((workScores[WORK_PROMPT_EXERCISES[activeWorkEx].id] ?? 0) / 4) * 100}%` }} />
+                    </div>
+                    <span className="text-xs font-medium text-foreground">{workScores[WORK_PROMPT_EXERCISES[activeWorkEx].id] ?? 0}/4</span>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </M2Shell>
+      )}
+
+      {/* ── Lesson 9: AI & Your Career ── */}
+      {activeLesson === 9 && (
+        <M2Shell key={9} id={9}>
+          <div className="space-y-5">
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="AI won't replace you. But someone who uses AI well might. The best career move you can make right now is understanding exactly how AI is entering your field — and getting ahead of it." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { label: "Automated", d: "Tasks AI fully handles", color: "oklch(0.68_0.22_20)", icon: <Zap size={16} /> },
+                  { label: "Augmented", d: "AI supports, humans decide", color: "oklch(0.78_0.16_30)", icon: <ArrowRight size={16} /> },
+                  { label: "New Roles", d: "Opportunities AI is creating", color: "oklch(0.72_0.18_150)", icon: <Star size={16} /> },
+                ].map(({ label, d, color, icon }) => (
+                  <div key={label} className="glass rounded-xl p-3 border border-white/8 text-center">
+                    <div className="flex justify-center mb-2" style={{ color }}>{icon}</div>
+                    <div className="text-xs font-semibold text-foreground">{label}</div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">{d}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="text-sm font-medium text-foreground">Select your field to see the AI impact breakdown:</div>
+            <div className="grid grid-cols-2 gap-2">
+              {CAREER_SCENARIOS.map((s, i) => (
+                <button key={i} onClick={() => { setActiveCareer(i); setCareerTab("automated"); }}
+                  className={`py-3 px-4 rounded-xl text-sm font-medium transition-all border text-left ${
+                    activeCareer === i
+                      ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.82_0.18_150)]"
+                      : "glass border-white/8 text-muted-foreground hover:border-white/20"
+                  }`}>{s.field}</button>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {activeCareer !== null && (
+                <motion.div key={activeCareer} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                  className="glass rounded-2xl p-6 border border-white/8 space-y-4">
+                  <h3 className="font-semibold text-foreground">{CAREER_SCENARIOS[activeCareer].field}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{CAREER_SCENARIOS[activeCareer].aiImpact}</p>
+                  <div className="flex gap-1 p-1 glass rounded-xl border border-white/8">
+                    {(["automated", "augmented", "opportunities"] as const).map((tab) => (
+                      <button key={tab} onClick={() => setCareerTab(tab)}
+                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all capitalize ${
+                          careerTab === tab ? "bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)]" : "text-muted-foreground"
+                        }`}>{tab}</button>
+                    ))}
+                  </div>
+                  <AnimatePresence mode="wait">
+                    <motion.div key={careerTab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                      {careerTab === "automated" && (
+                        <div className="space-y-2">
+                          {CAREER_SCENARIOS[activeCareer].tasksAutomated.map((t, i) => (
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-[oklch(0.68_0.22_20_/_0.2)]">
+                              <Zap size={13} className="text-[oklch(0.68_0.22_20)] shrink-0" />
+                              <span className="text-sm text-muted-foreground">{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {careerTab === "augmented" && (
+                        <div className="space-y-2">
+                          {CAREER_SCENARIOS[activeCareer].tasksAugmented.map((t, i) => (
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-[oklch(0.78_0.16_30_/_0.2)]">
+                              <ArrowRight size={13} className="text-[oklch(0.78_0.16_30)] shrink-0" />
+                              <span className="text-sm text-muted-foreground">{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {careerTab === "opportunities" && (
+                        <div className="space-y-2">
+                          {CAREER_SCENARIOS[activeCareer].newOpportunities.map((t, i) => (
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-[oklch(0.72_0.18_150_/_0.2)]">
+                              <Star size={13} className="text-[oklch(0.72_0.18_150)] shrink-0" />
+                              <span className="text-sm text-muted-foreground">{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                  <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                    <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">STRATEGIC ADVICE</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed italic">"{CAREER_SCENARIOS[activeCareer].advice}"</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <div className="text-sm font-semibold text-foreground mb-1">Your 30-Day Action Plan</div>
+              <p className="text-xs text-muted-foreground mb-3">Based on what you just read: what is one concrete action you will take in the next 30 days to stay ahead in your field?</p>
+              <textarea value={careerReflection} onChange={(e) => setCareerReflection(e.target.value)}
+                placeholder="e.g., I'll spend 30 minutes this week exploring Copilot in my current apps. I'll also subscribe to one newsletter covering AI in my industry…"
+                rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
+              {!careerReflectionSaved
+                ? <button onClick={() => { if (!careerReflection.trim()) { toast.error("Write your action plan first."); return; } setCareerReflectionSaved(true); addXP(10); toast.success("+10 XP — action plan saved!"); }}
+                    className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
+                    <Check size={13} /> Save My Action Plan
+                  </button>
+                : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Saved — +10 XP</p>
+              }
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Quick Check</h4>
+              <QuizBlock accentColor="oklch(0.72_0.18_150)" questions={[
+                { id: "l9q1", question: "Which task is MOST likely to be fully automated by AI in the near term?", options: ["Negotiating a contract with a difficult client", "Categorizing and routing 500 expense receipts", "Leading a team through organizational change", "Counseling someone through a mental health crisis"], correct: 1, explanation: "High-volume, rule-based data processing — like categorizing receipts — is exactly what current AI excels at and is already replacing. Tasks requiring relationship, judgment, and emotional intelligence remain deeply human." },
+                { id: "l9q2", question: "AI 'augmentation' at work means:", options: ["AI fully takes over a job function", "AI handles repetitive parts so humans can focus on higher-judgment work", "Installing AI hardware in the office", "Avoiding AI to preserve human skills"], correct: 1, explanation: "Augmentation means AI accelerates the routine parts of your work — so you can spend more time on the high-judgment, creative, and relational elements that machines can't replicate." },
+                { id: "l9q3", question: "The most career-resilient combination in an AI-heavy workplace is:", options: ["Advanced Python coding skills", "A large social media following", "Deep domain expertise plus the ability to direct and evaluate AI", "Avoiding AI tools to stay sharp"], correct: 2, explanation: "The new premium is judgment plus AI fluency. Anyone can run an AI tool. The value is in knowing your field well enough to direct AI toward the right outcomes — and catch it when it's wrong." },
+              ]} />
+            </div>
+          </div>
+        </M2Shell>
+      )}
+
+      {/* ── Lesson 10: Workplace Capstone ── */}
+      {activeLesson === 10 && (
+        <M2Shell key={10} id={10}>
+          <div className="space-y-5">
+            {completedLessons.size < 4 && (
+              <div className="glass rounded-xl p-5 border border-[oklch(0.78_0.16_30_/_0.3)]">
+                <div className="flex items-start gap-3">
+                  <Lock size={16} className="text-[oklch(0.78_0.16_30)] mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
+                    <p className="text-sm text-muted-foreground">You have completed {completedLessons.size}/4 previous lessons. The capstone builds on all four.</p>
+                    <div className="flex gap-1 mt-2">
+                      {[6, 7, 8, 9].map((n) => (
+                        <div key={n} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                          completedLessons.has(n) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground"
+                        }`}>{completedLessons.has(n) ? <Check size={12} /> : n - 5}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="glass rounded-2xl p-6 border border-white/8">
+              <Narrator text="This capstone applies all four Module 2 skills: picking the right tool, auditing AI output, crafting work prompts, and thinking strategically about your career. Be specific — specific answers are the mark of genuine understanding." />
+            </div>
+            <div className="flex gap-2">
+              {M2_CAPSTONE_PROMPTS.map((p, i) => (
+                <button key={i} onClick={() => setM2Step(i)}
+                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
+                    m2Step === i ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]" : "glass border-white/8 text-muted-foreground"
+                  }`}>
+                  {p.label} {m2Answers[i].length > 20 && <CheckCircle2 size={11} className="inline text-[oklch(0.72_0.18_150)]" />}
+                </button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={m2Step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.15)]">
+                <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">CAPSTONE — {M2_CAPSTONE_PROMPTS[m2Step].label.toUpperCase()}</div>
+                <p className="text-sm font-medium text-foreground mb-4 leading-snug">{M2_CAPSTONE_PROMPTS[m2Step].q}</p>
+                <textarea value={m2Answers[m2Step]}
+                  onChange={(e) => { const u = [...m2Answers]; u[m2Step] = e.target.value; setM2Answers(u); }}
+                  placeholder={M2_CAPSTONE_PROMPTS[m2Step].ph} rows={6}
+                  className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.5)] resize-none leading-relaxed" />
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-xs text-muted-foreground">{m2Answers[m2Step].length} chars</span>
+                  <div className="flex gap-2">
+                    {m2Step > 0 && (
+                      <button onClick={() => setM2Step(m2Step - 1)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
+                        <ChevronLeft size={12} /> Previous
+                      </button>
+                    )}
+                    {m2Step < M2_CAPSTONE_PROMPTS.length - 1
+                      ? <button onClick={() => setM2Step(m2Step + 1)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[oklch(0.78_0.16_30_/_0.2)] border border-[oklch(0.78_0.16_30_/_0.3)] text-xs text-[oklch(0.88_0.16_30)]">
+                          Next <ChevronRight size={12} />
+                        </button>
+                      : !m2Done && (
+                          <motion.button
+                            onClick={() => {
+                              if (m2Answers.filter((a) => a.length > 20).length < 3) {
+                                toast.error(`Complete all 3 parts (${m2Answers.filter((a) => a.length > 20).length}/3 done).`); return;
+                              }
+                              setM2Done(true); handleM2Complete(10);
+                              toast.success("Module 2 complete!");
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-black text-xs font-semibold"
+                            style={{ background: "linear-gradient(to right, oklch(0.78_0.16_30), oklch(0.72_0.2_260))" }}>
+                            <Trophy size={12} /> Submit
+                          </motion.button>
+                        )
+                    }
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            {m2Done && (
+              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                className="glass rounded-2xl p-8 border border-[oklch(0.72_0.2_260_/_0.3)] text-center">
+                <Trophy size={40} className="mx-auto mb-3 text-[oklch(0.72_0.2_260)]" />
+                <h3 className="text-2xl font-bold text-foreground mb-2">Module 2 Complete!</h3>
+                <p className="text-muted-foreground mb-4 max-w-lg mx-auto">You have earned your <strong className="text-foreground">AI in the Workplace Certificate</strong>.</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {["Tool Expert", "Output Auditor", "Work Prompter", "Career Navigator", "Capstone"].map((b) => (
+                    <span key={b} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.72_0.2_260_/_0.12)] border border-[oklch(0.72_0.2_260_/_0.3)] text-[oklch(0.82_0.2_260)]">
+                      <CheckCircle2 size={11} className="inline mr-1" />{b}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </M2Shell>
+      )}
+    </AnimatePresence>
+  );
+
+  // ── Module 2 lesson overview ──
+  return (
+    <div className="space-y-4">
+      <div className="glass rounded-2xl p-6 border border-[oklch(0.72_0.2_260_/_0.2)]">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)] border border-[oklch(0.72_0.2_260_/_0.3)]">Module 2</span>
+              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Intermediate · ~2 hrs · 360 XP</span>
+            </div>
+            <h3 className="text-lg font-bold text-foreground">AI in the Workplace</h3>
+            <p className="text-sm text-muted-foreground">Tools, critical evaluation, prompting, and career strategy</p>
+          </div>
+          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.72_0.2_260)" }}>{overallPct}%</span>}
+        </div>
+        {completedLessons.size > 0 && (
+          <div className="w-full h-2 rounded-full bg-white/8 mt-2">
+            <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.72_0.2_260)] to-[oklch(0.72_0.18_150)] transition-all" style={{ width: `${overallPct}%` }} />
+          </div>
+        )}
+      </div>
+      <div className="space-y-2">
+        {M2_LESSON_META.map((lesson, i) => {
+          const done = completedLessons.has(lesson.id);
+          return (
+            <motion.div key={lesson.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className={`glass rounded-2xl border overflow-hidden transition-all ${done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : "border-white/8 hover:border-white/15"}`}>
+              <button onClick={() => setActiveLesson(lesson.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
+                  style={{ background: `color-mix(in oklch, ${lesson.color} 15%, transparent)`, border: `1px solid color-mix(in oklch, ${lesson.color} 30%, transparent)`, color: lesson.color }}>
+                  {lesson.id - 5}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground">{lesson.title}</div>
+                  <p className="text-sm text-muted-foreground truncate">{lesson.subtitle}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
+                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp} XP</span>
+                  {done ? <span className="text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={10} /> Done</span> : <ChevronRight size={13} className="text-muted-foreground" />}
+                </div>
+              </button>
+            </motion.div>
+          );
+        })}
+      </div>
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="flex items-start gap-3">
+          <GraduationCap size={15} className="text-[oklch(0.72_0.2_260)] mt-0.5 shrink-0" />
+          <div>
+            <h4 className="font-semibold text-foreground mb-1 text-sm">What you will be able to do after Module 2</h4>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {[
+                { n: "Tool Selection", d: "Pick the right AI for any task" },
+                { n: "Output Auditing", d: "Catch errors before they cost you" },
+                { n: "Work Prompting", d: "Get professional-grade results" },
+                { n: "Career Navigation", d: "Stay ahead of the AI shift" },
+              ].map(({ n, d }) => (
+                <div key={n} className="glass rounded-lg p-3 border border-white/8">
+                  <div className="text-xs font-semibold text-foreground mb-0.5">{n}</div>
+                  <p className="text-xs text-muted-foreground">{d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── AI Literacy Tab (replaces Nexus Foundation) ──────────────────────────────
 function AILiteracyTab() {
+  const [activeModule, setActiveModule] = useState<1 | 2>(1);
   const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
-  const [totalXP, setTotalXP] = useState(0);
   const { addXP } = usePersonalization();
 
   // ── Lesson 3 prompt exercise state ──
@@ -282,7 +1140,6 @@ function AILiteracyTab() {
     if (completedLessons.has(id)) return;
     const meta = LESSON_META.find(l => l.id === id)!;
     setCompletedLessons(prev => new Set(Array.from(prev).concat(id)));
-    setTotalXP(prev => prev + meta.xp);
     addXP(meta.xp);
     toast.success(`+${meta.xp} XP — Lesson ${id} complete!`);
   };
@@ -735,13 +1592,30 @@ function AILiteracyTab() {
   );
 
   // ── Lesson list (overview) ──
+  if (activeModule === 2) return <AILiteracyModule2 />;
+
   return (
     <div className="space-y-4">
+      {/* Module switcher */}
+      <div className="flex gap-2 p-1 glass rounded-xl border border-white/8">
+        {([1, 2] as const).map((m) => (
+          <button key={m} onClick={() => setActiveModule(m)}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+              activeModule === m
+                ? "bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)] text-[oklch(0.85_0.18_55)]"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/3"
+            }`}>
+            <span>Module {m}</span>
+            <span className="text-xs opacity-60">{m === 1 ? "Intro to AI" : "AI at Work"}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.2)]">
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)]">AI Literacy</span>
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)]">Module 1</span>
               <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Beginner · ~2 hrs · 360 XP</span>
             </div>
             <h3 className="text-lg font-bold text-foreground">Introduction to AI for Adults</h3>
