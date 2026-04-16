@@ -1918,6 +1918,7 @@ const CT_CAPSTONE_STEPS = [
 function ClearThinkingTab() {
   const [activeLesson, setActiveLesson] = useState<CTLessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+  const [activeModule, setActiveModule] = useState<1 | 2>(1);
   const { addXP } = usePersonalization();
 
   // L1 state — segmented
@@ -2571,9 +2572,24 @@ function ClearThinkingTab() {
     </AnimatePresence>
   );
 
-  // ── Lesson overview ──
+  // ── Module switcher + overview ──
+  if (activeModule === 2) {
+    return <ClearThinkingModule2 onBack={() => setActiveModule(1)} />;
+  }
+
   return (
     <div className="space-y-4">
+      {/* Module switcher */}
+      <div className="flex gap-2 p-1 glass rounded-xl border border-white/8">
+        {([{ n: 1, label: "Module 1", sub: "The Architecture of an Argument" }, { n: 2, label: "Module 2", sub: "Thinking in Real Life" }] as const).map(({ n, label, sub }) => (
+          <button key={n} onClick={() => setActiveModule(n)}
+            className={`flex-1 py-2.5 px-4 rounded-lg text-sm transition-all text-left ${ activeModule === n ? "bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)] font-semibold" : "text-muted-foreground hover:text-foreground" }`}>
+            <div className="font-medium">{label}</div>
+            <div className="text-xs opacity-70 mt-0.5">{sub}</div>
+          </button>
+        ))}
+      </div>
+
       <div className="glass rounded-2xl p-6 border border-[oklch(0.72_0.2_260_/_0.2)]">
         <div className="flex items-start justify-between mb-3">
           <div>
@@ -2638,7 +2654,1022 @@ function ClearThinkingTab() {
           </div>
         </div>
       </div>
+
+      {/* Module 2 teaser */}
+      <motion.button onClick={() => setActiveModule(2)} whileHover={{ scale: 1.005, x: 4 }}
+        className="w-full glass rounded-2xl p-5 border border-[oklch(0.72_0.2_290_/_0.25)] hover:border-[oklch(0.72_0.2_290_/_0.5)] transition-all text-left">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.72_0.2_290_/_0.15)] border border-[oklch(0.72_0.2_290_/_0.3)]">
+            <ArrowRight size={18} className="text-[oklch(0.82_0.2_290)]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-xs text-[oklch(0.72_0.2_290)] font-semibold mb-0.5">NEXT — MODULE 2</div>
+            <div className="font-semibold text-foreground">Thinking in Real Life</div>
+            <p className="text-xs text-muted-foreground mt-0.5">Misinformation, statistical traps, persuasion, and decisions under uncertainty · 380 XP</p>
+          </div>
+          <ChevronRight size={16} className="text-[oklch(0.72_0.2_290)] shrink-0" />
+        </div>
+      </motion.button>
     </div>
+  );
+}
+
+// ─── Clear Thinking Module 2 Data ──────────────────────────────────────────────
+type CT2LessonId = "ct6" | "ct7" | "ct8" | "ct9" | "ct10";
+
+interface StatTrap {
+  id: string;
+  title: string;
+  misleading: string;
+  reveal: string;
+  lesson: string;
+}
+
+interface PersuasionTechnique {
+  id: string;
+  name: string;
+  definition: string;
+  ethical: string;
+  manipulative: string;
+  signal: string;
+}
+
+interface DecisionScenario {
+  id: string;
+  title: string;
+  situation: string;
+  options: { label: string; pros: string[]; cons: string[] }[];
+  pmPrompt: string; // pre-mortem prompt
+}
+
+interface MisInfoVector {
+  id: string;
+  name: string;
+  howItSpreads: string;
+  whyItWorks: string;
+  counter: string;
+}
+
+const CT2_LESSON_META = [
+  { id: "ct6" as CT2LessonId, title: "How Misinformation Spreads", subtitle: "Why false beliefs are stickier than true ones — and what to do about it", duration: "25 min", color: "oklch(0.72_0.2_290)", xp: 60 },
+  { id: "ct7" as CT2LessonId, title: "Statistical Traps", subtitle: "The numbers that lie without technically lying", duration: "25 min", color: "oklch(0.68_0.22_20)", xp: 65 },
+  { id: "ct8" as CT2LessonId, title: "Persuasion vs. Manipulation", subtitle: "Where ethical influence ends and exploitation begins", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 65 },
+  { id: "ct9" as CT2LessonId, title: "Deciding Under Uncertainty", subtitle: "How to make good calls when you can't know for sure", duration: "30 min", color: "oklch(0.75_0.18_55)", xp: 70 },
+  { id: "ct10" as CT2LessonId, title: "Capstone: Real-World Case", subtitle: "Apply everything — M1 + M2 — to a live argument you choose", duration: "25 min", color: "oklch(0.78_0.16_30)", xp: 120 },
+];
+
+const MISINFO_VECTORS: MisInfoVector[] = [
+  { id: "mv1", name: "Emotional Contagion", howItSpreads: "Content that triggers strong emotions (outrage, fear, pride) is shared 6x more often than neutral information, regardless of accuracy.", whyItWorks: "The brain's threat-detection system prioritizes emotional salience over fact-checking. Sharing feels like action — it relieves the emotional charge without requiring verification.", counter: "When you feel a strong urge to share immediately, treat it as a warning sign. Slow down: strong emotion is the misinformation's delivery mechanism." },
+  { id: "mv2", name: "The Illusory Truth Effect", howItSpreads: "Repeated exposure to a false claim increases how true it feels — even when people know it's contested. Repetition alone creates a sense of familiarity that the brain interprets as credibility.", whyItWorks: "Processing fluency: when something is easy to recall, the brain shortcut-labels it as 'true.' Misinformation campaigns exploit this deliberately through coordinated repetition.", counter: "Track how many times you've seen a claim, not just whether it feels familiar. Familiarity is not evidence." },
+  { id: "mv3", name: "Source Laundering", howItSpreads: "A false claim is seeded in a fringe outlet, picked up by a slightly less fringe outlet, then referenced by a mainstream outlet reporting on 'the controversy' — giving the original claim apparent legitimacy.", whyItWorks: "Audiences see a major outlet's name and stop tracing the origin. The number of citations looks like independent corroboration but is really one claim amplified through a chain.", counter: "Trace claims to their primary source. Ask: what is the original study, quote, or event? How many outlets are reporting this independently versus citing each other?" },
+  { id: "mv4", name: "Context Collapse", howItSpreads: "Real images, videos, or quotes are stripped of their original context and reused to support a completely different narrative. The content is technically genuine — the framing is false.", whyItWorks: "People extend trust from verified content to the frame around it. Seeing an actual photo activates 'this is real' processing, which spills over to whatever caption accompanies it.", counter: "Reverse image search photos. Look up quotes in full. The question isn't whether the content is real — it's whether it means what this specific post claims it means." },
+];
+
+const STAT_TRAPS: StatTrap[] = [
+  { id: "st1", title: "Relative vs. Absolute Risk", misleading: "\"New drug reduces cancer risk by 50%!\"", reveal: "If baseline risk is 2%, a 50% reduction means it drops to 1% — a 1 percentage-point absolute difference. Both statements are technically accurate. The relative number sounds transformative; the absolute number sounds modest.", lesson: "Always ask: 50% of what? Relative numbers without baselines are nearly meaningless for real-world decisions." },
+  { id: "st2", title: "Survivorship Bias", misleading: "\"Entrepreneurs who dropped out of college became billionaires — so college isn't worth it.\"", reveal: "We see Gates, Zuckerberg, and Dell. We don't see the millions who also dropped out and failed — they don't make headlines. We're only counting the survivors of a massive selection process.", lesson: "Ask: where is the evidence of people who took the same path and failed? Invisible failures are still data." },
+  { id: "st3", title: "Simpson's Paradox", misleading: "\"Treatment A has a higher success rate than Treatment B overall.\"", reveal: "When broken down by severity of condition, Treatment B outperforms Treatment A in every subgroup. The aggregate is misleading because Treatment A was used more often on mild cases, inflating its overall average.", lesson: "Aggregate statistics can reverse when broken into subgroups. Always ask: are the groups being compared truly comparable?" },
+  { id: "st4", title: "Cherry-Picked Timeframes", misleading: "\"Violent crime has been rising for three years!\"", reveal: "Violent crime peaked in 1991, fell 50% over 25 years, briefly rose in 2020–22, and remains far below historical highs. Selecting a 3-year window from a 30-year trend is technically accurate but deeply misleading.", lesson: "Zoom out. Three-year trends are almost always less meaningful than 20-year trends. Ask what the full historical context looks like." },
+  { id: "st5", title: "Percentage of a Percentage", misleading: "\"Salaries for women grew 15% faster than men's last year!\"", reveal: "If women's median salary grew 3% and men's grew 2.6%, the difference is 0.4 percentage points — a 15% relative difference, but nearly imperceptible in real income.", lesson: "When you see a percentage of a percentage, convert to absolute numbers to feel the real magnitude." },
+];
+
+const PERSUASION_TECHNIQUES: PersuasionTechnique[] = [
+  { id: "pt1", name: "Social Proof", definition: "Using evidence that others have done or endorsed something to influence a decision.", ethical: "A restaurant showing verified customer reviews so diners can make informed choices.", manipulative: "Faking review counts, astroturfing forums, or presenting a vocal minority as mainstream consensus.", signal: "Ask: are these real, independent endorsements — or manufactured?" },
+  { id: "pt2", name: "Scarcity & Urgency", definition: "Creating the impression that time or availability is limited to pressure faster decisions.", ethical: "A genuine sale ending Sunday, communicated clearly with no artificial deadline.", manipulative: "Fake countdown timers, 'Only 2 left!' on infinite-inventory items, manufactured crises.", signal: "Ask: is this deadline real and verifiable — or designed to prevent you from thinking?" },
+  { id: "pt3", name: "Authority Signaling", definition: "Invoking credentials, titles, or institutional affiliation to increase persuasive weight.", ethical: "A cardiologist explaining evidence-based guidance on heart disease prevention.", manipulative: "Using scientific language without scientific method, or citing credentials in unrelated domains.", signal: "Ask: is this person an expert in this specific topic — and are they citing evidence or just credentials?" },
+  { id: "pt4", name: "Reciprocity", definition: "Giving something first to create a felt obligation to give back.", ethical: "Free educational content that genuinely helps, with a non-coercive offer to purchase more.", manipulative: "Unsolicited 'gifts' paired with high-pressure asks, or manufactured obligation in one-sided relationships.", signal: "Ask: did I request this? Does refusing it make me a bad person — or just someone who said no?" },
+  { id: "pt5", name: "Identity Appeals", definition: "Framing a choice as consistent with who the audience believes themselves to be.", ethical: "Connecting environmental action to a genuine sense of community responsibility.", manipulative: "Tribal messaging that equates product choices with political identity, or attacks group belonging to create fear of exclusion.", signal: "Ask: is my reasoning about the actual merits of this — or about who I want to be seen as?" },
+];
+
+const CT2_DECISION_SCENARIOS: DecisionScenario[] = [
+  {
+    id: "ds1",
+    title: "The Job Offer",
+    situation: "You have a stable job you find tolerable. A startup offers you 30% more pay but no benefits, a 6-month runway, and an equity stake worth a lot if it succeeds. You have a mortgage and young children.",
+    options: [
+      { label: "Take the startup offer", pros: ["Higher salary now", "Equity upside", "More growth potential"], cons: ["No benefits", "Company may fail in 6 months", "Financial risk with dependents"] },
+      { label: "Stay at current job", pros: ["Stability", "Benefits", "Predictable income"], cons: ["Lower ceiling", "Potential regret", "Same tolerable situation"] },
+    ],
+    pmPrompt: "Assume you took the startup offer and it went badly wrong. It's 18 months from now. What specifically happened? What warning signs did you miss? What would you wish you had done differently?",
+  },
+  {
+    id: "ds2",
+    title: "The Medical Treatment",
+    situation: "You're diagnosed with a condition. Treatment A has a 70% success rate with mild side effects. Treatment B has an 85% success rate but causes severe side effects in 40% of patients. Without treatment, the condition will worsen over 2 years.",
+    options: [
+      { label: "Choose Treatment A", pros: ["Lower risk of severe side effects", "Proven track record", "More comfortable recovery"], cons: ["Lower success rate (70%)", "May need to try B anyway if A fails"] },
+      { label: "Choose Treatment B", pros: ["Higher success rate (85%)", "One course of treatment likely sufficient", "Less chance of long-term worsening"], cons: ["40% chance of severe side effects", "Higher short-term disruption to life"] },
+    ],
+    pmPrompt: "Assume you chose Treatment B and experienced severe side effects that lasted 4 months. What do you wish you had considered beforehand? What questions should you have asked the doctor? What support would you have needed?",
+  },
+  {
+    id: "ds3",
+    title: "The Investment",
+    situation: "You have $15,000 saved. An opportunity arises: invest it in a friend's restaurant (you believe in them, but restaurants fail 60% of the time in year 1) or put it in an index fund (historical average ~7% annual return, boring, no story).",
+    options: [
+      { label: "Invest in friend's restaurant", pros: ["Potentially higher return", "Supporting someone you believe in", "Exciting, tangible involvement"], cons: ["60% failure rate", "Relationship risk if it fails", "Money is illiquid for years"] },
+      { label: "Index fund", pros: ["Diversified, lower risk", "Liquid", "Historical data supports long-term growth"], cons: ["Lower ceiling", "No personal connection", "Misses potential upside"] },
+    ],
+    pmPrompt: "The restaurant closes 8 months in. The money is gone. Walk through exactly what went wrong from a decision-making perspective — not from bad luck, but from what you knew or could have known at decision time. What reasoning errors did you make?",
+  },
+];
+
+const CT2_QUIZ_L6: QuizQuestion[] = [
+  { id: "ct6q1", question: "The Illusory Truth Effect means:", options: ["People believe things that are told to them by authority figures", "Repeated exposure to a false claim makes it feel more true over time", "Emotional content is more likely to be remembered", "Misinformation only affects people with low education"], correct: 1, explanation: "The Illusory Truth Effect is one of the most robustly replicated findings in cognitive psychology: repeated exposure increases processing fluency, which the brain interprets as a signal of truth. This is why propaganda relies on repetition rather than argument." },
+  { id: "ct6q2", question: "Source laundering works because:", options: ["People are too lazy to read original sources", "A chain of citations creates an appearance of independent corroboration even when all sources trace back to one original claim", "Mainstream media outlets deliberately spread misinformation", "False claims are more interesting than true ones"], correct: 1, explanation: "When multiple outlets report on something, readers assume independent verification has occurred. Source laundering exploits this by seeding a single claim that gets amplified up through a citation chain — giving one claim the appearance of many." },
+  { id: "ct6q3", question: "When you feel a strong urge to share something immediately because it's outrageous, the critical thinking response is:", options: ["Share it — if it feels true, it probably is", "Check whether the emotional response is the content's delivery mechanism, not evidence of its accuracy", "Only share if you personally agree with it", "Share with a disclaimer"], correct: 1, explanation: "Misinformation is engineered to trigger emotional responses that bypass deliberate reasoning. The intensity of your emotional reaction is not correlated with the accuracy of the content — it's correlated with how viral it was designed to be." },
+];
+
+const CT2_QUIZ_L7: QuizQuestion[] = [
+  { id: "ct7q1", question: "A drug 'reduces risk by 50%.' Without knowing the baseline risk, this statistic is:", options: ["Highly informative — 50% is significant", "Meaningless — a 50% reduction of 0.2% is a different outcome than 50% of 20%", "Misleading only if the drug has side effects", "Acceptable shorthand in scientific communication"], correct: 1, explanation: "Relative risk reductions without baselines are one of the most common statistical deceptions in health journalism. A 50% reduction of a 0.1% risk (to 0.05%) is nearly irrelevant clinically. Context determines significance." },
+  { id: "ct7q2", question: "Survivorship bias causes us to:", options: ["Overestimate how often survivors make good decisions", "Systematically overestimate success rates because failures are invisible", "Underestimate the value of perseverance", "Correctly identify patterns in outcomes"], correct: 1, explanation: "We study and celebrate visible successes while the much larger population of similar failures remains invisible. This distorts our picture of which strategies actually work — we're only seeing the tip of the iceberg." },
+  { id: "ct7q3", question: "Simpson's Paradox demonstrates that:", options: ["Simple statistics are more reliable than complex ones", "Aggregate data can show the opposite trend of every subgroup it contains", "Statistical analysis always requires large sample sizes", "Averages are never accurate"], correct: 1, explanation: "Simpson's Paradox is a real phenomenon with major real-world implications — including in clinical trials, hiring discrimination cases, and educational data. Aggregating across non-comparable groups can produce conclusions that reverse entirely when examined properly." },
+];
+
+const CT2_QUIZ_L8: QuizQuestion[] = [
+  { id: "ct8q1", question: "Ethical persuasion differs from manipulation in that:", options: ["Ethical persuasion uses emotions; manipulation uses facts", "Ethical persuasion respects the audience's ability to reason and choose freely; manipulation exploits cognitive vulnerabilities", "Manipulation is always illegal", "Ethical persuasion never uses social proof"], correct: 1, explanation: "The core ethical distinction is consent and autonomy. Ethical persuasion provides accurate information and legitimate emotional appeals — it works with the audience's reasoning. Manipulation bypasses reasoning by exploiting cognitive shortcuts, fear, or social pressure." },
+  { id: "ct8q2", question: "A countdown timer on a purchase page is manipulative when:", options: ["The deadline is real and clearly communicated", "The timer resets after it reaches zero — creating artificial urgency where none exists", "It causes you to decide quickly", "The product is genuinely limited"], correct: 1, explanation: "Artificial urgency is designed to prevent deliberate reasoning. When a countdown is fake (it resets, or the 'sale' is permanent), it's not providing information — it's exploiting the fear of missing out to override your rational decision-making process." },
+  { id: "ct8q3", question: "Identity appeals become manipulative when they:", options: ["Connect a product to values the audience genuinely holds", "Frame a choice as a test of group loyalty to prevent independent evaluation of the merits", "Use testimonials from people in the target group", "Acknowledge that other groups may prefer different options"], correct: 1, explanation: "Connecting choices to genuine values is legitimate. Using tribal identity to short-circuit reasoning — 'real patriots buy X' — is manipulation because it substitutes group belonging for evidence. It makes you afraid to evaluate independently." },
+];
+
+const CT2_QUIZ_L9: QuizQuestion[] = [
+  { id: "ct9q1", question: "A pre-mortem is most useful because it:", options: ["Helps you feel more confident about a decision", "Forces explicit consideration of failure modes before they happen, while there's still time to act on that analysis", "Identifies the single most likely cause of failure", "Is performed after a project fails"], correct: 1, explanation: "The pre-mortem (imagining the project has already failed and asking why) bypasses the optimism bias that causes teams to underweight failure scenarios. It produces specific, actionable risks — not vague concerns — when you can still adjust the plan." },
+  { id: "ct9q2", question: "Calibrated uncertainty means:", options: ["Always saying 'I'm not sure' to avoid being wrong", "Your confidence in a belief should match the actual evidence for it — neither overconfident nor underconfident", "Making decisions only when you have more than 90% certainty", "Expressing all beliefs as probability percentages"], correct: 1, explanation: "Good decision-making requires calibration: 70% confident beliefs should be right about 70% of the time. Overconfidence and underconfidence are both calibration errors. Tracking predictions and outcomes is the only reliable way to improve calibration." },
+  { id: "ct9q3", question: "When two options have similar expected values, the rational tiebreaker is usually:", options: ["Go with your gut — intuition knows things analysis misses", "Choose the option with lower variance (more predictable outcomes), especially under resource constraints", "Flip a coin — expected values are equal so it doesn't matter", "Always choose the higher-upside option regardless of downside"], correct: 1, explanation: "When expected values are equal, variance matters enormously — especially when you can't afford the downside. A coin flip between $100 and $0 has the same expected value as $50 guaranteed, but if you need at least $50 to survive the month, the guaranteed option is rationally superior." },
+];
+
+const CT2_CAPSTONE_CASES = [
+  {
+    id: "case1",
+    title: "The Supplement Ad",
+    label: "Health Claim",
+    scenario: `A full-page ad in a health magazine reads:
+
+"NEUROFOCUS PRO — Clinically Proven to Boost Memory by 47%
+
+Thousands of customers report sharper thinking in just 14 days. Our proprietary NeuroBlend formula uses 12 all-natural ingredients including Lion's Mane mushroom, trusted for centuries in traditional medicine. Dr. Elena Marsh — former neuroscience researcher — says: 'I've never seen results like this.'
+
+⚡ WARNING: Due to unprecedented demand, we can only guarantee your supply if you order TODAY.
+★★★★★ from 14,847 verified customers
+
+Because your brain deserves better — and because you care about staying sharp — you owe it to yourself to try it risk-free."`,
+    checklist: [
+      { id: "cs1a", label: "Unverified claim: 'Clinically proven' — no study cited, no methodology, no peer review" },
+      { id: "cs1b", label: "Misleading statistic: '47% boost' — boost in what? Measured how? By whom?" },
+      { id: "cs1c", label: "Appeal to Nature fallacy: 'all-natural' implies safe, which is not valid logic" },
+      { id: "cs1d", label: "Authority misuse: 'former neuroscience researcher' — in which domain? Which institution? Is this even verifiable?" },
+      { id: "cs1e", label: "Artificial urgency (manipulation): 'order TODAY' — classic fake scarcity" },
+      { id: "cs1f", label: "Social proof inflation: 14,847 'verified' reviews — verified by whom? What is their methodology?" },
+      { id: "cs1g", label: "Identity appeal (manipulation): 'you care about staying sharp' — frames refusing as self-neglect" },
+    ],
+  },
+  {
+    id: "case2",
+    title: "The Policy Debate",
+    label: "Political Argument",
+    scenario: `A social media post goes viral:
+
+"NEW STUDY: Universal Basic Income DESTROYS work ethic — 73% of recipients stopped actively seeking employment.
+
+This is what happens when you pay people to do nothing. Every economist who supports UBI has clearly never run a business. Meanwhile, the Scandinavian countries that tried it had to abandon the experiment because it FAILED.
+
+The real data shows: work is the foundation of human dignity. Giving people 'free money' is not compassion — it's dependency. The millions of working Americans who get up every day are the backbone of this country, and policies like this are a slap in the face to all of them.
+
+Retweet if you believe in REAL work."`,
+    checklist: [
+      { id: "cs2a", label: "Unverified statistic: '73%' — which study? What population? What definition of 'stopped seeking employment'?" },
+      { id: "cs2b", label: "Ad hominem: 'never run a business' attacks economists personally rather than addressing their arguments" },
+      { id: "cs2c", label: "False claim: Scandinavian UBI pilots were discontinued due to political changes, not failure — the data actually showed positive outcomes" },
+      { id: "cs2d", label: "False framing: presenting UBI as 'paying people to do nothing' is a straw man of how advocates describe it" },
+      { id: "cs2e", label: "Identity appeal: 'slap in the face to working Americans' uses group identity to prevent engagement with evidence" },
+      { id: "cs2f", label: "Appeal to emotion: 'human dignity' and 'backbone of this country' are emotional appeals without evidentiary weight" },
+      { id: "cs2g", label: "Bandwagon call: 'Retweet if you believe in REAL work' pressures sharing without evaluation" },
+    ],
+  },
+  {
+    id: "case3",
+    title: "The Tech CEO Interview",
+    label: "Business Argument",
+    scenario: `A transcript excerpt from a tech podcast:
+
+"Look, our AI system has a 94% accuracy rate — that's just a fact. It's trained on more data than any competitor. Our team of 200 engineers works around the clock to make sure it's safe and responsible. 
+
+Critics who say there are bias problems are mostly academics who've never shipped a real product. The real-world feedback we're getting from our 3 million users is overwhelmingly positive.
+
+Could there be edge cases? Sure, in any complex system there will be. But the overwhelming consensus in the industry is that we're setting the gold standard.
+
+The alternative — not deploying AI — means falling behind China. At some point, you have to trust the engineers who built the system."`,
+    checklist: [
+      { id: "cs3a", label: "Decontextualized statistic: '94% accuracy' — on which task? On which population? False positive vs. false negative breakdown?" },
+      { id: "cs3b", label: "Non sequitur: training data volume doesn't determine safety or fairness" },
+      { id: "cs3c", label: "Ad hominem: dismissing critics as 'never shipped a product' ignores whether their bias findings are methodologically valid" },
+      { id: "cs3d", label: "Survivorship bias in feedback: '3 million users overwhelmingly positive' — users who are harmed by bias are the least likely to be heard in user surveys" },
+      { id: "cs3e", label: "False Dilemma: 'deploy or fall behind China' ignores middle-ground options (slower rollout, more auditing, domain restrictions)" },
+      { id: "cs3f", label: "Appeal to authority: 'trust the engineers who built it' — creators are the least objective evaluators of their own work's harms" },
+      { id: "cs3g", label: "Bandwagon: 'industry consensus' — industry consensus in technology has been wrong repeatedly about safety (see: social media + teen mental health)" },
+    ],
+  },
+];
+
+const CT2_CAPSTONE_STEPS = [
+  { label: "Identify Problems", q: "Read your chosen case carefully. List every logical error, fallacy, statistical trap, and manipulation technique you can identify. Quote the exact phrase and name the specific problem. Aim for at least 5.", ph: "e.g., 1. Unverified statistic — '47% boost in memory' — no study cited, no methodology explained, no peer review. A claim that specific requires a specific citation...\n2. Appeal to Nature fallacy — 'all-natural ingredients' — natural ≠ safe or effective. Arsenic is natural. The word is doing emotional work, not evidentiary work...\n3. Authority appeal (questionable) — 'former neuroscience researcher' — which institution? What is her domain expertise in supplements specifically?..." },
+  { label: "Steelman It", q: "Now make the strongest possible version of this argument — removing all fallacies and replacing unsupported claims with what actual evidence would need to say. What would this argument look like if it were honest?", ph: "e.g., A legitimate case for NeuropFocus Pro would require: a published, peer-reviewed RCT (not a paid study) showing statistically significant improvement on validated cognitive tests, with full methodology, sample size, and effect sizes disclosed. The endorsement would name the specific researcher, institution, and the precise nature of their review. Urgency would be absent unless supply were genuinely constrained with verifiable data..." },
+  { label: "Your Assessment", q: "What is your overall verdict on this argument's credibility? What single change would make it most credible? And — most importantly — what is one way a reasonable person could still disagree with your analysis?", ph: "e.g., Overall credibility: very low. The argument relies almost entirely on emotional manipulation and unverifiable claims rather than transparent evidence.\n\nSingle change for most improvement: publish the full clinical trial methodology and let independent researchers replicate the results.\n\nReasonable disagreement: a defender could argue that testimonials represent real outcomes for real people, and that dismissing lived experience as 'anecdote' is itself a form of elitism..." },
+];
+
+// ─── Clear Thinking Module 2 Tab ────────────────────────────────────────────────
+function ClearThinkingModule2({ onBack }: { onBack: () => void }) {
+  const [activeLesson, setActiveLesson] = useState<CT2LessonId | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+  const { addXP } = usePersonalization();
+
+  // L6 — misinformation
+  const [activeMV, setActiveMV] = useState<string | null>(null);
+  const [newsInput, setNewsInput] = useState("");
+  const [newsResult, setNewsResult] = useState("");
+  const [newsLoading, setNewsLoading] = useState(false);
+
+  // L7 — stat traps
+  const [activeTrap, setActiveTrap] = useState<string | null>(null);
+  const [statInput, setStatInput] = useState("");
+  const [statResult, setStatResult] = useState("");
+  const [statLoading, setStatLoading] = useState(false);
+
+  // L8 — persuasion
+  const [activePT, setActivePT] = useState<string | null>(null);
+  const [adInput, setAdInput] = useState("");
+  const [adResult, setAdResult] = useState("");
+  const [adLoading, setAdLoading] = useState(false);
+
+  // L9 — decision making
+  const [activeScenario, setActiveScenario] = useState<number | null>(null);
+  const [activeOptionTab, setActiveOptionTab] = useState<number>(0);
+  const [pmAnswer, setPmAnswer] = useState("");
+  const [pmSaved, setPmSaved] = useState(false);
+  const [calibrationInput, setCalibrationInput] = useState("");
+  const [calibrationResult, setCalibrationResult] = useState("");
+  const [calibrationLoading, setCalibrationLoading] = useState(false);
+
+  // L10 — capstone
+  const [selectedCase, setSelectedCase] = useState<number | null>(null);
+  const [ct2Checks, setCt2Checks] = useState<Record<string, boolean>>({});
+  const [ct2Step, setCt2Step] = useState(0);
+  const [ct2Answers, setCt2Answers] = useState(["", "", ""]);
+  const [ct2Done, setCt2Done] = useState(false);
+
+  const newsMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setNewsResult(data.explanation); setNewsLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setNewsLoading(false); },
+  });
+  const statMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setStatResult(data.explanation); setStatLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setStatLoading(false); },
+  });
+  const adMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setAdResult(data.explanation); setAdLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setAdLoading(false); },
+  });
+  const calibMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setCalibrationResult(data.explanation); setCalibrationLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setCalibrationLoading(false); },
+  });
+
+  const handleCT2Complete = (id: CT2LessonId) => {
+    if (completedLessons.has(id)) return;
+    const meta = CT2_LESSON_META.find((l) => l.id === id)!;
+    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson complete!`);
+  };
+
+  const overallPct = Math.round((completedLessons.size / CT2_LESSON_META.length) * 100);
+
+  // Section-type badge helper (blueprint signaling principle)
+  const SectionBadge = ({ type, color }: { type: string; color: string }) => (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase mb-3"
+      style={{ background: `${color.replace(")", "_/_0.15)").replace("oklch(", "oklch(")}`, color }}>
+      {type}
+    </span>
+  );
+
+  function CT2Shell({ id, children }: { id: CT2LessonId; children: React.ReactNode }) {
+    const meta = CT2_LESSON_META.find((l) => l.id === id)!;
+    const done = completedLessons.has(id);
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to all lessons
+        </button>
+        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Clear Thinking · Module 2 · Thinking in Real Life</div>
+              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
+              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
+              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
+              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
+            </div>
+          </div>
+        </div>
+        {children}
+        <div className="mt-8 pt-6 border-t border-white/8">
+          {done
+            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
+            : <motion.button onClick={() => handleCT2Complete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
+                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.72_0.18_150))` }}>
+                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
+              </motion.button>
+          }
+        </div>
+        {id !== "ct10" && (
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => { const ids: CT2LessonId[] = ["ct6","ct7","ct8","ct9","ct10"]; const idx = ids.indexOf(id); setActiveLesson(ids[idx + 1]); }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next lesson <ChevronRight size={13} />
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  if (activeLesson !== null) return (
+    <AnimatePresence mode="wait">
+
+      {/* ── Lesson 6: How Misinformation Spreads ── */}
+      {activeLesson === "ct6" && (
+        <CT2Shell key="ct6" id="ct6">
+          <div className="space-y-5">
+
+            {/* Hook — why this matters */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="A false story spreads six times faster on social media than a true one. That's not a guess — it's a finding from an MIT study of 126,000 stories over a decade. This lesson explains exactly why that happens, and what it means for every piece of information you encounter." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { stat: "6×", label: "Faster spread for false stories", color: "oklch(0.68_0.22_20)" },
+                  { stat: "70%", label: "More likely to be retweeted", color: "oklch(0.78_0.16_30)" },
+                  { stat: "20×", label: "Deeper retweet cascade depth", color: "oklch(0.72_0.2_290)" },
+                ].map(({ stat, label, color }) => (
+                  <div key={stat} className="glass rounded-xl p-4 border border-white/8 text-center">
+                    <div className="text-2xl font-bold mb-1" style={{ color }}>{stat}</div>
+                    <p className="text-xs text-muted-foreground leading-snug">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.75_0.18_55)"
+                topics={["Why novelty makes false stories spread faster", "What the MIT Vosoughi study actually found and its limitations", "How social media algorithms amplify emotional content", "What 'epistemic cowardice' is and why it makes misinformation worse"]} />
+            </div>
+
+            {/* Concept — the 4 vectors */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.2_290)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.72_0.2_290)" />
+              <h3 className="font-semibold text-foreground mb-1">The 4 Mechanisms</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">False information doesn't spread because people are stupid. It spreads because it exploits specific, predictable features of human cognition. Understanding the mechanism is how you become resistant to it.</p>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {MISINFO_VECTORS.map((mv) => (
+                  <button key={mv.id} onClick={() => setActiveMV(activeMV === mv.id ? null : mv.id)}
+                    className={`p-4 rounded-xl text-left border transition-all ${ activeMV === mv.id ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
+                    <div className="text-sm font-semibold text-foreground mb-1">{mv.name}</div>
+                    <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{mv.howItSpreads}</p>
+                  </button>
+                ))}
+              </div>
+              <AnimatePresence>
+                {activeMV && (() => {
+                  const mv = MISINFO_VECTORS.find((x) => x.id === activeMV)!;
+                  return (
+                    <motion.div key={activeMV} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="glass rounded-2xl p-5 border border-[oklch(0.72_0.2_290_/_0.3)] space-y-3 mb-2">
+                      <h4 className="font-bold text-foreground">{mv.name}</h4>
+                      <div>
+                        <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-1">HOW IT SPREADS</div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{mv.howItSpreads}</p>
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-1">WHY IT WORKS COGNITIVELY</div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{mv.whyItWorks}</p>
+                      </div>
+                      <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                        <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">YOUR COUNTER-MOVE</div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{mv.counter}</p>
+                      </div>
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
+              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
+                topics={["What 'prebunking' is and how it reduces susceptibility to misinformation", "How the backfire effect works (and whether it's real)", "Why corrections often fail to update beliefs", "What media literacy education actually teaches"]} />
+            </div>
+
+            {/* Activity — live news analyzer */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.2_290_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">MISINFORMATION ANALYZER</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste a headline, social post, or claim. The AI will identify which misinformation mechanisms it uses and how to evaluate it.</p>
+              <textarea value={newsInput} onChange={(e) => setNewsInput(e.target.value)}
+                placeholder="e.g., 'SHOCKING: Scientists admit vaccines contain microchips — 4 whistleblowers speak out'" rows={3}
+                className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!newsInput.trim()) { toast.error("Paste a claim first."); return; }
+                setNewsLoading(true); setNewsResult("");
+                newsMutation.mutate({ concept: `Analyze this claim for misinformation patterns: "${newsInput}". Identify: (1) Which of these mechanisms it uses: emotional contagion, illusory truth effect, source laundering, or context collapse. (2) Specific red flags in the language or framing. (3) What a critical thinker should do before accepting or sharing this. Be specific, educational, and direct.`, level: "student" });
+              }} disabled={newsLoading || !newsInput.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.72_0.2_290)" }}>
+                {newsLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Search size={13} /> Analyze Claim</>}
+              </motion.button>
+              <AnimatePresence>
+                {newsResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{newsResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT2_QUIZ_L6} accentColor="oklch(0.72_0.2_290)" />
+            </div>
+          </div>
+        </CT2Shell>
+      )}
+
+      {/* ── Lesson 7: Statistical Traps ── */}
+      {activeLesson === "ct7" && (
+        <CT2Shell key="ct7" id="ct7">
+          <div className="space-y-5">
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="Statistics are the language of evidence — and one of the most powerful tools for misleading you without technically lying. You don't need to be a mathematician to spot the most common traps. You need to know which questions to ask." />
+              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.68_0.22_20_/_0.2)]">
+                <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-2">THE THREE QUESTIONS THAT DEFEAT MOST STATISTICAL CLAIMS</div>
+                <div className="space-y-2">
+                  {[
+                    { q: "Compared to what?", d: "Every number needs a baseline. 50% of nothing is nothing." },
+                    { q: "Who is missing from this data?", d: "Survivorship, selection, and publication bias all hide evidence that would change your conclusion." },
+                    { q: "What does this actually measure?", d: "The metric used may not measure what you think it measures." },
+                  ].map(({ q, d }) => (
+                    <div key={q} className="flex items-start gap-3 p-3 rounded-lg glass border border-white/8">
+                      <div className="text-xs font-bold text-[oklch(0.68_0.22_20)] shrink-0 mt-0.5">{q}</div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
+                topics={["What p-values actually mean (and don't mean)", "How to read a forest plot from a meta-analysis", "What 'confidence interval' means in plain English", "Why large sample sizes don't fix bad methodology"]} />
+            </div>
+
+            {/* Statistical trap explorer */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.68_0.22_20)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.68_0.22_20)" />
+              <h3 className="font-semibold text-foreground mb-1">5 Traps in Detail</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Each of these traps has caused real harm in real decisions — in medicine, business, and policy. Click each one to see the trap, the reveal, and the lesson.</p>
+              <div className="space-y-2 mb-2">
+                {STAT_TRAPS.map((trap) => (
+                  <div key={trap.id}>
+                    <button onClick={() => setActiveTrap(activeTrap === trap.id ? null : trap.id)}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all ${ activeTrap === trap.id ? "bg-[oklch(0.68_0.22_20_/_0.15)] border-[oklch(0.68_0.22_20_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
+                      <span className="font-semibold text-sm text-foreground">{trap.title}</span>
+                      <ChevronRight size={14} className={`text-muted-foreground transition-transform ${activeTrap === trap.id ? "rotate-90" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {activeTrap === trap.id && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden">
+                          <div className="p-4 space-y-3 glass rounded-b-xl border-x border-b border-[oklch(0.68_0.22_20_/_0.3)]">
+                            <div className="glass rounded-lg p-3 border border-[oklch(0.68_0.22_20_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-1">THE CLAIM</div>
+                              <p className="text-sm text-foreground italic">{trap.misleading}</p>
+                            </div>
+                            <div className="glass rounded-lg p-3 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">THE REVEAL</div>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{trap.reveal}</p>
+                            </div>
+                            <div className="glass rounded-lg p-3 border border-[oklch(0.75_0.18_55_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.75_0.18_55)] mb-1">THE LESSON</div>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{trap.lesson}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
+                topics={["How to identify Simpson's Paradox in real data", "What absolute vs. relative risk means in drug trials", "How to find the original data behind a headline statistic", "What makes a graph visually misleading"]} />
+            </div>
+
+            {/* Live stat checker */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.68_0.22_20_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">STATISTIC DECODER</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste any statistic or data claim. The AI will explain what questions to ask and what context is missing.</p>
+              <textarea value={statInput} onChange={(e) => setStatInput(e.target.value)}
+                placeholder="e.g., 'Coffee drinkers have a 23% lower risk of dying from heart disease'" rows={2}
+                className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_20_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!statInput.trim()) { toast.error("Enter a statistic first."); return; }
+                setStatLoading(true); setStatResult("");
+                statMutation.mutate({ concept: `Analyze this statistical claim: "${statInput}". Identify: (1) What type of statistical trap it might contain (relative vs. absolute, survivorship, Simpson's, cherry-picked timeframe, etc.). (2) What critical questions a reader should ask — be specific. (3) What additional context would be needed to properly evaluate this claim. Be educational and direct.`, level: "student" });
+              }} disabled={statLoading || !statInput.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.68_0.22_20)" }}>
+                {statLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Search size={13} /> Decode Statistic</>}
+              </motion.button>
+              <AnimatePresence>
+                {statResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.68_0.22_20_/_0.08)] border border-[oklch(0.68_0.22_20_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{statResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT2_QUIZ_L7} accentColor="oklch(0.68_0.22_20)" />
+            </div>
+          </div>
+        </CT2Shell>
+      )}
+
+      {/* ── Lesson 8: Persuasion vs. Manipulation ── */}
+      {activeLesson === "ct8" && (
+        <CT2Shell key="ct8" id="ct8">
+          <div className="space-y-5">
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="Every advertisement, every political speech, every fundraiser, and every sales conversation is an attempt to change your behavior. Some of them are ethical. Some of them are not. The line between persuasion and manipulation isn't always obvious — but it's one of the most important distinctions a clear thinker can make." />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {[
+                  { label: "Persuasion", def: "Works through the audience's own reasoning. Provides accurate information and legitimate emotional appeals. Respects the person's ability to reach their own conclusions.", color: "oklch(0.72_0.18_150)" },
+                  { label: "Manipulation", def: "Bypasses reasoning by exploiting cognitive vulnerabilities, emotional triggers, or social pressure. Achieves compliance without genuine understanding or free choice.", color: "oklch(0.68_0.22_20)" },
+                ].map(({ label, def, color }) => (
+                  <div key={label} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${color}` }}>
+                    <div className="text-sm font-bold mb-2" style={{ color }}>{label}</div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{def}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.72_0.18_150)"
+                topics={["What Robert Cialdini's 6 principles of influence are", "When emotional appeals in arguments are legitimate vs. manipulative", "How dark patterns in UX design exploit cognitive biases", "What 'informed consent' means beyond medicine"]} />
+            </div>
+
+            {/* Technique explorer */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.18_150)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.72_0.18_150)" />
+              <h3 className="font-semibold text-foreground mb-1">5 Techniques — Ethical or Not?</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Every technique below has a legitimate ethical version and a manipulative one. The technique itself is often neutral — the ethics depend on how it's used.</p>
+              <div className="space-y-2">
+                {PERSUASION_TECHNIQUES.map((pt) => (
+                  <div key={pt.id}>
+                    <button onClick={() => setActivePT(activePT === pt.id ? null : pt.id)}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all ${ activePT === pt.id ? "bg-[oklch(0.72_0.18_150_/_0.12)] border-[oklch(0.72_0.18_150_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
+                      <div>
+                        <span className="font-semibold text-sm text-foreground">{pt.name}</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">{pt.definition}</p>
+                      </div>
+                      <ChevronRight size={14} className={`text-muted-foreground shrink-0 ml-3 transition-transform ${activePT === pt.id ? "rotate-90" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {activePT === pt.id && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden">
+                          <div className="p-4 space-y-3 glass rounded-b-xl border-x border-b border-[oklch(0.72_0.18_150_/_0.3)]">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="glass rounded-lg p-3 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                                <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">ETHICAL USE</div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">{pt.ethical}</p>
+                              </div>
+                              <div className="glass rounded-lg p-3 border border-[oklch(0.68_0.22_20_/_0.2)]">
+                                <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-1">MANIPULATIVE USE</div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">{pt.manipulative}</p>
+                              </div>
+                            </div>
+                            <div className="glass rounded-lg p-3 border border-[oklch(0.75_0.18_55_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.75_0.18_55)] mb-1">YOUR SIGNAL TO WATCH FOR</div>
+                              <p className="text-xs text-muted-foreground leading-relaxed">{pt.signal}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.72_0.18_150)"
+                topics={["What 'dark patterns' are and examples from major apps", "How to identify manipulation in political advertising", "Why manufactured urgency is one of the most common online tactics", "What Cialdini found about reciprocity in field experiments"]} />
+            </div>
+
+            {/* Live ad deconstructor */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.18_150_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">INFLUENCE DECODER</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste any ad, social post, email, or sales message. The AI will identify which persuasion or manipulation techniques it uses.</p>
+              <textarea value={adInput} onChange={(e) => setAdInput(e.target.value)}
+                placeholder="e.g., 'Only 3 spots left in our exclusive community! Thousands of members are already transforming their lives…'"
+                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!adInput.trim()) { toast.error("Paste a message first."); return; }
+                setAdLoading(true); setAdResult("");
+                adMutation.mutate({ concept: `Analyze this message for persuasion and manipulation techniques: "${adInput}". For each technique identified: (1) Name it precisely (e.g., 'artificial scarcity', 'social proof', 'identity appeal'). (2) Quote the exact phrase using it. (3) Say whether this specific use is ethical persuasion or manipulative — and why. End with an overall assessment of whether this message respects the reader's autonomy.`, level: "student" });
+              }} disabled={adLoading || !adInput.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.72_0.18_150)" }}>
+                {adLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Search size={13} /> Decode Influence</>}
+              </motion.button>
+              <AnimatePresence>
+                {adResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.72_0.18_150_/_0.08)] border border-[oklch(0.72_0.18_150_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{adResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT2_QUIZ_L8} accentColor="oklch(0.72_0.18_150)" />
+            </div>
+          </div>
+        </CT2Shell>
+      )}
+
+      {/* ── Lesson 9: Deciding Under Uncertainty ── */}
+      {activeLesson === "ct9" && (
+        <CT2Shell key="ct9" id="ct9">
+          <div className="space-y-5">
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="Every important decision is made with incomplete information. The question is never 'do I have enough data?' — it's 'how do I make the best call with what I actually have?' Professionals who make better decisions under uncertainty share a specific set of mental tools. This lesson teaches them." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { name: "Pre-Mortem", def: "Assume failure before it happens. Ask: why did this go wrong?", icon: <AlertTriangle size={16} />, color: "oklch(0.68_0.22_20)" },
+                  { name: "Calibration", def: "Match confidence to evidence. 70% certain should mean right 70% of the time.", icon: <Scale size={16} />, color: "oklch(0.72_0.2_260)" },
+                  { name: "Decision Journal", def: "Record your reasoning before outcomes are known. The only way to learn from decisions.", icon: <FlaskConical size={16} />, color: "oklch(0.72_0.18_150)" },
+                ].map(({ name, def, icon, color }) => (
+                  <div key={name} className="glass rounded-xl p-4 border border-white/8">
+                    <div className="flex items-center gap-2 mb-2" style={{ color }}>{icon}<span className="font-bold text-xs">{name}</span></div>
+                    <p className="text-xs text-muted-foreground leading-snug">{def}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.75_0.18_55)"
+                topics={["What Bayesian reasoning is and a simple example", "How superforecasters make better predictions than experts", "What the 'reference class' is and why it matters in planning", "How to use a decision matrix for high-stakes choices"]} />
+            </div>
+
+            {/* Concept — pre-mortem method */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.2_260)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.72_0.2_260)" />
+              <h3 className="font-semibold text-foreground mb-3">Practice Scenario: The Pre-Mortem</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">The pre-mortem technique (developed by psychologist Gary Klein) reverses the typical planning question. Instead of "what could go wrong?" — which produces polite, optimism-biased answers — you assume the project has already failed and ask "what happened?"</p>
+
+              <div className="flex gap-2 mb-4">
+                {CT2_DECISION_SCENARIOS.map((s, i) => (
+                  <button key={s.id} onClick={() => { setActiveScenario(i); setActiveOptionTab(0); setPmAnswer(""); setPmSaved(false); }}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border text-center ${ activeScenario === i ? "bg-[oklch(0.72_0.2_260_/_0.15)] border-[oklch(0.72_0.2_260_/_0.4)] text-[oklch(0.82_0.2_260)]" : "glass border-white/8 text-muted-foreground hover:border-white/20" }`}>
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                {activeScenario !== null && (() => {
+                  const sc = CT2_DECISION_SCENARIOS[activeScenario];
+                  return (
+                    <motion.div key={activeScenario} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                      className="space-y-4">
+                      <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_260_/_0.2)]">
+                        <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-2">SCENARIO</div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{sc.situation}</p>
+                      </div>
+                      <div className="flex gap-1 p-1 glass rounded-xl border border-white/8">
+                        {sc.options.map((opt, i) => (
+                          <button key={i} onClick={() => setActiveOptionTab(i)}
+                            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${ activeOptionTab === i ? "bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)]" : "text-muted-foreground" }`}>
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      <AnimatePresence mode="wait">
+                        <motion.div key={activeOptionTab} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">PROS</div>
+                              <div className="space-y-1.5">
+                                {sc.options[activeOptionTab].pros.map((p, i) => (
+                                  <div key={i} className="flex items-start gap-2">
+                                    <Check size={11} className="text-[oklch(0.72_0.18_150)] mt-0.5 shrink-0" />
+                                    <p className="text-xs text-muted-foreground leading-snug">{p}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="glass rounded-xl p-4 border border-[oklch(0.68_0.22_20_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-2">CONS</div>
+                              <div className="space-y-1.5">
+                                {sc.options[activeOptionTab].cons.map((c, i) => (
+                                  <div key={i} className="flex items-start gap-2">
+                                    <AlertTriangle size={11} className="text-[oklch(0.68_0.22_20)] mt-0.5 shrink-0" />
+                                    <p className="text-xs text-muted-foreground leading-snug">{c}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+
+                      <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_260_/_0.15)]">
+                        <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-2">PRE-MORTEM EXERCISE</div>
+                        <p className="text-sm text-muted-foreground mb-3 leading-relaxed italic">{sc.pmPrompt}</p>
+                        <textarea value={pmAnswer} onChange={(e) => setPmAnswer(e.target.value)}
+                          placeholder="Imagine the worst outcome has happened. Walk through exactly what went wrong from a decision-making perspective…"
+                          rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.2_260_/_0.4)] resize-none" />
+                        {!pmSaved
+                          ? <button onClick={() => {
+                              if (!pmAnswer.trim()) { toast.error("Write your pre-mortem first."); return; }
+                              setPmSaved(true); addXP(10); toast.success("+10 XP — pre-mortem saved!");
+                            }} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.2_260_/_0.2)] border border-[oklch(0.72_0.2_260_/_0.3)] text-sm text-[oklch(0.82_0.2_260)]">
+                              <Check size={13} /> Save Pre-Mortem (+10 XP)
+                            </button>
+                          : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Saved — +10 XP</p>
+                        }
+                      </div>
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
+              <SegmentFooter accentColor="oklch(0.72_0.2_260)"
+                topics={["How to run a pre-mortem with a team (not just alone)", "What the 'planning fallacy' is and how it distorts time and cost estimates", "How to use base rates to calibrate your expectations", "What 'expected value' means and when to use it"]} />
+            </div>
+
+            {/* Live calibration tool */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.75_0.18_55_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">DECISION ADVISOR</div>
+              <p className="text-xs text-muted-foreground mb-3">Describe a real decision you're facing. The AI will apply pre-mortem, calibrated uncertainty, and decision-quality frameworks to help you think it through.</p>
+              <textarea value={calibrationInput} onChange={(e) => setCalibrationInput(e.target.value)}
+                placeholder="e.g., 'I'm deciding whether to go back to school for a master's degree at 35. I have a stable job, two kids, and $40k saved.'"
+                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!calibrationInput.trim()) { toast.error("Describe your decision first."); return; }
+                setCalibrationLoading(true); setCalibrationResult("");
+                calibMutation.mutate({ concept: `Apply decision-analysis frameworks to this situation: "${calibrationInput}". Structure your response as: (1) PRE-MORTEM: Assume the main choice failed — what specifically went wrong? (2) BASE RATE: What does the relevant evidence say about how often this kind of decision works out? (3) KEY UNCERTAINTIES: What are the 2-3 things you don't yet know that would most change the decision? (4) DECISION QUALITY CHECK: Is there additional information worth getting before deciding? Be specific and practical, not generic.`, level: "student" });
+              }} disabled={calibrationLoading || !calibrationInput.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-black disabled:opacity-50"
+                style={{ background: "linear-gradient(to right, oklch(0.75_0.18_55), oklch(0.72_0.18_150))" }}>
+                {calibrationLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Lightbulb size={13} /> Analyze My Decision</>}
+              </motion.button>
+              <AnimatePresence>
+                {calibrationResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{calibrationResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={CT2_QUIZ_L9} accentColor="oklch(0.75_0.18_55)" />
+            </div>
+          </div>
+        </CT2Shell>
+      )}
+
+      {/* ── Lesson 10: Capstone ── */}
+      {activeLesson === "ct10" && (
+        <CT2Shell key="ct10" id="ct10">
+          <div className="space-y-5">
+            {completedLessons.size < 4 && (
+              <div className="glass rounded-xl p-5 border border-[oklch(0.78_0.16_30_/_0.3)]">
+                <div className="flex items-start gap-3">
+                  <Lock size={16} className="text-[oklch(0.78_0.16_30)] mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
+                    <p className="text-sm text-muted-foreground">You've completed {completedLessons.size}/4 lessons. The capstone requires the full Module 2 toolkit.</p>
+                    <div className="flex gap-1 mt-2">
+                      {(["ct6","ct7","ct8","ct9"] as CT2LessonId[]).map((id) => (
+                        <div key={id} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${ completedLessons.has(id) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground" }`}>
+                          {completedLessons.has(id) ? <Check size={12} /> : id.replace("ct","")}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Capstone" color="oklch(0.78_0.16_30)" />
+              <Narrator text="This capstone applies all eight lessons — argument structure, fallacies, evidence quality, cognitive biases, misinformation mechanics, statistical traps, persuasion versus manipulation, and decision-making under uncertainty. Choose a real-world case and take it apart." />
+            </div>
+
+            {/* Case selector */}
+            <div>
+              <div className="text-sm font-semibold text-foreground mb-3">Choose your case:</div>
+              <div className="grid grid-cols-3 gap-2">
+                {CT2_CAPSTONE_CASES.map((c, i) => (
+                  <button key={c.id} onClick={() => { setSelectedCase(i); setCt2Checks({}); setCt2Step(0); setCt2Answers(["","",""]); setCt2Done(false); }}
+                    className={`py-3 px-4 rounded-xl text-sm font-medium transition-all border text-left ${ selectedCase === i ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]" : "glass border-white/8 text-muted-foreground hover:border-white/20" }`}>
+                    <div className="font-semibold text-xs text-muted-foreground mb-1">{c.label}</div>
+                    {c.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {selectedCase !== null && (() => {
+                const cs = CT2_CAPSTONE_CASES[selectedCase];
+                const checkedCount = Object.values(ct2Checks).filter(Boolean).length;
+                return (
+                  <motion.div key={selectedCase} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4">
+
+                    {/* The case text */}
+                    <div className="glass rounded-2xl p-5 border border-[oklch(0.78_0.16_30_/_0.2)]">
+                      <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">THE CASE — {cs.title.toUpperCase()}</div>
+                      <pre className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-sans">{cs.scenario}</pre>
+                    </div>
+
+                    {/* Interactive error checklist */}
+                    <div className="glass rounded-2xl p-5 border border-white/8">
+                      <div className="text-sm font-semibold text-foreground mb-1">Step 1 — Error Hunt</div>
+                      <p className="text-xs text-muted-foreground mb-4">Check off each problem as you find it in the text above. You should find all {cs.checklist.length}.</p>
+                      <div className="space-y-2 mb-3">
+                        {cs.checklist.map((item) => (
+                          <label key={item.id} className="flex items-start gap-3 cursor-pointer group">
+                            <div onClick={() => setCt2Checks((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                              className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${ ct2Checks[item.id] ? "bg-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150)]" : "border-white/20 group-hover:border-white/40" }`}>
+                              {ct2Checks[item.id] && <Check size={11} className="text-white" />}
+                            </div>
+                            <span className={`text-sm leading-snug transition-colors ${ ct2Checks[item.id] ? "text-foreground" : "text-muted-foreground" }`}>{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1.5 rounded-full bg-white/8">
+                          <div className="h-full rounded-full bg-[oklch(0.72_0.18_150)] transition-all" style={{ width: `${(checkedCount / cs.checklist.length) * 100}%` }} />
+                        </div>
+                        <span className="text-xs font-medium text-foreground">{checkedCount}/{cs.checklist.length}</span>
+                      </div>
+                    </div>
+
+                    {/* Written analysis steps */}
+                    <div className="flex gap-2">
+                      {CT2_CAPSTONE_STEPS.map((s, i) => (
+                        <button key={i} onClick={() => setCt2Step(i)}
+                          className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${ ct2Step === i ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]" : "glass border-white/8 text-muted-foreground" }`}>
+                          {s.label} {ct2Answers[i].length > 20 && <CheckCircle2 size={11} className="inline text-[oklch(0.72_0.18_150)]" />}
+                        </button>
+                      ))}
+                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.div key={ct2Step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                        className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.15)]">
+                        <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">STEP {ct2Step + 1} — {CT2_CAPSTONE_STEPS[ct2Step].label.toUpperCase()}</div>
+                        <p className="text-sm font-medium text-foreground mb-4 leading-snug">{CT2_CAPSTONE_STEPS[ct2Step].q}</p>
+                        <textarea value={ct2Answers[ct2Step]}
+                          onChange={(e) => { const u = [...ct2Answers]; u[ct2Step] = e.target.value; setCt2Answers(u); }}
+                          placeholder={CT2_CAPSTONE_STEPS[ct2Step].ph} rows={7}
+                          className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.5)] resize-none leading-relaxed" />
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-xs text-muted-foreground">{ct2Answers[ct2Step].length} chars</span>
+                          <div className="flex gap-2">
+                            {ct2Step > 0 && (
+                              <button onClick={() => setCt2Step(ct2Step - 1)}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
+                                <ChevronLeft size={12} /> Previous
+                              </button>
+                            )}
+                            {ct2Step < CT2_CAPSTONE_STEPS.length - 1
+                              ? <button onClick={() => setCt2Step(ct2Step + 1)}
+                                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[oklch(0.78_0.16_30_/_0.2)] border border-[oklch(0.78_0.16_30_/_0.3)] text-xs text-[oklch(0.88_0.16_30)]">
+                                  Next <ChevronRight size={12} />
+                                </button>
+                              : !ct2Done && (
+                                  <motion.button
+                                    onClick={() => {
+                                      const complete = ct2Answers.filter((a) => a.length > 20).length;
+                                      if (complete < 3) { toast.error(`Complete all 3 steps (${complete}/3 done).`); return; }
+                                      if (checkedCount < Math.ceil(cs.checklist.length * 0.7)) { toast.error(`Find at least ${Math.ceil(cs.checklist.length * 0.7)} errors first.`); return; }
+                                      setCt2Done(true); handleCT2Complete("ct10");
+                                    }}
+                                    whileHover={{ scale: 1.02 }}
+                                    className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-black text-xs font-semibold"
+                                    style={{ background: "linear-gradient(to right, oklch(0.78_0.16_30), oklch(0.72_0.2_290))" }}>
+                                    <Trophy size={12} /> Submit
+                                  </motion.button>
+                                )
+                            }
+                          </div>
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {/* Completion certificate */}
+                    <AnimatePresence>
+                      {ct2Done && (
+                        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                          className="glass rounded-2xl p-8 border border-[oklch(0.78_0.16_30_/_0.4)] text-center"
+                          style={{ background: "linear-gradient(135deg, oklch(0.78_0.16_30_/_0.05), oklch(0.72_0.2_290_/_0.05))" }}>
+                          <Trophy size={40} className="mx-auto mb-3" style={{ color: "oklch(0.78_0.16_30)" }} />
+                          <h3 className="text-xl font-bold text-foreground mb-2">Clear Thinking — Module 2 Complete</h3>
+                          <p className="text-sm text-muted-foreground mb-5 leading-relaxed max-w-md mx-auto">You've completed "Thinking in Real Life." You can now identify misinformation mechanisms, spot statistical traps, distinguish persuasion from manipulation, and apply structured decision-making under uncertainty.</p>
+                          <div className="flex justify-center gap-2 flex-wrap">
+                            {[
+                              { label: "Misinformation-Aware", color: "oklch(0.72_0.2_290)" },
+                              { label: "Stat Trapper", color: "oklch(0.68_0.22_20)" },
+                              { label: "Influence Literate", color: "oklch(0.72_0.18_150)" },
+                              { label: "Decision Analyst", color: "oklch(0.75_0.18_55)" },
+                              { label: "Case Certified", color: "oklch(0.78_0.16_30)" },
+                            ].map(({ label, color }) => (
+                              <span key={label} className="px-3 py-1.5 rounded-full text-xs font-semibold border"
+                                style={{ color, borderColor: color, background: `${color.replace("oklch(", "oklch(").replace(")", "_/_0.1)")}` }}>
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })()}
+            </AnimatePresence>
+          </div>
+        </CT2Shell>
+      )}
+    </AnimatePresence>
+  );
+
+  // Lesson grid
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+      <button onClick={onBack} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ChevronLeft size={14} /> Back to modules
+      </button>
+      <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="text-xs text-muted-foreground mb-1">Clear Thinking · Module 2</div>
+            <h2 className="text-xl font-bold text-foreground">Thinking in Real Life</h2>
+            <p className="text-sm text-muted-foreground">Applying critical reasoning to misinformation, statistics, persuasion, and decisions</p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-2xl font-bold text-foreground">{overallPct}%</div>
+            <div className="text-xs text-muted-foreground">{completedLessons.size}/{CT2_LESSON_META.length} complete</div>
+          </div>
+        </div>
+        <div className="w-full h-1.5 rounded-full bg-white/8">
+          <div className="h-full rounded-full transition-all" style={{ width: `${overallPct}%`, background: "linear-gradient(to right, oklch(0.72_0.2_290), oklch(0.72_0.18_150))" }} />
+        </div>
+      </div>
+      <div className="space-y-3">
+        {CT2_LESSON_META.map((lesson, i) => {
+          const done = completedLessons.has(lesson.id);
+          const locked = i > 0 && !completedLessons.has(CT2_LESSON_META[i - 1].id);
+          return (
+            <motion.button key={lesson.id} onClick={() => !locked && setActiveLesson(lesson.id)}
+              whileHover={!locked ? { scale: 1.005, x: 4 } : {}}
+              className={`w-full glass rounded-2xl p-5 border text-left transition-all ${ done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : locked ? "border-white/5 opacity-50 cursor-not-allowed" : "border-white/8 hover:border-white/20" }`}>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm"
+                  style={{ background: done ? `${lesson.color.replace(")", "_/_0.2)")}` : "oklch(1_0_0_/_0.04)", color: done ? lesson.color : "oklch(0.7_0_0)" }}>
+                  {done ? <CheckCircle2 size={20} /> : locked ? <Lock size={16} /> : i + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground text-sm">{lesson.title}</div>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{lesson.subtitle}</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
+                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp}</span>
+                  {!locked && <ChevronRight size={14} className="text-muted-foreground" />}
+                </div>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 }
 
