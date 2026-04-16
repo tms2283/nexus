@@ -375,8 +375,13 @@ function AILiteracyTab() {
         <div className="space-y-4 mt-4">
           <p className="text-sm text-muted-foreground leading-relaxed"><strong className="text-foreground">Artificial Intelligence</strong> is the ability of a computer system to perform tasks that typically require human intelligence — recognizing patterns, making decisions, and learning from experience.</p>
           <div className="grid grid-cols-2 gap-3">
-            {[{ l: "Narrow AI", d: "Excels at one task (chess, translation, image recognition). All AI today is narrow.", e: "🎯" }, { l: "Machine Learning", d: "A subfield where systems learn from data rather than explicit rules.", e: "📊" }, { l: "Deep Learning", d: "ML using layered neural networks — the engine behind LLMs and image AI.", e: "🧠" }, { l: "LLMs", d: "Large Language Models like ChatGPT — trained on vast text to generate and understand language.", e: "💬" }].map(({ l, d, e }) => (
-              <div key={l} className="glass rounded-xl p-4 border border-white/8"><div className="text-2xl mb-2">{e}</div><div className="font-semibold text-sm text-foreground mb-1">{l}</div><p className="text-xs text-muted-foreground leading-relaxed">{d}</p></div>
+            {[
+              { l: "Narrow AI", d: "Excels at one task (chess, translation, image recognition). All AI today is narrow.", icon: <Target size={22} className="text-violet-400" /> },
+              { l: "Machine Learning", d: "A subfield where systems learn from data rather than explicit rules.", icon: <Zap size={22} className="text-blue-400" /> },
+              { l: "Deep Learning", d: "ML using layered neural networks — the engine behind LLMs and image AI.", icon: <Brain size={22} className="text-pink-400" /> },
+              { l: "LLMs", d: "Large Language Models like ChatGPT — trained on vast text to generate and understand language.", icon: <MessageSquare size={22} className="text-emerald-400" /> },
+            ].map(({ l, d, icon }) => (
+              <div key={l} className="glass rounded-xl p-4 border border-white/8"><div className="mb-2">{icon}</div><div className="font-semibold text-sm text-foreground mb-1">{l}</div><p className="text-xs text-muted-foreground leading-relaxed">{d}</p></div>
             ))}
           </div>
         </div>
@@ -579,9 +584,13 @@ function AILiteracyTab() {
             <div className="glass rounded-2xl p-6 border border-white/8">
               <Narrator text="AI ethics is not about being anti-technology. It's about asking: Who benefits? Who bears the risk? Who decides? These scenarios have no single correct answer — the point is to reason carefully through competing values." />
               <div className="mt-4 grid grid-cols-3 gap-3">
-                {[{ l: "Fairness", d: "Does the system treat all groups equitably?", e: "⚖️" }, { l: "Accountability", d: "When AI causes harm, who is responsible?", e: "🔍" }, { l: "Transparency", d: "Can people understand how decisions are made?", e: "🪟" }].map(({ l, d, e }) => (
+                {([
+                { l: "Fairness", d: "Does the system treat all groups equitably?", icon: <Shield size={20} className="text-[oklch(0.72_0.18_150)]" /> },
+                { l: "Accountability", d: "When AI causes harm, who is responsible?", icon: <Eye size={20} className="text-[oklch(0.65_0.22_200)]" /> },
+                { l: "Transparency", d: "Can people understand how decisions are made?", icon: <Info size={20} className="text-[oklch(0.75_0.18_55)]" /> },
+              ] as { l: string; d: string; icon: React.ReactNode }[]).map(({ l, d, icon }) => (
                   <div key={l} className="glass rounded-xl p-3 border border-white/8 text-center">
-                    <div className="text-2xl mb-1">{e}</div>
+                    <div className="flex justify-center mb-2">{icon}</div>
                     <div className="text-xs font-semibold text-foreground mb-1">{l}</div>
                     <p className="text-xs text-muted-foreground leading-snug">{d}</p>
                   </div>
