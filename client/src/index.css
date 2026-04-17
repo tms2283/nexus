@@ -104,9 +104,72 @@
   --sidebar-accent-foreground: oklch(0.85 0.01 260);
   --sidebar-border: oklch(0.20 0.02 260);
   --sidebar-ring: oklch(0.75 0.18 55);
+  --bg-gradient-1: radial-gradient(ellipse 80% 50% at 50% -20%, oklch(0.18 0.04 260 / 0.4), transparent);
+  --bg-gradient-2: radial-gradient(ellipse 60% 40% at 80% 80%, oklch(0.15 0.06 200 / 0.15), transparent);
+  --scrollbar-track: oklch(0.10 0.015 260);
+  --scrollbar-thumb: oklch(0.25 0.03 260);
+  --scrollbar-thumb-hover: oklch(0.75 0.18 55 / 0.6);
+  --selection-bg: oklch(0.75 0.18 55 / 0.3);
+  --selection-text: oklch(0.95 0.01 260);
+  --glass-bg: oklch(0.12 0.018 260 / 0.7);
+  --glass-border: oklch(0.25 0.03 260 / 0.5);
+  --glass-strong-bg: oklch(0.10 0.015 260 / 0.85);
+  --glass-strong-border: oklch(0.30 0.04 260 / 0.4);
+  --chat-user-bg: oklch(0.75 0.18 55 / 0.12);
+  --chat-user-border: oklch(0.75 0.18 55 / 0.25);
+  --chat-ai-bg: oklch(0.65 0.22 200 / 0.08);
+  --chat-ai-border: oklch(0.65 0.22 200 / 0.18);
 }
 
-/* Dark is the only theme - same as root */
+html:not(.dark) {
+  --background: oklch(0.985 0.006 255);
+  --foreground: oklch(0.20 0.02 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.02 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.02 255);
+  --primary: oklch(0.66 0.17 52);
+  --primary-foreground: oklch(0.99 0.003 255);
+  --secondary: oklch(0.95 0.012 255);
+  --secondary-foreground: oklch(0.32 0.02 255);
+  --muted: oklch(0.95 0.012 255);
+  --muted-foreground: oklch(0.46 0.02 255);
+  --accent: oklch(0.67 0.15 215);
+  --accent-foreground: oklch(0.99 0.003 255);
+  --destructive: oklch(0.60 0.20 26);
+  --destructive-foreground: oklch(0.99 0.003 255);
+  --border: oklch(0.89 0.012 255);
+  --input: oklch(0.95 0.012 255);
+  --ring: oklch(0.66 0.17 52);
+  --chart-1: oklch(0.66 0.17 52);
+  --chart-2: oklch(0.67 0.15 215);
+  --chart-3: oklch(0.64 0.18 290);
+  --chart-4: oklch(0.67 0.14 155);
+  --chart-5: oklch(0.60 0.19 28);
+  --sidebar: oklch(0.975 0.008 255);
+  --sidebar-foreground: oklch(0.20 0.02 255);
+  --sidebar-primary: oklch(0.66 0.17 52);
+  --sidebar-primary-foreground: oklch(0.99 0.003 255);
+  --sidebar-accent: oklch(0.95 0.012 255);
+  --sidebar-accent-foreground: oklch(0.32 0.02 255);
+  --sidebar-border: oklch(0.89 0.012 255);
+  --sidebar-ring: oklch(0.66 0.17 52);
+  --bg-gradient-1: radial-gradient(ellipse 90% 60% at 15% -20%, oklch(0.90 0.04 245 / 0.65), transparent);
+  --bg-gradient-2: radial-gradient(ellipse 75% 55% at 95% 105%, oklch(0.93 0.05 62 / 0.6), transparent);
+  --scrollbar-track: oklch(0.95 0.012 255);
+  --scrollbar-thumb: oklch(0.82 0.02 255);
+  --scrollbar-thumb-hover: oklch(0.66 0.17 52 / 0.55);
+  --selection-bg: oklch(0.66 0.17 52 / 0.25);
+  --selection-text: oklch(0.21 0.02 255);
+  --glass-bg: oklch(1 0 0 / 0.85);
+  --glass-border: oklch(0.84 0.018 255 / 0.55);
+  --glass-strong-bg: oklch(0.99 0.005 255 / 0.92);
+  --glass-strong-border: oklch(0.80 0.02 255 / 0.42);
+  --chat-user-bg: oklch(0.66 0.17 52 / 0.12);
+  --chat-user-border: oklch(0.66 0.17 52 / 0.24);
+  --chat-ai-bg: oklch(0.67 0.15 215 / 0.10);
+  --chat-ai-border: oklch(0.67 0.15 215 / 0.24);
+}
 
 @layer base {
   * {
@@ -120,9 +183,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, oklch(0.18 0.04 260 / 0.4), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 80%, oklch(0.15 0.06 200 / 0.15), transparent);
+    background-image: var(--bg-gradient-1), var(--bg-gradient-2);
     min-height: 100vh;
     overflow-x: hidden;
     font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
@@ -145,10 +206,10 @@
     @apply cursor-pointer;
   }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: oklch(0.10 0.015 260); }
-  ::-webkit-scrollbar-thumb { background: oklch(0.25 0.03 260); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: oklch(0.75 0.18 55 / 0.6); }
-  ::selection { background: oklch(0.75 0.18 55 / 0.3); color: oklch(0.95 0.01 260); }
+  ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+  ::selection { background: var(--selection-bg); color: var(--selection-text); }
 }
 
 @layer components {
@@ -169,16 +230,16 @@
 
   /* Glass morphism */
   .glass {
-    background: oklch(0.12 0.018 260 / 0.7);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid oklch(0.25 0.03 260 / 0.5);
+    border: 1px solid var(--glass-border);
   }
   .glass-strong {
-    background: oklch(0.10 0.015 260 / 0.85);
+    background: var(--glass-strong-bg);
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border: 1px solid oklch(0.30 0.04 260 / 0.4);
+    border: 1px solid var(--glass-strong-border);
   }
 
   /* Gradient text */
@@ -196,6 +257,12 @@
   }
   .text-gradient-multi {
     background: linear-gradient(135deg, oklch(0.85 0.18 55) 0%, oklch(0.72 0.18 200) 50%, oklch(0.65 0.22 290) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient {
+    background: linear-gradient(135deg, oklch(0.86 0.18 55) 0%, oklch(0.70 0.17 220) 52%, oklch(0.64 0.18 290) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -266,12 +333,12 @@
 
   /* Chat messages */
   .chat-message-user {
-    background: oklch(0.75 0.18 55 / 0.12);
-    border: 1px solid oklch(0.75 0.18 55 / 0.25);
+    background: var(--chat-user-bg);
+    border: 1px solid var(--chat-user-border);
   }
   .chat-message-ai {
-    background: oklch(0.65 0.22 200 / 0.08);
-    border: 1px solid oklch(0.65 0.22 200 / 0.18);
+    background: var(--chat-ai-bg);
+    border: 1px solid var(--chat-ai-border);
   }
 
   /* Skill node */

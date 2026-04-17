@@ -4,7 +4,7 @@ import { publicProcedure, router } from "../_core/trpc";
 import {
   createUser, getUserByEmail,
   updateUserLastSignedIn, markOnboardingComplete,
-  savePsychProfile, upsertGoogleUser,
+  upsertGoogleUser,
 } from "../db";
 import {
   hashPassword, verifyPassword, createSessionToken,
@@ -12,6 +12,7 @@ import {
 } from "../auth";
 import { OAuth2Client } from "google-auth-library";
 import { ENV } from "../_core/env";
+import { savePsychProfileFromQuiz } from "../services/personalityAnalyzer";
 
 const googleClient = new OAuth2Client(ENV.googleClientId);
 
@@ -46,34 +47,6 @@ const onboardingSchema = z.object({
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function inferProfile(answers: Record<string, string>) {
-  const bg = answers.q1 ?? "";
-  const interest = answers.q2 ?? "";
-  const goal = answers.q3 ?? "";
-  const style = answers.q4 ?? "";
-
-  const backgroundMap: Record<string, string> = {
-    "A": "developer", "B": "designer", "C": "business", "D": "curious learner",
-  };
-  const interestMap: Record<string, string> = {
-    "A": "personalized learning", "B": "AI research", "C": "coding challenges", "D": "knowledge exploration",
-  };
-  const goalMap: Record<string, string> = {
-    "A": "master a technical skill", "B": "understand a topic deeply",
-    "C": "stay current with AI trends", "D": "explore broadly",
-  };
-  const styleMap: Record<string, string> = {
-    "A": "deep dives", "B": "visual learning", "C": "Socratic discovery", "D": "hands-on building",
-  };
-
-  return {
-    inferredBackground: backgroundMap[bg.charAt(0).toUpperCase()] ?? "curious learner",
-    inferredInterests: [interestMap[interest.charAt(0).toUpperCase()] ?? "learning"].filter(Boolean),
-    inferredGoal: goalMap[goal.charAt(0).toUpperCase()] ?? "explore broadly",
-    inferredLearnStyle: styleMap[style.charAt(0).toUpperCase()] ?? "deep dives",
-  };
-}
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -133,8 +106,7 @@ export const authRouter = router({
     // Use the user already resolved by context.ts from the JWT cookie
     if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED", message: "Not logged in." });
 
-    const inferred = inferProfile(input.quizAnswers);
-    await savePsychProfile(ctx.user.id, { quizAnswers: input.quizAnswers, ...inferred });
+    await savePsychProfileFromQuiz(ctx.user.id, input.quizAnswers);
     await markOnboardingComplete(ctx.user.id);
     return { success: true };
   }),

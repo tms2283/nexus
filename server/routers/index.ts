@@ -17,6 +17,7 @@ import { contactRouter, codexRouter, aiProviderRouter, dailyRouter } from "./mis
 import { skillsRouter } from "./skills";
 import { adminRouter } from "./admin";
 import { studioRouter } from "./studio";
+import { psychRouter } from "./psych";
 
 export const appRouter = router({
   system: systemRouter,
@@ -38,6 +39,7 @@ export const appRouter = router({
   aiProvider: aiProviderRouter,
   daily: dailyRouter,
   skills: skillsRouter,
+  psych: psychRouter,
   admin: adminRouter,
   studio: studioRouter,
 });

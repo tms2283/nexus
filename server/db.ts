@@ -18,7 +18,7 @@ import {
   flashcardDecks, flashcards, flashcardReviews,
   aiProviderSettings, mindMaps, libraryResources,
   FlashcardDeck, Flashcard, AIProviderSettings, MindMap, LibraryResource,
-  MindMapNode, userPsychProfiles, User,
+  MindMapNode, userPsychProfiles, psychProfileSignals, User,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { foundationTrack } from "../shared/foundationCurriculum";
@@ -978,11 +978,70 @@ export async function savePsychProfile(userId: number, data: {
     .onDuplicateKeyUpdate({ set: { ...data, updatedAt: new Date() } });
 }
 
+export async function upsertPsychProfile(userId: number, data: {
+  quizAnswers?: Record<string, string>;
+  inferredBackground: string;
+  inferredInterests: string[];
+  inferredGoal: string;
+  inferredLearnStyle: string;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(userPsychProfiles).values({
+    userId,
+    quizAnswers: data.quizAnswers,
+    inferredBackground: data.inferredBackground,
+    inferredInterests: data.inferredInterests,
+    inferredGoal: data.inferredGoal,
+    inferredLearnStyle: data.inferredLearnStyle,
+  }).onDuplicateKeyUpdate({
+    set: {
+      quizAnswers: data.quizAnswers,
+      inferredBackground: data.inferredBackground,
+      inferredInterests: data.inferredInterests,
+      inferredGoal: data.inferredGoal,
+      inferredLearnStyle: data.inferredLearnStyle,
+      updatedAt: new Date(),
+    },
+  });
+}
+
 export async function getPsychProfile(userId: number) {
   const db = await getDb();
   if (!db) return null;
   const rows = await db.select().from(userPsychProfiles).where(eq(userPsychProfiles.userId, userId)).limit(1);
   return rows[0] ?? null;
+}
+
+export async function recordPsychProfileSignal(data: {
+  userId: number;
+  source: string;
+  signalType: string;
+  path?: string | null;
+  topic?: string | null;
+  metrics?: Record<string, unknown>;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(psychProfileSignals).values({
+    userId: data.userId,
+    source: data.source,
+    signalType: data.signalType,
+    path: data.path ?? null,
+    topic: data.topic ?? null,
+    metrics: data.metrics ?? {},
+  });
+}
+
+export async function getPsychProfileSignals(userId: number, limit = 250) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(psychProfileSignals)
+    .where(eq(psychProfileSignals.userId, userId))
+    .orderBy(desc(psychProfileSignals.createdAt))
+    .limit(limit);
 }
 
 export async function updatePsychProfileActivity(

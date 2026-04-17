@@ -136,10 +136,10 @@ export default function Settings() {
 
           {/* Header */}
           <div className="mb-10">
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-4xl font-bold text-foreground mb-2">
               AI <span className="text-gradient">Settings</span>
             </h1>
-            <p className="text-white/50">Configure your AI provider and bring your own API key for full control</p>
+            <p className="text-muted-foreground">Configure your AI provider and bring your own API key for full control</p>
           </div>
 
           {/* Current status */}
@@ -148,14 +148,14 @@ export default function Settings() {
               {currentProvider.icon}
             </div>
             <div className="flex-1">
-              <p className="text-white font-medium text-sm">Currently using: {currentProvider.name}</p>
-              <p className="text-white/40 text-xs">
+              <p className="text-foreground font-medium text-sm">Currently using: {currentProvider.name}</p>
+              <p className="text-muted-foreground text-xs">
                 {providerSettings?.hasCustomKey ? "Using your custom API key" : "Using platform default key (Gemini)"}
                 {providerSettings?.model ? ` · ${providerSettings.model}` : ""}
               </p>
             </div>
             {providerSettings?.hasCustomKey && (
-              <button onClick={handleClearKey} className="text-white/30 hover:text-red-400 text-xs transition-colors">
+              <button onClick={handleClearKey} className="text-muted-foreground hover:text-red-500 text-xs transition-colors">
                 Clear key
               </button>
             )}
@@ -163,7 +163,7 @@ export default function Settings() {
 
           {/* Provider selection */}
           <div className="space-y-3 mb-8">
-            <h2 className="text-white/70 text-sm font-medium uppercase tracking-widest mb-4">Choose Provider</h2>
+            <h2 className="text-muted-foreground text-sm font-medium uppercase tracking-widest mb-4">Choose Provider</h2>
             {PROVIDERS.map(provider => (
               <div key={provider.id}>
                 <button
@@ -172,7 +172,7 @@ export default function Settings() {
                     setExpandedProvider(expandedProvider === provider.id ? null : provider.id);
                     setTestResult(null);
                   }}
-                  className={`w-full glass rounded-xl p-4 border transition-all text-left ${selectedProvider === provider.id ? "border-violet-500/40 bg-violet-500/5" : "border-white/5 hover:border-white/15"}`}
+                  className={`w-full glass rounded-xl p-4 border transition-all text-left ${selectedProvider === provider.id ? "border-violet-500/40 bg-violet-500/5" : "border-border/60 hover:border-border"}`}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${provider.color} flex items-center justify-center text-white font-bold text-lg flex-shrink-0`}>
@@ -180,16 +180,16 @@ export default function Settings() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-white font-medium">{provider.name}</p>
+                        <p className="text-foreground font-medium">{provider.name}</p>
                         {selectedProvider === provider.id && providerSettings?.provider === provider.id && (
                           <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">Active</span>
                         )}
                       </div>
-                      <p className="text-white/40 text-sm truncate">{provider.description.slice(0, 60)}...</p>
+                      <p className="text-muted-foreground text-sm truncate">{provider.description.slice(0, 60)}...</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className={`w-4 h-4 rounded-full border-2 transition-all ${selectedProvider === provider.id ? "border-violet-400 bg-violet-400" : "border-white/20"}`} />
-                      {expandedProvider === provider.id ? <ChevronUp className="w-4 h-4 text-white/40" /> : <ChevronDown className="w-4 h-4 text-white/40" />}
+                      <div className={`w-4 h-4 rounded-full border-2 transition-all ${selectedProvider === provider.id ? "border-violet-400 bg-violet-400" : "border-border"}`} />
+                      {expandedProvider === provider.id ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                     </div>
                   </div>
                 </button>
@@ -202,27 +202,27 @@ export default function Settings() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="glass rounded-b-xl border border-t-0 border-white/5 p-5 space-y-4">
+                      <div className="glass rounded-b-xl border border-t-0 border-border/60 p-5 space-y-4">
                         {/* Strengths */}
                         <div>
-                          <p className="text-white/50 text-xs uppercase tracking-widest mb-2">Strengths</p>
+                          <p className="text-muted-foreground text-xs uppercase tracking-widest mb-2">Strengths</p>
                           <div className="flex flex-wrap gap-2">
                             {provider.strengths.map(s => (
-                              <span key={s} className="text-xs bg-white/5 text-white/60 px-3 py-1 rounded-full border border-white/10">{s}</span>
+                              <span key={s} className="text-xs bg-muted/50 text-muted-foreground px-3 py-1 rounded-full border border-border/70">{s}</span>
                             ))}
                           </div>
                         </div>
 
                         {/* Model selection */}
                         <div>
-                          <label className="text-white/50 text-xs uppercase tracking-widest block mb-2">Model</label>
+                          <label className="text-muted-foreground text-xs uppercase tracking-widest block mb-2">Model</label>
                           <select
                             value={selectedModel || MODELS[provider.id][0]}
                             onChange={e => setSelectedModel(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500/50"
+                            className="w-full bg-card border border-border/80 rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-violet-500/50"
                           >
                             {MODELS[provider.id].map(m => (
-                              <option key={m} value={m} className="bg-gray-900">{m}</option>
+                              <option key={m} value={m} className="bg-background">{m}</option>
                             ))}
                           </select>
                         </div>
@@ -230,7 +230,7 @@ export default function Settings() {
                         {/* API Key input */}
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <label className="text-white/50 text-xs uppercase tracking-widest">API Key</label>
+                            <label className="text-muted-foreground text-xs uppercase tracking-widest">API Key</label>
                             <a href={provider.keyUrl} target="_blank" rel="noopener noreferrer" className="text-violet-400 text-xs hover:text-violet-300 flex items-center gap-1">
                               Get key <ExternalLink className="w-3 h-3" />
                             </a>
@@ -241,16 +241,16 @@ export default function Settings() {
                               value={apiKey}
                               onChange={e => setApiKey(e.target.value)}
                               placeholder={providerSettings?.hasCustomKey ? "••••••••••••••••••••• (key saved)" : provider.keyPlaceholder}
-                              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/25 pr-10 focus:outline-none focus:border-violet-500/50 text-sm font-mono"
+                              className="w-full bg-card border border-border/80 rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground/70 pr-10 focus:outline-none focus:border-violet-500/50 text-sm font-mono"
                             />
                             <button
                               onClick={() => setShowKey(s => !s)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             >
                               {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
-                          <p className="text-white/25 text-xs mt-1 flex items-center gap-1">
+                          <p className="text-muted-foreground/80 text-xs mt-1 flex items-center gap-1">
                             <Shield className="w-3 h-3" /> Keys are stored encrypted and never exposed to the client
                           </p>
                         </div>
@@ -275,7 +275,7 @@ export default function Settings() {
                             disabled={isTesting}
                             variant="outline"
                             size="sm"
-                            className="border-white/10 text-white/70 hover:text-white gap-2"
+                            className="border-border/70 text-muted-foreground hover:text-foreground gap-2"
                           >
                             {isTesting ? <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" /> : <Zap className="w-3 h-3" />}
                             Test Connection
@@ -291,7 +291,7 @@ export default function Settings() {
                           </Button>
                         </div>
 
-                        <a href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white/60 text-xs flex items-center gap-1 transition-colors">
+                        <a href={provider.docsUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground text-xs flex items-center gap-1 transition-colors">
                           <Info className="w-3 h-3" /> View {provider.name} documentation
                         </a>
                       </div>
@@ -303,11 +303,11 @@ export default function Settings() {
           </div>
 
           {/* Info box */}
-          <div className="glass rounded-xl p-5 border border-white/5">
-            <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+          <div className="glass rounded-xl p-5 border border-border/60">
+            <h3 className="text-foreground font-medium mb-2 flex items-center gap-2">
               <Info className="w-4 h-4 text-violet-400" /> How API keys work
             </h3>
-            <div className="space-y-2 text-white/50 text-sm">
+            <div className="space-y-2 text-muted-foreground text-sm">
               <p>When you provide your own API key, all AI requests on Nexus use your key directly — giving you full control over usage, billing, and rate limits.</p>
               <p>Without a custom key, Nexus uses its built-in Gemini key (subject to platform limits). Your key is stored encrypted and only used server-side — never exposed to the browser.</p>
               <p>You can clear your key at any time to revert to the platform default.</p>

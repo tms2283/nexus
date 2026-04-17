@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
-import { addXP, getMindMaps, getMindMapById, saveMindMap, updateMindMap, deleteMindMap, updatePsychProfileActivity } from "../db";
+import { addXP, getMindMaps, getMindMapById, saveMindMap, updateMindMap, deleteMindMap } from "../db";
 import { callAI } from "./shared";
 import { type MindMapNode } from "../../drizzle/schema";
+import { recordPsychSignalAndRefresh } from "../services/personalityAnalyzer";
 
 export const mindmapRouter = router({
   list: publicProcedure
@@ -38,10 +39,18 @@ Rules: root node id="root". Generate 6-10 primary nodes. Depth 2+: add 2-3 child
       } catch (_e) { /* AI unavailable */ }
       const mapId = await saveMindMap({ cookieId: input.cookieId, title: input.topic, rootTopic: input.topic, nodesJson: nodes });
       await addXP(input.cookieId, 15);
-      // Track mind-mapped topics in the psych profile
       const userId = ctx.user?.id;
       if (userId) {
-        await updatePsychProfileActivity(userId, { newTopics: [input.topic] });
+        await recordPsychSignalAndRefresh(userId, {
+          source: "mindmap",
+          signalType: "map.generated",
+          path: "/mindmap",
+          topic: input.topic,
+          metrics: {
+            depth: input.depth,
+            nodeCount: nodes.length,
+          },
+        });
       }
       return { mapId, nodes, success: true };
     }),

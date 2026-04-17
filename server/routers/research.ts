@@ -2,11 +2,12 @@ import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
-  saveResearchSession, getResearchSessions, getDb, addXP, updatePsychProfileActivity,
+  saveResearchSession, getResearchSessions, getDb, addXP,
 } from "../db";
 import { callAI } from "./shared";
 import { researchSources, researchProjects, audioOverviews } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
+import { recordPsychSignalAndRefresh } from "../services/personalityAnalyzer";
 const RESEARCH_SERVICE_URL = process.env.RESEARCH_SERVICE_URL || "http://localhost:8001/api";
 const RESEARCH_SERVICE_ORIGIN = RESEARCH_SERVICE_URL.replace(/\/api$/, "");
 
@@ -151,10 +152,14 @@ Content:\n${textToAnalyze.slice(0, 12000)}`;
     .mutation(async ({ input, ctx }) => {
       const id = await saveResearchSession(input);
       await addXP(input.cookieId, 10);
-      // Track researched topics in the psych profile
       const userId = ctx.user?.id;
       if (userId && input.tags?.length) {
-        await updatePsychProfileActivity(userId, { newTopics: input.tags });
+        await recordPsychSignalAndRefresh(userId, {
+          source: "research",
+          signalType: "session.saved",
+          path: "/research",
+          metrics: { tags: input.tags, title: input.title },
+        });
       }
       return { id, success: true };
     }),

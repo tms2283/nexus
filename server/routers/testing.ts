@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { addXP, getDb, updatePsychProfileActivity } from "../db";
+import { addXP, getDb } from "../db";
 import { callAI } from "./shared";
 import { testResults, iqResults } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
+import { recordPsychSignalAndRefresh } from "../services/personalityAnalyzer";
 
 export const testingRouter = router({
   saveResult: publicProcedure
@@ -16,10 +17,21 @@ export const testingRouter = router({
       const pct = input.score / input.totalQuestions;
       const xp = pct >= 0.9 ? 100 : pct >= 0.7 ? 60 : pct >= 0.5 ? 30 : 15;
       const xpResult = await addXP(input.cookieId, xp);
-      // Update psych profile with the subject practiced
       const userId = ctx.user?.id;
       if (userId) {
-        await updatePsychProfileActivity(userId, { newTopics: [input.testId] });
+        await recordPsychSignalAndRefresh(userId, {
+          source: "testing",
+          signalType: "test.completed",
+          path: "/testing",
+          topic: input.testId,
+          metrics: {
+            testId: input.testId,
+            score: input.score,
+            totalQuestions: input.totalQuestions,
+            percentage: pct,
+            timeTakenSeconds: input.timeTakenSeconds ?? null,
+          },
+        });
       }
       return { success: true, xpAwarded: xp, ...xpResult };
     }),
@@ -31,11 +43,22 @@ export const testingRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(iqResults).values({ cookieId: input.cookieId, iqScore: input.iqScore, percentile: input.percentile, rawScore: input.rawScore, categoryScores: input.categoryScores, timeTakenSeconds: input.timeTakenSeconds ?? null });
       const xpResult = await addXP(input.cookieId, 75);
-      // IQ test category scores reveal cognitive strengths — add them to the psych profile
       const userId = ctx.user?.id;
       if (userId) {
         const topCategory = Object.entries(input.categoryScores).sort((a, b) => b[1] - a[1])[0]?.[0];
-        await updatePsychProfileActivity(userId, { newTopics: topCategory ? [topCategory] : [] });
+        await recordPsychSignalAndRefresh(userId, {
+          source: "testing",
+          signalType: "iq.completed",
+          path: "/testing",
+          topic: topCategory ?? "IQ",
+          metrics: {
+            iqScore: input.iqScore,
+            percentile: input.percentile,
+            rawScore: input.rawScore,
+            categoryScores: input.categoryScores,
+            timeTakenSeconds: input.timeTakenSeconds ?? null,
+          },
+        });
       }
       return { success: true, xpAwarded: 75, ...xpResult };
     }),

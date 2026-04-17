@@ -47,6 +47,24 @@ export const userPsychProfiles = mysqlTable("user_psych_profiles", {
 
 export type UserPsychProfile = typeof userPsychProfiles.$inferSelect;
 
+export const psychProfileSignals = mysqlTable("psych_profile_signals", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  source: varchar("source", { length: 64 }).notNull(),
+  signalType: varchar("signalType", { length: 64 }).notNull(),
+  path: varchar("path", { length: 512 }),
+  topic: varchar("topic", { length: 255 }),
+  metrics: json("metrics").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  userIdx: index("psych_profile_signals_user_idx").on(t.userId),
+  sourceIdx: index("psych_profile_signals_source_idx").on(t.source, t.signalType),
+  createdIdx: index("psych_profile_signals_created_idx").on(t.createdAt),
+}));
+
+export type PsychProfileSignal = typeof psychProfileSignals.$inferSelect;
+export type InsertPsychProfileSignal = typeof psychProfileSignals.$inferInsert;
+
 // Visitor profiles for cookie-based personalization
 export const visitorProfiles = mysqlTable("visitor_profiles", {
   id: int("id").autoincrement().primaryKey(),

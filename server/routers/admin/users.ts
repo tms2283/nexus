@@ -1,14 +1,14 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { roleAssignments, users } from "../../../drizzle/schema";
-import { permissionProcedure, router } from "../../_core/trpc";
+import { roleAssignments, userPsychProfiles, users } from "../../../drizzle/schema";
+import { adminProcedure, permissionProcedure, router } from "../../_core/trpc";
 import { getDb } from "../../db";
 import { setSinglePrimaryRole } from "../../permissions/rbac";
 import { writeAuditLog } from "../../services/auditing";
 import { TRPCError } from "@trpc/server";
 
 export const adminUsersRouter = router({
-  list: permissionProcedure("users.read")
+  list: adminProcedure
     .input(z.object({ search: z.string().optional() }).optional())
     .query(async ({ input }) => {
       const db = await getDb();
@@ -22,19 +22,33 @@ export const adminUsersRouter = router({
             .orderBy(desc(users.updatedAt))
         : await db.select().from(users).orderBy(desc(users.updatedAt));
 
-      return rows.map(({ passwordHash: _passwordHash, ...safe }) => safe);
+      if (rows.length === 0) return [];
+
+      const userIds = rows.map(row => row.id);
+      const psychRows = await db
+        .select()
+        .from(userPsychProfiles)
+        .where(inArray(userPsychProfiles.userId, userIds));
+
+      const psychByUserId = new Map(psychRows.map(row => [row.userId, row]));
+
+      return rows.map(({ passwordHash: _passwordHash, ...safe }) => ({
+        user: safe,
+        psychProfile: psychByUserId.get(safe.id) ?? null,
+      }));
     }),
 
-  getById: permissionProcedure("users.read")
+  getById: adminProcedure
     .input(z.object({ userId: z.number().int().positive() }))
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const userRows = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
       if (userRows.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      const psychRows = await db.select().from(userPsychProfiles).where(eq(userPsychProfiles.userId, input.userId)).limit(1);
       const assignments = await db.select().from(roleAssignments).where(eq(roleAssignments.userId, input.userId)).orderBy(asc(roleAssignments.createdAt));
       const { passwordHash: _passwordHash, ...safe } = userRows[0];
-      return { user: safe, roleAssignments: assignments };
+      return { user: safe, psychProfile: psychRows[0] ?? null, roleAssignments: assignments };
     }),
 
   setRole: permissionProcedure("users.roles.manage")

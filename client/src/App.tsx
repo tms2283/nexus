@@ -3,10 +3,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch, useLocation, Redirect } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { PersonalizationProvider } from "./contexts/PersonalizationContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { EditModeProvider } from "./contexts/EditModeContext";
+import { usePsychSignalTracker } from "./hooks/usePsychSignalTracker";
 import Navigation from "./components/Navigation";
 import GamificationHUD from "./components/GamificationHUD";
 import AIChat from "./components/AIChat";
@@ -176,11 +177,13 @@ function Router() {
 
 function AppShell() {
   const { isAuthenticated, isGuest, isLoading } = useAuth();
+  const { theme } = useTheme();
   const showNav = isAuthenticated || isGuest;
+  usePsychSignalTracker(isAuthenticated);
 
   return (
     <TooltipProvider>
-      <Toaster position="bottom-right" theme="dark" />
+      <Toaster position="bottom-right" theme={theme} />
       {showNav && <Navigation />}
       {showNav && <CommandPalette />}
       {showNav && <EditModeOverlay />}
@@ -194,7 +197,7 @@ function AppShell() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="dark" switchable>
         <PersonalizationProvider>
           <AuthProvider>
             <EditModeProvider>

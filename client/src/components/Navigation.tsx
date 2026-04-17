@@ -24,10 +24,13 @@ import {
   MonitorCog,
   LogOut,
   PenSquare,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const navLinks = [
   { href: "/app", label: "Home" },
@@ -141,8 +144,10 @@ export default function Navigation() {
   const { profile } = usePersonalization();
   const { user, isGuest, logout } = useAuth();
   const { isEditMode, toggleEditMode } = useEditMode();
+  const { theme, toggleTheme, switchable } = useTheme();
   const toolsRef = useRef<HTMLDivElement>(null);
   const canEdit = user?.role === "admin";
+  const isDarkTheme = theme === "dark";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -300,6 +305,18 @@ export default function Navigation() {
 
           {/* Ctrl/Cmd+K search button */}
           <div className="hidden md:flex items-center gap-2">
+            {switchable && (
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/70 bg-card/80 text-xs text-muted-foreground hover:text-foreground hover:border-ring/40 hover:bg-card transition-colors"
+                aria-label={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
+                title={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
+              >
+                {isDarkTheme ? <Sun size={12} /> : <Moon size={12} />}
+                <span>{isDarkTheme ? "Light" : "Dark"} Mode</span>
+              </button>
+            )}
+
             {canEdit && (
               <button
                 onClick={toggleEditMode}
@@ -452,6 +469,19 @@ export default function Navigation() {
                 })}
               </div>
             </div>
+
+            {switchable && (
+              <button
+                onClick={toggleTheme}
+                className="mt-3 w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border/70 bg-card/70 text-sm text-foreground hover:bg-card transition-colors"
+                aria-label={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
+              >
+                <span className="flex items-center gap-2">
+                  {isDarkTheme ? <Sun size={15} /> : <Moon size={15} />}
+                  {isDarkTheme ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                </span>
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
