@@ -7,7 +7,9 @@ import {
   Clock, Star, Play, Lock, ChevronLeft, XCircle, Check,
   Volume2, VolumeX, Pause, HelpCircle, Shield, Trophy,
   Eye, Info, Award, RefreshCw, Lightbulb, AlertTriangle,
-  Scale, Search, FlaskConical, Flame, Users, TrendingUp
+  Scale, Search, FlaskConical, Flame, Users, TrendingUp,
+  Heart, DollarSign, Palette, Fingerprint, Wifi, ShieldAlert,
+  BadgeCheck, Banknote, Brush, Database, Globe, Smartphone
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
@@ -1219,7 +1221,7 @@ function AILiteracyModule2() {
 
 // ─── AI Literacy Tab (replaces Nexus Foundation) ──────────────────────────────
 function AILiteracyTab() {
-  const [activeModule, setActiveModule] = useState<1 | 2>(1);
+  const [activeModule, setActiveModule] = useState<1 | 2 | 3>(1);
   const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const { addXP } = usePersonalization();
@@ -1726,20 +1728,25 @@ function AILiteracyTab() {
 
   // ── Lesson list (overview) ──
   if (activeModule === 2) return <AILiteracyModule2 />;
+  if (activeModule === 3) return <AILiteracyModule3 />;
 
   return (
     <div className="space-y-4">
       {/* Module switcher */}
       <div className="flex gap-2 p-1 glass rounded-xl border border-white/8">
-        {([1, 2] as const).map((m) => (
+        {([
+          { m: 1 as const, sub: "Intro to AI" },
+          { m: 2 as const, sub: "AI at Work" },
+          { m: 3 as const, sub: "AI & Your Life" },
+        ]).map(({ m, sub }) => (
           <button key={m} onClick={() => setActiveModule(m)}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m
                 ? "bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)] text-[oklch(0.85_0.18_55)]"
                 : "text-muted-foreground hover:text-foreground hover:bg-white/3"
             }`}>
-            <span>Module {m}</span>
-            <span className="text-xs opacity-60">{m === 1 ? "Intro to AI" : "AI at Work"}</span>
+            <span className="text-sm">Module {m}</span>
+            <span className="text-[10px] opacity-60">{sub}</span>
           </button>
         ))}
       </div>
@@ -1804,7 +1811,1123 @@ function AILiteracyTab() {
           </div>
         </div>
       </div>
+
+      {/* Module 3 teaser */}
+      <motion.button onClick={() => setActiveModule(3)} whileHover={{ scale: 1.005, x: 4 }}
+        className="w-full glass rounded-2xl p-5 border border-[oklch(0.72_0.18_150_/_0.25)] hover:border-[oklch(0.72_0.18_150_/_0.5)] transition-all text-left">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)]">
+            <ArrowRight size={18} className="text-[oklch(0.82_0.18_150)]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-xs text-[oklch(0.72_0.18_150)] font-semibold mb-0.5">NEXT — MODULE 3</div>
+            <div className="font-semibold text-foreground">AI in Your Everyday Life</div>
+            <p className="text-xs text-muted-foreground mt-0.5">Health, money, creativity, privacy · 380 XP</p>
+          </div>
+          <ChevronRight size={16} className="text-[oklch(0.72_0.18_150)] shrink-0" />
+        </div>
+      </motion.button>
     </div>
+  );
+}
+
+// ─── AI Literacy Module 3 Data ────────────────────────────────────────────────
+type M3LessonId = 11 | 12 | 13 | 14 | 15;
+
+interface HealthScenario {
+  id: string;
+  title: string;
+  situation: string;
+  aiSays: string;
+  reality: string;
+  verdict: "trust" | "verify" | "see-doctor";
+  verdictLabel: string;
+  verdictColor: string;
+}
+
+interface ScamPattern {
+  id: string;
+  name: string;
+  how: string;
+  redFlags: string[];
+  example: string;
+}
+
+interface CreativeExercise {
+  id: string;
+  title: string;
+  domain: string;
+  prompt: string;
+  starter: string;
+  tips: string[];
+}
+
+interface PrivacyDomain {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  whatAIKnows: string[];
+  riskLevel: "high" | "medium" | "low";
+  action: string;
+}
+
+const M3_LESSON_META = [
+  { id: 11 as M3LessonId, title: "AI & Your Health", subtitle: "When to trust AI health tools — and when to close the tab", duration: "25 min", color: "oklch(0.68_0.22_20)", xp: 60 },
+  { id: 12 as M3LessonId, title: "AI & Your Money", subtitle: "Fraud detection, robo-advice, and the scams targeting you right now", duration: "25 min", color: "oklch(0.75_0.18_55)", xp: 65 },
+  { id: 13 as M3LessonId, title: "AI & Creativity", subtitle: "Co-creating with AI — without losing your voice", duration: "30 min", color: "oklch(0.72_0.2_290)", xp: 70 },
+  { id: 14 as M3LessonId, title: "Privacy & Your Data", subtitle: "What AI knows about you, and what you can do about it", duration: "25 min", color: "oklch(0.65_0.22_200)", xp: 65 },
+  { id: 15 as M3LessonId, title: "Personal AI Audit", subtitle: "Assess your own AI footprint across all four domains", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 120 },
+];
+
+const HEALTH_SCENARIOS: HealthScenario[] = [
+  {
+    id: "hs1",
+    title: "Symptom Checker at 2am",
+    situation: "You wake up with chest tightness and shortness of breath. You ask an AI symptom checker what's wrong.",
+    aiSays: "Your symptoms may indicate anxiety, acid reflux, or muscle strain. Rest and monitor symptoms. If severe, seek care.",
+    reality: "Chest tightness + shortness of breath can indicate a cardiac event, pulmonary embolism, or other emergencies. AI symptom checkers are designed to avoid over-alarming users — they systematically under-refer for serious conditions.",
+    verdict: "see-doctor",
+    verdictLabel: "Call emergency services or urgent care — do not self-diagnose",
+    verdictColor: "oklch(0.68_0.22_20)",
+  },
+  {
+    id: "hs2",
+    title: "Medication Interaction Query",
+    situation: "You're prescribed a new medication and want to know if it interacts with your daily supplements. You ask an AI.",
+    aiSays: "Provides a list of known interactions with general warnings about consulting a pharmacist.",
+    reality: "AI can surface known drug interactions accurately from pharmaceutical databases — this is actually a reasonable use case. However, it cannot account for your specific dosages, kidney/liver function, or other medications in your regimen.",
+    verdict: "verify",
+    verdictLabel: "Useful starting point — confirm with your pharmacist before acting",
+    verdictColor: "oklch(0.75_0.18_55)",
+  },
+  {
+    id: "hs3",
+    title: "Mental Health Check-In",
+    situation: "You've been feeling persistently low. You describe your feelings to an AI chatbot for support.",
+    aiSays: "Provides empathetic responses, suggests breathing exercises, and mentions professional resources.",
+    reality: "AI mental health tools can provide a safe, non-judgmental space to articulate feelings — which has real value. But they cannot diagnose clinical depression, adjust to nuance in the way a therapist can, or substitute for a care relationship. For persistent symptoms, professional evaluation is essential.",
+    verdict: "verify",
+    verdictLabel: "Valuable supplement — not a replacement for professional mental health care",
+    verdictColor: "oklch(0.75_0.18_55)",
+  },
+  {
+    id: "hs4",
+    title: "Nutrition Plan Generator",
+    situation: "You ask an AI to generate a personalized meal plan based on your health goals and dietary restrictions.",
+    aiSays: "Generates a detailed 7-day plan with macros, recipes, and shopping list tailored to your stated profile.",
+    reality: "General nutrition guidance from AI is often accurate and useful. However, AI cannot account for undiagnosed conditions, medication interactions with foods, or individual metabolic variation. For those with medical dietary needs, a registered dietitian remains essential.",
+    verdict: "trust",
+    verdictLabel: "Generally safe for healthy adults — flag medical conditions to a professional",
+    verdictColor: "oklch(0.72_0.18_150)",
+  },
+];
+
+const SCAM_PATTERNS: ScamPattern[] = [
+  {
+    id: "sp1",
+    name: "Voice Cloning Scam",
+    how: "AI clones a family member's voice from publicly available audio (social media, voicemails). You receive a panicked call from 'your child' claiming to be in trouble and needing emergency money.",
+    redFlags: ["Urgency that prevents verification", "Request for wire transfer or gift cards (untraceable)", "Resistance to hanging up and calling back on a known number", "Story that prevents normal verification steps"],
+    example: "'Mom, it's me — I'm at the hospital, I can't explain now, please wire $2,000 to this account. Don't call Dad, he'll freak out.'",
+  },
+  {
+    id: "sp2",
+    name: "AI-Generated Phishing",
+    how: "AI generates perfectly written, personalized phishing emails that reference your real name, employer, recent transactions, or public information — eliminating the spelling errors that used to flag scams.",
+    redFlags: ["Urgent action required on accounts", "Links that don't match the organization's actual domain", "Requests to verify credentials by clicking (real banks never do this)", "Slightly wrong sender email addresses"],
+    example: "'Dear [Your Name], unusual activity was detected on your Chase account ending in 4821. Verify your identity within 24 hours to avoid suspension: [fake-chase-secure.net]'",
+  },
+  {
+    id: "sp3",
+    name: "Deepfake Video Fraud",
+    how: "AI generates realistic video of a CEO, public figure, or trusted contact — used in investment scams, romance fraud, or to authorize fake wire transfers in business settings.",
+    redFlags: ["Unsolicited investment opportunity from someone you'd never expect to contact you", "Video or call quality that's slightly off (blinks, mouth sync, lighting)", "Pressure to act before 'the opportunity closes'", "Requests routed through unusual channels"],
+    example: "A WhatsApp video from what appears to be your company's CFO asking you to process an urgent wire transfer before end of day for a 'confidential acquisition.'",
+  },
+  {
+    id: "sp4",
+    name: "AI Romance Fraud",
+    how: "AI-powered chatbots maintain long-term 'romantic' relationships across weeks or months, building emotional trust before making increasingly large financial requests.",
+    redFlags: ["Never able to meet in person or video call (excuses evolve over time)", "Financial crisis emerges only after deep emotional investment", "Story involves offshore work, military deployment, or international travel", "Requests for gift cards, crypto, or wire transfers"],
+    example: "After 3 months of daily messaging, your 'partner' is stranded abroad after a business deal went wrong and needs $5,000 to come home — then $3,000 more for medical bills.",
+  },
+];
+
+const CREATIVE_EXERCISES: CreativeExercise[] = [
+  {
+    id: "ce1",
+    title: "Story Seed",
+    domain: "Writing",
+    prompt: "Start a story with AI, then redirect it in your own direction. The AI generates an opening paragraph — you add the next one, then ask AI to continue — keeping it distinctly yours.",
+    starter: "Write the opening paragraph of a story about an ordinary person who discovers something extraordinary about their neighborhood. Keep it grounded and specific — no magic, no sci-fi. One paragraph only.",
+    tips: ["After the AI's paragraph, write your own that changes the tone or direction", "Ask the AI to match your style in the next iteration", "Notice how the collaboration evolves — where is AI strong? Where do you diverge?"],
+  },
+  {
+    id: "ce2",
+    title: "Perspective Shift",
+    domain: "Thinking",
+    prompt: "Use AI to argue the opposite of your strongest opinion on any topic. Then write your original position strengthened by understanding the other side.",
+    starter: "I believe [write your actual strong opinion here]. Now argue the most compelling possible case against this position — be rigorous and assume I already know the obvious objections.",
+    tips: ["Pick something you actually care about — the discomfort is the point", "The goal isn't to change your view — it's to sharpen it", "Write one paragraph integrating the strongest opposing point into your original argument"],
+  },
+  {
+    id: "ce3",
+    title: "Style Transfer",
+    domain: "Writing",
+    prompt: "Write a paragraph describing your morning routine in your natural voice. Then ask AI to rewrite it in the style of three different authors. What does style actually mean?",
+    starter: "Rewrite this paragraph in the style of [Ernest Hemingway / Joan Didion / James Baldwin]: '[paste your paragraph here]'. Preserve the content exactly — only change the voice, rhythm, and word choices.",
+    tips: ["The differences reveal what 'style' actually consists of", "Try to identify the specific techniques each version uses", "Ask AI to explain what stylistic choices it made — then try to do it yourself"],
+  },
+  {
+    id: "ce4",
+    title: "Constraint Generator",
+    domain: "Creativity",
+    prompt: "Ask AI to give you creative constraints for a project you're already working on. Constraints unlock creativity by forcing novel solutions.",
+    starter: "I'm working on [describe your project — could be a presentation, garden, room redesign, recipe, anything]. Give me 5 unusual creative constraints that would force me to approach it completely differently. Make them specific and slightly uncomfortable.",
+    tips: ["Choose 1-2 constraints that feel hardest and actually apply them", "Constraints work because they eliminate infinite choice paralysis", "The best ones should make you think 'I'd never have thought of that myself'"],
+  },
+];
+
+const PRIVACY_DOMAINS: PrivacyDomain[] = [
+  {
+    id: "pd1",
+    name: "Search & Browsing",
+    icon: <Globe size={16} />,
+    whatAIKnows: ["Every search query and when you searched it", "Browsing history and time spent on each page", "What you click on vs. what you ignore", "Cross-device identity linking via cookies and fingerprinting"],
+    riskLevel: "high",
+    action: "Use a private browser for sensitive searches. Consider a privacy-focused search engine (DuckDuckGo, Brave) for health, financial, and personal queries.",
+  },
+  {
+    id: "pd2",
+    name: "Social Media",
+    icon: <Users size={16} />,
+    whatAIKnows: ["Political and religious leanings inferred from likes and follows", "Income bracket estimated from brand interactions", "Relationship status, life events, and location patterns", "Emotional state inferred from posting frequency and content"],
+    riskLevel: "high",
+    action: "Audit your privacy settings quarterly. Be aware that 'private' accounts still share data with the platform's advertising AI. What you engage with teaches the model more than what you post.",
+  },
+  {
+    id: "pd3",
+    name: "Health & Fitness Apps",
+    icon: <Heart size={16} />,
+    whatAIKnows: ["Menstrual cycles, fertility windows, pregnancy status", "Sleep patterns and sleep disorders", "Heart rate anomalies and activity levels", "Mental health states inferred from usage patterns"],
+    riskLevel: "high",
+    action: "Read the data-sharing sections of health app privacy policies — many sell to data brokers or insurers. Free health apps often monetize through data. Consider whether the convenience justifies the exposure.",
+  },
+  {
+    id: "pd4",
+    name: "Smart Home & Voice",
+    icon: <Smartphone size={16} />,
+    whatAIKnows: ["Home occupancy patterns and daily schedule", "Household size and likely income from product purchases", "Conversations occurring near always-on devices", "TV and media consumption preferences"],
+    riskLevel: "medium",
+    action: "Review which apps have microphone access on your devices. Smart speakers can be muted when not in use. Review your voice history in device settings and delete regularly.",
+  },
+  {
+    id: "pd5",
+    name: "Financial Transactions",
+    icon: <DollarSign size={16} />,
+    whatAIKnows: ["Spending categories and lifestyle habits", "Financial stress indicators from payment patterns", "Location data via transaction timestamps", "Subscription patterns that reveal personal interests"],
+    riskLevel: "medium",
+    action: "Banks use AI fraud detection (beneficial). Third-party finance apps often sell transaction data. Review which apps have access to your bank account and revoke unnecessary permissions.",
+  },
+];
+
+const M3_CAPSTONE_AUDIT = [
+  {
+    domain: "Health",
+    color: "oklch(0.68_0.22_20)",
+    icon: <Heart size={14} />,
+    questions: [
+      { id: "ca_h1", text: "I understand when AI health tools are reliable vs. when I need professional evaluation" },
+      { id: "ca_h2", text: "I know the difference between AI symptom checking and medical diagnosis" },
+      { id: "ca_h3", text: "I have a plan for which health questions I can use AI for vs. which require a doctor" },
+    ],
+  },
+  {
+    domain: "Money",
+    color: "oklch(0.75_0.18_55)",
+    icon: <DollarSign size={14} />,
+    questions: [
+      { id: "ca_m1", text: "I can identify the key red flags of AI-powered financial scams" },
+      { id: "ca_m2", text: "I know to verify urgency claims by contacting people through known numbers before acting" },
+      { id: "ca_m3", text: "I understand how robo-advisors work and their limitations compared to human advisors" },
+    ],
+  },
+  {
+    domain: "Creativity",
+    color: "oklch(0.72_0.2_290)",
+    icon: <Palette size={14} />,
+    questions: [
+      { id: "ca_c1", text: "I understand the difference between AI-generated content and AI-assisted creation" },
+      { id: "ca_c2", text: "I can use AI as a creative collaborator without losing my own voice or perspective" },
+      { id: "ca_c3", text: "I'm aware of copyright and attribution considerations when using AI creative tools" },
+    ],
+  },
+  {
+    domain: "Privacy",
+    color: "oklch(0.65_0.22_200)",
+    icon: <Fingerprint size={14} />,
+    questions: [
+      { id: "ca_p1", text: "I know what data AI systems are collecting about me across my main apps and devices" },
+      { id: "ca_p2", text: "I have reviewed privacy settings on at least my highest-risk platforms" },
+      { id: "ca_p3", text: "I understand the trade-off between free services and personal data" },
+    ],
+  },
+];
+
+const M3_QUIZ_L11: QuizQuestion[] = [
+  { id: "m3l11q1", question: "Why do AI symptom checkers systematically under-refer for serious conditions?", options: ["They are programmed to save money on healthcare", "They are optimized to avoid over-alarming users, which creates a systematic bias toward reassurance", "They lack access to medical databases", "They are only designed for minor illnesses"], correct: 1, explanation: "Symptom checker designers face a difficult trade-off: too many 'go to the ER' recommendations and users lose trust; too few and serious conditions are missed. The commercial pressure to avoid 'alarmist' outputs creates a systematic bias that can delay care for genuine emergencies." },
+  { id: "m3l11q2", question: "AI mental health chatbots are most appropriately used as:", options: ["A replacement for therapy when professional care is unavailable", "A supplement that can help articulate feelings, while professional care remains the standard for clinical conditions", "A diagnostic tool for depression and anxiety", "A crisis intervention resource"], correct: 1, explanation: "AI mental health tools can offer a low-barrier space to process and articulate feelings — which is genuinely valuable. They cannot diagnose, adjust to clinical nuance, or provide the sustained therapeutic relationship that produces lasting outcomes. They're a complement, not a substitute." },
+  { id: "m3l11q3", question: "Which is the most appropriate use of AI for health information?", options: ["Diagnosing a rash from a photo", "Understanding what a medical term in your lab results means before your follow-up appointment", "Deciding whether surgery is appropriate", "Replacing a pharmacist's review of your medications"], correct: 1, explanation: "AI excels at translating medical jargon into plain language and helping people prepare for doctor conversations. This use is low-risk and high-value. The risks are concentrated in using AI to make clinical decisions — diagnosis, treatment choice, and medication management — where the consequences of errors are severe." },
+];
+
+const M3_QUIZ_L12: QuizQuestion[] = [
+  { id: "m3l12q1", question: "The defining feature of AI-powered voice cloning scams is:", options: ["They only target elderly people", "They can replicate a family member's voice convincingly enough to bypass emotional skepticism", "They are easy to detect because the audio quality is poor", "They always ask for cryptocurrency"], correct: 1, explanation: "Voice cloning scams exploit the deep emotional response we have to hearing a loved one's voice. The audio quality can be quite good with modern AI — the defense is procedural: establish a family safe word and always hang up and call back on a known number before acting on any urgent request." },
+  { id: "m3l12q2", question: "Robo-advisors are most appropriate for:", options: ["Active stock trading based on market conditions", "Long-term, passive investment management with diversified index funds", "Complex tax optimization strategies", "Real estate investment decisions"], correct: 1, explanation: "Robo-advisors excel at the core tasks of long-term passive investing: low-cost index fund allocation, automatic rebalancing, and tax-loss harvesting. They are far less appropriate for complex situations requiring judgment about life circumstances, tax law nuances, or non-standard assets." },
+  { id: "m3l12q3", question: "An urgent request for money or information should always be:", options: ["Acted on quickly to prevent the stated harm", "Verified by hanging up and calling back through a number you find independently", "Forwarded to family to decide collectively", "Reported to the company before taking any action"], correct: 1, explanation: "The universal defense against AI-powered financial fraud is slowing down. Any legitimate emergency can withstand a 5-minute delay for verification. The urgency itself is the manipulation — it's designed to prevent you from taking the time to think. Hang up, find the number yourself, call back." },
+];
+
+const M3_QUIZ_L13: QuizQuestion[] = [
+  { id: "m3l13q1", question: "The most accurate description of AI's role in creative work is:", options: ["AI replaces human creativity by producing better outputs faster", "AI is a collaborative tool that generates material humans then shape, direct, and judge", "AI cannot produce genuinely creative work", "AI creativity is limited to remixing existing content"], correct: 1, explanation: "The most productive framing of AI in creative work is collaboration, not replacement. AI can generate options, overcome blank-page paralysis, and offer perspectives — but the direction, curation, judgment, and authentic voice come from the human. The creative decisions that make work meaningful are still yours." },
+  { id: "m3l13q2", question: "Which concern about AI-generated creative content is most legitimate?", options: ["AI will make all human art worthless", "Copyright law is evolving and the training data and ownership of AI outputs remain legally uncertain", "AI-generated content is always lower quality than human-created work", "AI cannot understand or convey emotions"], correct: 1, explanation: "The genuine legal uncertainty around AI-generated content is the most legitimate near-term concern for creators. Training data copyright, ownership of AI outputs, and liability for infringement are all in active litigation. This is not settled law, and creators who use AI commercially should stay informed." },
+  { id: "m3l13q3", question: "Creative constraints (like those an AI might generate) are valuable because:", options: ["They make creative work faster by reducing options", "They eliminate the paralysis of unlimited choices and force novel problem-solving", "They ensure AI-generated work is original", "They match your output to audience expectations"], correct: 1, explanation: "Constraints work because unlimited choice produces decision paralysis and predictable defaults. When forced to solve within tight parameters, creators access novel solutions they'd never have found otherwise. This is why creative traditions from haiku to sonnet to 30-second commercials have thrived under artificial restrictions." },
+];
+
+const M3_QUIZ_L14: QuizQuestion[] = [
+  { id: "m3l14q1", question: "Free apps and services monetize primarily through:", options: ["Government subsidies for digital access", "Selling or licensing user data to advertisers, data brokers, and other third parties", "In-app purchases that most users eventually make", "Voluntary donations from satisfied users"], correct: 1, explanation: "The business model of free digital services is, with rare exceptions, data monetization. Your behavior, preferences, and patterns are the product. This isn't inherently wrong — but it becomes a problem when users don't understand the trade-off they're making, or when sensitive categories like health and financial data are involved." },
+  { id: "m3l14q2", question: "Data brokers are companies that:", options: ["Help you protect your data from unauthorized collection", "Compile and sell detailed profiles of individuals from dozens of sources without your direct consent", "Provide secure cloud storage for personal files", "Verify identity for financial institutions"], correct: 1, explanation: "Data brokers aggregate information from public records, app data purchases, loyalty programs, and other sources to build remarkably detailed individual profiles — including income estimates, health conditions, political views, and purchase history. Most people have profiles with multiple data brokers and don't know it." },
+  { id: "m3l14q3", question: "The most effective personal privacy action is:", options: ["Deleting all social media accounts", "Auditing which apps have access to your microphone, location, and contacts — and revoking unnecessary permissions", "Using a VPN at all times", "Never using free services"], correct: 1, explanation: "App permission audits deliver the highest return on time invested because they directly cut off data collection at the source. Most people have given dozens of apps access to data they never intended to share — a quarterly permission review takes 15 minutes and has lasting protective effect." },
+];
+
+// ─── AI Literacy Module 3 Component ──────────────────────────────────────────
+function AILiteracyModule3() {
+  const [activeLesson, setActiveLesson] = useState<M3LessonId | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<Set<M3LessonId>>(new Set());
+  const { addXP } = usePersonalization();
+
+  // L11 — health
+  const [activeHealthScenario, setActiveHealthScenario] = useState<number | null>(null);
+  const [healthReveal, setHealthReveal] = useState<Set<string>>(new Set());
+  const [healthQuery, setHealthQuery] = useState("");
+  const [healthResult, setHealthResult] = useState("");
+  const [healthLoading, setHealthLoading] = useState(false);
+
+  // L12 — money/scams
+  const [activeScam, setActiveScam] = useState<string | null>(null);
+  const [scamGuesses, setScamGuesses] = useState<Record<string, boolean>>({});
+  const [moneyQuery, setMoneyQuery] = useState("");
+  const [moneyResult, setMoneyResult] = useState("");
+  const [moneyLoading, setMoneyLoading] = useState(false);
+
+  // L13 — creativity
+  const [activeCE, setActiveCE] = useState<number>(0);
+  const [creativePrompt, setCreativePrompt] = useState("");
+  const [creativeResult, setCreativeResult] = useState("");
+  const [creativeLoading, setCreativeLoading] = useState(false);
+  const [creativeHistory, setCreativeHistory] = useState<string[]>([]);
+  const [myContribution, setMyContribution] = useState("");
+
+  // L14 — privacy
+  const [activePD, setActivePD] = useState<string | null>(null);
+  const [privacyQuery, setPrivacyQuery] = useState("");
+  const [privacyResult, setPrivacyResult] = useState("");
+  const [privacyLoading, setPrivacyLoading] = useState(false);
+
+  // L15 — capstone
+  const [auditChecks, setAuditChecks] = useState<Record<string, boolean>>({});
+  const [auditReflection, setAuditReflection] = useState("");
+  const [auditSaved, setAuditSaved] = useState(false);
+  const [auditDone, setAuditDone] = useState(false);
+  const [priorityAction, setPriorityAction] = useState("");
+  const [prioritySaved, setPrioritySaved] = useState(false);
+
+  const healthMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (d) => { setHealthResult(d.explanation); setHealthLoading(false); },
+    onError: (e: { message: string }) => { toast.error(e.message); setHealthLoading(false); },
+  });
+  const moneyMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (d) => { setMoneyResult(d.explanation); setMoneyLoading(false); },
+    onError: (e: { message: string }) => { toast.error(e.message); setMoneyLoading(false); },
+  });
+  const creativeMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (d) => {
+      setCreativeResult(d.explanation);
+      setCreativeLoading(false);
+      setCreativeHistory((prev) => [...prev, d.explanation]);
+    },
+    onError: (e: { message: string }) => { toast.error(e.message); setCreativeLoading(false); },
+  });
+  const privacyMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (d) => { setPrivacyResult(d.explanation); setPrivacyLoading(false); },
+    onError: (e: { message: string }) => { toast.error(e.message); setPrivacyLoading(false); },
+  });
+
+  const handleM3Complete = (id: M3LessonId) => {
+    if (completedLessons.has(id)) return;
+    const meta = M3_LESSON_META.find((l) => l.id === id)!;
+    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson complete!`);
+  };
+
+  const overallPct = Math.round((completedLessons.size / M3_LESSON_META.length) * 100);
+
+  const SectionBadge = ({ type, color }: { type: string; color: string }) => (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase mb-3"
+      style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.3)` }}>
+      {type}
+    </span>
+  );
+
+  function M3Shell({ id, children }: { id: M3LessonId; children: React.ReactNode }) {
+    const meta = M3_LESSON_META.find((l) => l.id === id)!;
+    const done = completedLessons.has(id);
+    const ids: M3LessonId[] = [11, 12, 13, 14, 15];
+    const idx = ids.indexOf(id);
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to all lessons
+        </button>
+        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">AI Literacy · Module 3 · AI in Your Everyday Life</div>
+              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
+              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
+              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
+              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
+            </div>
+          </div>
+        </div>
+        {children}
+        <div className="mt-8 pt-6 border-t border-white/8">
+          {done
+            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
+            : <motion.button onClick={() => handleM3Complete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
+                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.72_0.18_150))` }}>
+                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
+              </motion.button>
+          }
+        </div>
+        {idx < ids.length - 1 && (
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => setActiveLesson(ids[idx + 1])}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next lesson <ChevronRight size={13} />
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  if (activeLesson !== null) return (
+    <AnimatePresence mode="wait">
+
+      {/* ── Lesson 11: AI & Your Health ── */}
+      {activeLesson === 11 && (
+        <M3Shell key={11} id={11}>
+          <div className="space-y-5">
+
+            {/* Hook */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="More than one in three adults have searched for a health symptom online before — or instead of — seeing a doctor. AI has made this far more sophisticated and far more dangerous. Understanding exactly what AI health tools can and cannot do may be one of the most important practical skills in this course." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { stat: "35%", label: "of adults use AI/search to self-diagnose", color: "oklch(0.68_0.22_20)" },
+                  { stat: "72%", label: "of symptom checker users change their care decision based on results", color: "oklch(0.75_0.18_55)" },
+                  { stat: "57%", label: "accuracy rate of top symptom checkers (vs. ~90% for GPs)", color: "oklch(0.72_0.2_260)" },
+                ].map(({ stat, label, color }) => (
+                  <div key={stat} className="glass rounded-xl p-4 border border-white/8 text-center">
+                    <div className="text-2xl font-bold mb-1" style={{ color }}>{stat}</div>
+                    <p className="text-xs text-muted-foreground leading-snug">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
+                topics={["How AI symptom checkers are built and what data they use", "Why AI diagnosis accuracy varies so much by condition type", "What 'AI-assisted diagnosis' means in clinical settings", "How AI is changing radiology and pathology"]} />
+            </div>
+
+            {/* Core Concept */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.68_0.22_20)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.68_0.22_20)" />
+              <h3 className="font-semibold text-foreground mb-1">The Trust Framework</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Not all AI health interactions carry the same risk. The key is matching your level of trust to what the tool is actually capable of — and never using AI where a professional decision is what's actually needed.</p>
+              <div className="space-y-2 mb-4">
+                {[
+                  { level: "High Trust", tasks: ["Explaining medical terminology from lab results", "Summarizing what a diagnosis means in plain language", "Researching what questions to ask your doctor", "General nutrition and exercise guidance (healthy adults)"], color: "oklch(0.72_0.18_150)" },
+                  { level: "Use with Caution", tasks: ["Drug interaction lookups (verify with pharmacist)", "Mental health support (supplement, not substitute)", "General symptom education (not diagnosis)", "Medication side effect information"], color: "oklch(0.75_0.18_55)" },
+                  { level: "Don't Rely on AI", tasks: ["Diagnosing serious or ambiguous symptoms", "Deciding whether to seek emergency care", "Pediatric health decisions", "Mental health crisis situations"], color: "oklch(0.68_0.22_20)" },
+                ].map(({ level, tasks, color }) => (
+                  <div key={level} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${color}` }}>
+                    <div className="text-xs font-bold mb-2" style={{ color }}>{level.toUpperCase()}</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {tasks.map((t) => (
+                        <div key={t} className="flex items-start gap-1.5">
+                          <div className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ background: color }} />
+                          <p className="text-xs text-muted-foreground leading-snug">{t}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
+                topics={["What 'clinical validation' of an AI health tool means", "How AI diagnostic tools are regulated (FDA clearance)", "The role of AI in rare disease diagnosis", "What telehealth AI looks like today"]} />
+            </div>
+
+            {/* Scenario Explorer */}
+            <div className="glass rounded-2xl p-5 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.2_260)" }}>
+              <SectionBadge type="Scenario Explorer" color="oklch(0.72_0.2_260)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Four real-world health AI situations. For each: form your own judgment first, then reveal what to actually do.</p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {HEALTH_SCENARIOS.map((s, i) => (
+                  <button key={s.id} onClick={() => setActiveHealthScenario(i)}
+                    className={`p-3 rounded-xl text-left border text-xs font-medium transition-all ${ activeHealthScenario === i ? "bg-[oklch(0.72_0.2_260_/_0.15)] border-[oklch(0.72_0.2_260_/_0.4)] text-foreground" : "glass border-white/8 text-muted-foreground hover:border-white/20" }`}>
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+              <AnimatePresence mode="wait">
+                {activeHealthScenario !== null && (() => {
+                  const s = HEALTH_SCENARIOS[activeHealthScenario];
+                  const revealed = healthReveal.has(s.id);
+                  return (
+                    <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="space-y-3">
+                      <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_260_/_0.2)]">
+                        <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-2">SITUATION</div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{s.situation}</p>
+                      </div>
+                      <div className="glass rounded-xl p-4 border border-white/8">
+                        <div className="text-xs font-semibold text-muted-foreground mb-2">AI RESPONSE</div>
+                        <p className="text-sm text-foreground/80 italic leading-relaxed">"{s.aiSays}"</p>
+                      </div>
+                      {!revealed ? (
+                        <motion.button onClick={() => setHealthReveal((prev) => new Set(Array.from(prev).concat(s.id)))}
+                          whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                          className="w-full py-2.5 rounded-xl text-sm font-medium text-black"
+                          style={{ background: `linear-gradient(to right, oklch(0.72_0.2_260), oklch(0.68_0.22_20))` }}>
+                          Reveal: Should You Trust This?
+                        </motion.button>
+                      ) : (
+                        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                          <div className="glass rounded-xl p-4 border border-white/8">
+                            <div className="text-xs font-semibold text-muted-foreground mb-2">THE REALITY</div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{s.reality}</p>
+                          </div>
+                          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ borderColor: s.verdictColor, background: `oklch(from ${s.verdictColor} l c h / 0.08)` }}>
+                            <BadgeCheck size={16} style={{ color: s.verdictColor, flexShrink: 0 }} />
+                            <p className="text-sm font-semibold" style={{ color: s.verdictColor }}>{s.verdictLabel}</p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
+            </div>
+
+            {/* Live Health Query Tool */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.68_0.22_20_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">HEALTH AI ADVISOR</div>
+              <p className="text-xs text-muted-foreground mb-3">Ask a health-related question and see how AI handles it — then evaluate: is this a High Trust, Caution, or Don't Rely response?</p>
+              <textarea value={healthQuery} onChange={(e) => setHealthQuery(e.target.value)}
+                placeholder="e.g., 'What does a high TSH level mean?' or 'Is it safe to take ibuprofen and aspirin together?'"
+                rows={2} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_20_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!healthQuery.trim()) { toast.error("Enter a health question."); return; }
+                setHealthLoading(true); setHealthResult("");
+                healthMutation.mutate({ concept: `Answer this health question helpfully and accurately, and then — critically — end your response with a clear statement of what level of trust the questioner should place in this answer: HIGH TRUST (AI is reliable for this), USE WITH CAUTION (verify with a professional), or DON'T RELY ON AI (see a healthcare provider). Question: "${healthQuery}"`, level: "student" });
+              }} disabled={healthLoading || !healthQuery.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.68_0.22_20)" }}>
+                {healthLoading ? <><RefreshCw size={13} className="animate-spin" /> Thinking…</> : <><Heart size={13} /> Ask Health AI</>}
+              </motion.button>
+              <AnimatePresence>
+                {healthResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.68_0.22_20_/_0.08)] border border-[oklch(0.68_0.22_20_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{healthResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={M3_QUIZ_L11} accentColor="oklch(0.68_0.22_20)" />
+            </div>
+          </div>
+        </M3Shell>
+      )}
+
+      {/* ── Lesson 12: AI & Your Money ── */}
+      {activeLesson === 12 && (
+        <M3Shell key={12} id={12}>
+          <div className="space-y-5">
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="AI is simultaneously protecting your money and attacking it. The same technology that powers fraud detection at your bank is being used by scammers to impersonate your family members. Understanding both sides of this makes you significantly harder to deceive — and helps you use legitimate AI financial tools with appropriate confidence." />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {[
+                  { label: "AI Protects", items: ["Real-time fraud detection (flags 97%+ of card fraud)", "Robo-advisors managing $3T+ globally", "Credit scoring and loan underwriting", "Insurance fraud prevention"], color: "oklch(0.72_0.18_150)" },
+                  { label: "AI Attacks", items: ["Voice cloning for family emergency scams", "Deepfake video for executive fraud", "Personalized phishing at scale", "AI chatbot romance fraud (avg. loss: $10k+)"], color: "oklch(0.68_0.22_20)" },
+                ].map(({ label, items, color }) => (
+                  <div key={label} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${color}` }}>
+                    <div className="text-xs font-bold mb-2" style={{ color }}>{label}</div>
+                    {items.map((item) => (
+                      <div key={item} className="flex items-start gap-2 mb-1.5">
+                        <div className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ background: color }} />
+                        <p className="text-xs text-muted-foreground leading-snug">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.75_0.18_55)"
+                topics={["How bank fraud detection AI actually works", "What robo-advisors do vs. human financial advisors", "How AI is used in high-frequency trading", "What AI-powered credit scoring means for consumers"]} />
+            </div>
+
+            {/* Scam pattern explorer */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.68_0.22_20)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.68_0.22_20)" />
+              <h3 className="font-semibold text-foreground mb-1">4 AI Scams Targeting You Right Now</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">These are not hypothetical — they are active, documented fraud patterns that financial crime units track. Knowing how they work is your primary defense.</p>
+              <div className="space-y-2">
+                {SCAM_PATTERNS.map((sp) => (
+                  <div key={sp.id}>
+                    <button onClick={() => setActiveScam(activeScam === sp.id ? null : sp.id)}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all ${ activeScam === sp.id ? "bg-[oklch(0.68_0.22_20_/_0.12)] border-[oklch(0.68_0.22_20_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
+                      <div className="flex items-center gap-3">
+                        <ShieldAlert size={16} className="text-[oklch(0.68_0.22_20)] shrink-0" />
+                        <span className="font-semibold text-sm text-foreground">{sp.name}</span>
+                      </div>
+                      <ChevronRight size={14} className={`text-muted-foreground transition-transform ${activeScam === sp.id ? "rotate-90" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {activeScam === sp.id && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden">
+                          <div className="p-5 space-y-3 glass rounded-b-xl border-x border-b border-[oklch(0.68_0.22_20_/_0.3)]">
+                            <div>
+                              <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-1">HOW IT WORKS</div>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{sp.how}</p>
+                            </div>
+                            <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_260_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-2">REAL EXAMPLE</div>
+                              <p className="text-sm text-foreground italic leading-relaxed">"{sp.example}"</p>
+                            </div>
+                            <div>
+                              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">RED FLAGS TO WATCH FOR</div>
+                              <div className="space-y-1.5">
+                                {sp.redFlags.map((flag, i) => (
+                                  <div key={i} className="flex items-start gap-2">
+                                    <AlertTriangle size={11} className="text-[oklch(0.68_0.22_20)] mt-0.5 shrink-0" />
+                                    <p className="text-xs text-muted-foreground leading-snug">{flag}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+
+              {/* Family safe word callout */}
+              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.75_0.18_55_/_0.3)]">
+                <div className="flex items-start gap-3">
+                  <BadgeCheck size={16} className="text-[oklch(0.75_0.18_55)] shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-xs font-bold text-[oklch(0.75_0.18_55)] mb-1">IMMEDIATE ACTION: SET A FAMILY SAFE WORD</div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Before leaving this lesson: establish a code word with close family members that proves identity in a genuine emergency. Any caller who claims to be a family member but doesn't know the word should be treated as a potential scam, regardless of how convincing they sound.</p>
+                  </div>
+                </div>
+              </div>
+              <SegmentFooter accentColor="oklch(0.75_0.18_55)"
+                topics={["How to report an AI-powered scam attempt", "What consumer protections exist against AI fraud", "How voice cloning technology actually works", "What the FTC recommends for AI scam protection"]} />
+            </div>
+
+            {/* Live scam checker */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.75_0.18_55_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">SCAM DETECTOR</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste a suspicious message, email, or describe a suspicious call. The AI will assess if it matches known AI-powered scam patterns.</p>
+              <textarea value={moneyQuery} onChange={(e) => setMoneyQuery(e.target.value)}
+                placeholder="e.g., 'I got a text saying my Chase account was suspended and I need to verify my identity at chase-secure-verify.net'"
+                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!moneyQuery.trim()) { toast.error("Describe the suspicious contact first."); return; }
+                setMoneyLoading(true); setMoneyResult("");
+                moneyMutation.mutate({ concept: `Analyze this potentially fraudulent contact for AI-powered scam patterns: "${moneyQuery}". Identify: (1) Which scam type this most resembles (voice cloning, phishing, deepfake, romance fraud, or other). (2) The specific red flags present. (3) What the person should do right now. (4) Whether this appears to be a scam, legitimate, or uncertain. Be direct, specific, and protective in tone.`, level: "student" });
+              }} disabled={moneyLoading || !moneyQuery.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-black disabled:opacity-50"
+                style={{ background: "linear-gradient(to right, oklch(0.75_0.18_55), oklch(0.68_0.22_20))" }}>
+                {moneyLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><ShieldAlert size={13} /> Check for Scam</>}
+              </motion.button>
+              <AnimatePresence>
+                {moneyResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{moneyResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={M3_QUIZ_L12} accentColor="oklch(0.75_0.18_55)" />
+            </div>
+          </div>
+        </M3Shell>
+      )}
+
+      {/* ── Lesson 13: AI & Creativity ── */}
+      {activeLesson === 13 && (
+        <M3Shell key={13} id={13}>
+          <div className="space-y-5">
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="Every major creative shift in history — the printing press, photography, recorded music — was met with predictions that human creativity would be destroyed. Instead, each technology redefined where human creativity lived. AI is doing the same thing. The question isn't whether AI changes creative work — it already has. The question is what that means for you." />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {[
+                  { label: "AI Generates", d: "First drafts, options, variations, remixes — fast and cheap", icon: <Sparkles size={16} />, color: "oklch(0.72_0.2_290)" },
+                  { label: "Humans Curate", d: "Judgment, voice, meaning, context, emotional truth", icon: <Brain size={16} />, color: "oklch(0.65_0.22_200)" },
+                  { label: "Together Create", d: "Work that neither could produce alone", icon: <Brush size={16} />, color: "oklch(0.72_0.18_150)" },
+                ].map(({ label, d, icon, color }) => (
+                  <div key={label} className="glass rounded-xl p-4 border border-white/8 text-center">
+                    <div className="flex justify-center mb-2" style={{ color }}>{icon}</div>
+                    <div className="text-xs font-bold text-foreground mb-1">{label}</div>
+                    <p className="text-xs text-muted-foreground leading-snug">{d}</p>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
+                topics={["What the current legal status of AI-generated art is", "How training data and copyright interact", "What 'AI-assisted' vs 'AI-generated' means for attribution", "Which creative domains are most and least affected by AI"]} />
+            </div>
+
+            {/* Creative Studio */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.2_290)" }}>
+              <SectionBadge type="Core Concept + Try It" color="oklch(0.72_0.2_290)" />
+              <h3 className="font-semibold text-foreground mb-1">Creative Studio</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Four exercises across writing, thinking, and creativity. Each one shows a different way AI can serve your creative process without replacing it. Pick one and go hands-on.</p>
+
+              <div className="flex gap-2 mb-4 overflow-x-auto">
+                {CREATIVE_EXERCISES.map((ex, i) => (
+                  <button key={ex.id} onClick={() => { setActiveCE(i); setCreativePrompt(""); setCreativeResult(""); setCreativeHistory([]); setMyContribution(""); }}
+                    className={`shrink-0 py-2 px-4 rounded-lg text-xs font-medium transition-all border ${ activeCE === i ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)] text-[oklch(0.82_0.2_290)]" : "glass border-white/8 text-muted-foreground hover:border-white/20" }`}>
+                    {ex.domain}: {ex.title}
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={activeCE} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                  className="space-y-4">
+                  <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
+                    <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">THE EXERCISE</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{CREATIVE_EXERCISES[activeCE].prompt}</p>
+                  </div>
+
+                  <div className="glass rounded-xl p-4 border border-white/8">
+                    <div className="text-xs font-semibold text-muted-foreground mb-2">STARTER PROMPT</div>
+                    <p className="text-sm text-foreground/80 font-mono text-xs leading-relaxed bg-white/3 rounded-lg p-3">{CREATIVE_EXERCISES[activeCE].starter}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Your customized prompt (edit the starter above):</label>
+                    <textarea value={creativePrompt} onChange={(e) => setCreativePrompt(e.target.value)}
+                      placeholder="Customize the starter prompt with your own content, topic, or details…"
+                      rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none" />
+                    <motion.button onClick={() => {
+                      if (!creativePrompt.trim()) { toast.error("Write your prompt first."); return; }
+                      setCreativeLoading(true); setCreativeResult("");
+                      creativeMutation.mutate({ concept: creativePrompt, level: "student" });
+                    }} disabled={creativeLoading || !creativePrompt.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                      className="mt-3 flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                      style={{ background: "oklch(0.72_0.2_290)" }}>
+                      {creativeLoading ? <><RefreshCw size={13} className="animate-spin" /> Creating…</> : <><Palette size={13} /> Generate with AI</>}
+                    </motion.button>
+                  </div>
+
+                  <AnimatePresence>
+                    {creativeResult && (
+                      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                        <div className="p-4 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.25)]">
+                          <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">AI CONTRIBUTION</div>
+                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{creativeResult}</p>
+                        </div>
+                        <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                          <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">YOUR CONTRIBUTION (write your response/continuation here)</div>
+                          <textarea value={myContribution} onChange={(e) => setMyContribution(e.target.value)}
+                            placeholder="Continue, respond to, or transform what AI generated. This is where your voice comes in…"
+                            rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
+                          {myContribution.length > 30 && (
+                            <button onClick={() => {
+                              setCreativePrompt(`Continue our creative collaboration. Here is what came before:\n\nAI: ${creativeResult}\n\nHuman: ${myContribution}\n\nNow continue in a way that builds on both contributions naturally.`);
+                              setMyContribution("");
+                              toast.success("Ready to continue the collaboration!");
+                            }} className="mt-2 flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-[oklch(0.72_0.18_150_/_0.3)] text-xs text-[oklch(0.82_0.18_150)]">
+                              <ArrowRight size={11} /> Set up next round of collaboration
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="glass rounded-xl p-4 border border-white/8">
+                    <div className="text-xs font-semibold text-muted-foreground mb-2">TIPS FOR THIS EXERCISE</div>
+                    <div className="space-y-1.5">
+                      {CREATIVE_EXERCISES[activeCE].tips.map((tip, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <Lightbulb size={11} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
+                          <p className="text-xs text-muted-foreground leading-snug">{tip}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
+                topics={["How professional writers are using AI in their process right now", "What 'prompt engineering for creativity' involves", "How AI changes the economics of creative work", "What creative skills become more valuable in an AI world"]} />
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={M3_QUIZ_L13} accentColor="oklch(0.72_0.2_290)" />
+            </div>
+          </div>
+        </M3Shell>
+      )}
+
+      {/* ── Lesson 14: Privacy & Your Data ── */}
+      {activeLesson === 14 && (
+        <M3Shell key={14} id={14}>
+          <div className="space-y-5">
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
+              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
+              <Narrator text="The AI systems you interact with daily are learning from you constantly. This isn't sinister — much of it is genuinely useful. But most people significantly underestimate how much is being collected, who it's being shared with, and what it can reveal about them. This lesson won't make you paranoid. It'll make you informed." />
+              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.65_0.22_200_/_0.2)]">
+                <div className="text-xs font-semibold text-[oklch(0.65_0.22_200)] mb-3">WHAT AI SYSTEMS ARE LEARNING FROM YOU RIGHT NOW</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    "Your political and religious views (inferred, not stated)",
+                    "Your approximate income and financial stress level",
+                    "Your health conditions and medications",
+                    "Your daily schedule and home occupancy",
+                    "Your relationship status and quality",
+                    "Your emotional state and psychological patterns",
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-2">
+                      <Database size={11} className="text-[oklch(0.65_0.22_200)] mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground leading-snug">{item}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <SegmentFooter accentColor="oklch(0.65_0.22_200)"
+                topics={["What data brokers do and how to opt out", "How GDPR and CCPA affect your rights in the US and EU", "What 'differential privacy' is and how companies use it", "How to request your data from major platforms"]} />
+            </div>
+
+            {/* Privacy domain explorer */}
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.65_0.22_200)" }}>
+              <SectionBadge type="Core Concept" color="oklch(0.65_0.22_200)" />
+              <h3 className="font-semibold text-foreground mb-1">Your Data Across 5 Domains</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Click each domain to see what AI systems are collecting, the risk level, and the single most effective action you can take.</p>
+              <div className="space-y-2">
+                {PRIVACY_DOMAINS.map((pd) => (
+                  <div key={pd.id}>
+                    <button onClick={() => setActivePD(activePD === pd.id ? null : pd.id)}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all ${ activePD === pd.id ? "bg-[oklch(0.65_0.22_200_/_0.12)] border-[oklch(0.65_0.22_200_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
+                      <div className="flex items-center gap-3">
+                        <div style={{ color: pd.riskLevel === "high" ? "oklch(0.68_0.22_20)" : pd.riskLevel === "medium" ? "oklch(0.75_0.18_55)" : "oklch(0.72_0.18_150)" }}>
+                          {pd.icon}
+                        </div>
+                        <span className="font-semibold text-sm text-foreground">{pd.name}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${ pd.riskLevel === "high" ? "bg-[oklch(0.68_0.22_20_/_0.15)] text-[oklch(0.68_0.22_20)]" : pd.riskLevel === "medium" ? "bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.75_0.18_55)]" : "bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.72_0.18_150)]" }`}>
+                          {pd.riskLevel}
+                        </span>
+                      </div>
+                      <ChevronRight size={14} className={`text-muted-foreground transition-transform ${activePD === pd.id ? "rotate-90" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {activePD === pd.id && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                          <div className="p-4 space-y-3 glass rounded-b-xl border-x border-b border-[oklch(0.65_0.22_200_/_0.3)]">
+                            <div>
+                              <div className="text-xs font-semibold text-[oklch(0.65_0.22_200)] mb-2">WHAT AI KNOWS FROM THIS DOMAIN</div>
+                              <div className="space-y-1.5">
+                                {pd.whatAIKnows.map((item) => (
+                                  <div key={item} className="flex items-start gap-2">
+                                    <Eye size={11} className="text-[oklch(0.65_0.22_200)] mt-0.5 shrink-0" />
+                                    <p className="text-xs text-muted-foreground leading-snug">{item}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="glass rounded-lg p-3 border border-[oklch(0.72_0.18_150_/_0.2)]">
+                              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">YOUR BEST ACTION</div>
+                              <p className="text-xs text-muted-foreground leading-relaxed">{pd.action}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+              <SegmentFooter accentColor="oklch(0.65_0.22_200)"
+                topics={["How to do an app permissions audit on iOS and Android", "What data brokers know about you and how to remove your listing", "What 'informed consent' actually means in privacy law", "How end-to-end encryption works and when it protects you"]} />
+            </div>
+
+            {/* Privacy Advisor */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.65_0.22_200_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
+              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
+              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">PRIVACY ADVISOR</div>
+              <p className="text-xs text-muted-foreground mb-3">Ask any question about AI data collection, privacy settings, or data rights. The AI will explain clearly and tell you what concrete action to take.</p>
+              <textarea value={privacyQuery} onChange={(e) => setPrivacyQuery(e.target.value)}
+                placeholder="e.g., 'Can my health insurance company access data from my fitness app?' or 'How do I find out what Google knows about me?'"
+                rows={2} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={() => {
+                if (!privacyQuery.trim()) { toast.error("Ask a privacy question first."); return; }
+                setPrivacyLoading(true); setPrivacyResult("");
+                privacyMutation.mutate({ concept: `Answer this privacy and AI data question clearly and practically: "${privacyQuery}". Include: (1) What is actually happening with data in this scenario. (2) What rights or protections the person has. (3) The single most effective action they can take right now. Be specific, practical, and avoid alarming tone — the goal is informed agency, not fear.`, level: "student" });
+              }} disabled={privacyLoading || !privacyQuery.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.65_0.22_200)" }}>
+                {privacyLoading ? <><RefreshCw size={13} className="animate-spin" /> Researching…</> : <><Fingerprint size={13} /> Ask Privacy Advisor</>}
+              </motion.button>
+              <AnimatePresence>
+                {privacyResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.65_0.22_200_/_0.08)] border border-[oklch(0.65_0.22_200_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{privacyResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
+              <QuizBlock questions={M3_QUIZ_L14} accentColor="oklch(0.65_0.22_200)" />
+            </div>
+          </div>
+        </M3Shell>
+      )}
+
+      {/* ── Lesson 15: Personal AI Audit Capstone ── */}
+      {activeLesson === 15 && (
+        <M3Shell key={15} id={15}>
+          <div className="space-y-5">
+            {completedLessons.size < 4 && (
+              <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.18_150_/_0.3)]">
+                <div className="flex items-start gap-3">
+                  <Lock size={16} className="text-[oklch(0.72_0.18_150)] mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
+                    <p className="text-sm text-muted-foreground">Complete {4 - completedLessons.size} more lesson{completedLessons.size < 3 ? "s" : ""} to unlock the capstone.</p>
+                    <div className="flex gap-1 mt-2">
+                      {([11, 12, 13, 14] as M3LessonId[]).map((id) => (
+                        <div key={id} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${ completedLessons.has(id) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground" }`}>
+                          {completedLessons.has(id) ? <Check size={12} /> : id - 10}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.18_150)" }}>
+              <SectionBadge type="Capstone" color="oklch(0.72_0.18_150)" />
+              <Narrator text="This capstone is your personal AI audit — a structured self-assessment across the four domains of this module. There are no wrong answers. The goal is honest self-knowledge: where is AI serving you well, where are you exposed, and what one thing will you change this week?" />
+            </div>
+
+            {/* Domain self-assessment */}
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <div className="text-sm font-semibold text-foreground mb-1">Step 1 — Self-Assessment Checklist</div>
+              <p className="text-xs text-muted-foreground mb-4">Check off each statement you genuinely agree with after completing this module. Be honest — the gaps are where your growth is.</p>
+              <div className="space-y-4">
+                {M3_CAPSTONE_AUDIT.map((domain) => (
+                  <div key={domain.domain} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${domain.color}` }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span style={{ color: domain.color }}>{domain.icon}</span>
+                      <span className="text-sm font-semibold text-foreground">{domain.domain}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {domain.questions.filter((q) => auditChecks[q.id]).length}/{domain.questions.length}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {domain.questions.map((q) => (
+                        <label key={q.id} className="flex items-start gap-3 cursor-pointer group">
+                          <div onClick={() => setAuditChecks((prev) => ({ ...prev, [q.id]: !prev[q.id] }))}
+                            className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${ auditChecks[q.id] ? "border-none" : "border-white/20 group-hover:border-white/40" }`}
+                            style={auditChecks[q.id] ? { background: domain.color } : {}}>
+                            {auditChecks[q.id] && <Check size={11} className="text-white" />}
+                          </div>
+                          <span className={`text-xs leading-snug ${ auditChecks[q.id] ? "text-foreground" : "text-muted-foreground" }`}>{q.text}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex-1 h-1.5 rounded-full bg-white/8">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${(Object.values(auditChecks).filter(Boolean).length / 12) * 100}%`, background: "linear-gradient(to right, oklch(0.68_0.22_20), oklch(0.72_0.18_150))" }} />
+                </div>
+                <span className="text-xs font-medium text-foreground">{Object.values(auditChecks).filter(Boolean).length}/12</span>
+              </div>
+            </div>
+
+            {/* Reflection */}
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <div className="text-sm font-semibold text-foreground mb-1">Step 2 — Gaps & Reflections</div>
+              <p className="text-xs text-muted-foreground mb-3">Look at the items you didn't check. Pick the one gap that concerns you most and write 2-3 sentences about why it matters to you specifically — and what you'd need to address it.</p>
+              <textarea value={auditReflection} onChange={(e) => setAuditReflection(e.target.value)}
+                placeholder="e.g., The item I'm most concerned about is privacy — specifically my health apps. I use 3 different fitness/period tracking apps and I've never read their privacy policies. The risk that concerns me is insurance companies accessing this data. To address it I'd need to spend 30 minutes reading those policies and either accepting the terms with full knowledge or switching to a privacy-focused alternative..."
+                rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
+              {!auditSaved
+                ? <button onClick={() => {
+                    if (!auditReflection.trim()) { toast.error("Write your reflection first."); return; }
+                    setAuditSaved(true); addXP(15); toast.success("+15 XP — reflection saved!");
+                  }} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
+                    <Check size={13} /> Save Reflection (+15 XP)
+                  </button>
+                : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Saved — +15 XP</p>
+              }
+            </div>
+
+            {/* Priority action */}
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <div className="text-sm font-semibold text-foreground mb-1">Step 3 — Your One Action This Week</div>
+              <p className="text-xs text-muted-foreground mb-3">Name a single, specific, doable action you will take in the next 7 days as a result of this module. The smaller and more specific, the more likely it is to actually happen.</p>
+              <textarea value={priorityAction} onChange={(e) => setPriorityAction(e.target.value)}
+                placeholder="e.g., I will spend 20 minutes on Saturday reviewing app permissions on my phone and revoking microphone/location access from any app I haven't used in 3 months."
+                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
+              {!prioritySaved
+                ? <button onClick={() => {
+                    if (!priorityAction.trim()) { toast.error("Write your action first."); return; }
+                    setPrioritySaved(true); addXP(10); toast.success("+10 XP — action committed!");
+                  }} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
+                    <Check size={13} /> Commit to This Action (+10 XP)
+                  </button>
+                : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Committed — +10 XP</p>
+              }
+            </div>
+
+            {/* Submit */}
+            {!auditDone && (
+              <motion.button
+                onClick={() => {
+                  const checks = Object.values(auditChecks).filter(Boolean).length;
+                  if (checks < 6) { toast.error(`Complete at least 6 self-assessment items (${checks}/6 done).`); return; }
+                  if (!auditSaved) { toast.error("Save your reflection first."); return; }
+                  if (!prioritySaved) { toast.error("Commit to your action first."); return; }
+                  setAuditDone(true); handleM3Complete(15);
+                }}
+                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
+                style={{ background: "linear-gradient(to right, oklch(0.72_0.18_150), oklch(0.65_0.22_200))" }}>
+                <Trophy size={15} /> Complete Module 3 Audit
+              </motion.button>
+            )}
+
+            {/* Completion certificate */}
+            <AnimatePresence>
+              {auditDone && (
+                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                  className="glass rounded-2xl p-8 border border-[oklch(0.72_0.18_150_/_0.4)] text-center"
+                  style={{ background: "linear-gradient(135deg, oklch(0.72_0.18_150_/_0.05), oklch(0.65_0.22_200_/_0.05))" }}>
+                  <Award size={44} className="mx-auto mb-3" style={{ color: "oklch(0.72_0.18_150)" }} />
+                  <h3 className="text-xl font-bold text-foreground mb-2">AI Literacy — Module 3 Complete</h3>
+                  <p className="text-sm text-muted-foreground mb-5 leading-relaxed max-w-md mx-auto">You've completed "AI in Your Everyday Life." You now understand how AI intersects with your health decisions, financial security, creative practice, and personal privacy — and you have a concrete action committed for this week.</p>
+                  <div className="flex justify-center gap-2 flex-wrap">
+                    {[
+                      { label: "Health AI Literate", color: "oklch(0.68_0.22_20)" },
+                      { label: "Scam Resistant", color: "oklch(0.75_0.18_55)" },
+                      { label: "AI Creative", color: "oklch(0.72_0.2_290)" },
+                      { label: "Privacy Aware", color: "oklch(0.65_0.22_200)" },
+                      { label: "Module 3 Certified", color: "oklch(0.72_0.18_150)" },
+                    ].map(({ label, color }) => (
+                      <span key={label} className="px-3 py-1.5 rounded-full text-xs font-semibold border"
+                        style={{ color, borderColor: color, background: `oklch(from ${color} l c h / 0.1)` }}>
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </M3Shell>
+      )}
+    </AnimatePresence>
+  );
+
+  // ── Module 3 lesson grid ──
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.3)]">Module 3</span>
+              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Intermediate · ~2 hrs · 380 XP</span>
+            </div>
+            <h3 className="text-lg font-bold text-foreground">AI in Your Everyday Life</h3>
+            <p className="text-sm text-muted-foreground">Health, money, creativity, privacy — where AI touches you most personally</p>
+          </div>
+          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.72_0.18_150)" }}>{overallPct}%</span>}
+        </div>
+        {completedLessons.size > 0 && (
+          <div className="w-full h-1.5 rounded-full bg-white/8">
+            <div className="h-full rounded-full transition-all" style={{ width: `${overallPct}%`, background: "linear-gradient(to right, oklch(0.68_0.22_20), oklch(0.72_0.18_150))" }} />
+          </div>
+        )}
+      </div>
+      <div className="space-y-2">
+        {M3_LESSON_META.map((lesson, i) => {
+          const done = completedLessons.has(lesson.id);
+          const locked = i > 0 && !completedLessons.has(M3_LESSON_META[i - 1].id);
+          return (
+            <motion.button key={lesson.id} onClick={() => !locked && setActiveLesson(lesson.id)}
+              whileHover={!locked ? { scale: 1.005, x: 4 } : {}}
+              className={`w-full glass rounded-2xl p-5 border text-left transition-all ${ done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : locked ? "border-white/5 opacity-50 cursor-not-allowed" : "border-white/8 hover:border-white/20" }`}>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm"
+                  style={{ background: done ? `color-mix(in oklch, ${lesson.color} 20%, transparent)` : "oklch(1_0_0_/_0.04)", border: `1px solid color-mix(in oklch, ${lesson.color} ${done ? "40" : "20"}%, transparent)`, color: done ? lesson.color : "oklch(0.7_0_0)" }}>
+                  {done ? <CheckCircle2 size={18} /> : locked ? <Lock size={14} /> : lesson.id - 10}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground text-sm">{lesson.title}</div>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug truncate">{lesson.subtitle}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
+                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp}</span>
+                  {!locked && <ChevronRight size={13} className="text-muted-foreground" />}
+                </div>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 }
 
