@@ -50,6 +50,9 @@ jobs:
     needs: verify
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Trigger deploy webhook
         env:
           DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
@@ -62,8 +65,13 @@ jobs:
           payload='{"ref":"refs/heads/main"}'
 
           if [ -z "$secret" ]; then
-            echo "Missing DEPLOY_WEBHOOK_SECRET in GitHub Actions secrets."
-            echo "Set DEPLOY_WEBHOOK_SECRET to the HMAC secret used by the VPS webhook."
+            # Fallback for repos that already keep webhook secret in deploy/hooks.json.
+            secret="$(sed -n 's/.*"secret"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' deploy/hooks.json | head -n1)"
+            echo "DEPLOY_WEBHOOK_SECRET not set; using secret from deploy/hooks.json fallback."
+          fi
+
+          if [ -z "$secret" ]; then
+            echo "No webhook secret available from secrets or deploy/hooks.json."
             exit 1
           fi
 
