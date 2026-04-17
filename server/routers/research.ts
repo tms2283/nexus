@@ -8,6 +8,33 @@ import { callAI } from "./shared";
 import { researchSources, researchProjects, audioOverviews } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 const RESEARCH_SERVICE_URL = process.env.RESEARCH_SERVICE_URL || "http://localhost:8001/api";
+const RESEARCH_SERVICE_ORIGIN = RESEARCH_SERVICE_URL.replace(/\/api$/, "");
+
+type ResearchServiceSource = {
+  id: number;
+  title: string;
+  url: string;
+  author?: string | null;
+  publish_date?: string | null;
+  summary?: string | null;
+  topics?: string[];
+};
+
+type ResearchServiceSourceDetail = {
+  id: number;
+  title: string;
+  url: string;
+  author?: string | null;
+  publish_date?: string | null;
+  full_text?: string | null;
+  description?: string | null;
+  summary?: {
+    short?: string | null;
+    detailed?: string | null;
+    key_points?: string[];
+    topics?: string[];
+  };
+};
 
 // ─── SSRF protection — block private/loopback/link-local IP ranges ───────────
 // Covers IPv4 private ranges, IPv6 loopback/link-local, AWS metadata, and
@@ -53,6 +80,27 @@ async function callResearchService<T>(path: string, body?: unknown): Promise<T> 
     throw new Error(`Research service error ${res.status}: ${msg}`);
   }
   return res.json() as Promise<T>;
+}
+
+async function assertProjectOwnership(cookieId: string, projectId: number) {
+  const db = await getDb();
+  if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+  const rows = await db.select().from(researchProjects).where(eq(researchProjects.id, projectId)).limit(1);
+  const project = rows[0];
+  if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
+  if (project.cookieId !== cookieId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+  }
+  return project;
+}
+
+function getServiceProjectId(project: { id: number; sessionId: number | null }) {
+  return project.sessionId ?? project.id;
+}
+
+function resolveResearchServiceUrl(url: string) {
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${RESEARCH_SERVICE_ORIGIN}${url}`;
 }
 
 export const researchRouter = router({
@@ -183,13 +231,37 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database unavailable");
-      // Create project record
-      const insertResult = await db.insert(researchProjects).values({ cookieId: input.cookieId, name: input.projectName, topic: input.projectName, sourceCount: 0 });
+      const serviceProject = await callResearchService<{
+        project_id: number;
+        project_name: string;
+        created: number;
+        failed: number;
+        processing: string;
+      }>("/sources/create-batch", {
+        sources: input.sources,
+        project_name: input.projectName,
+      }).catch((err) => {
+        console.warn("[research.ingest] Research service unavailable:", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Research pipeline is unavailable. Start the research service and try again.",
+        });
+      });
+      if (!serviceProject.project_id) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Research pipeline did not return a project id.",
+        });
+      }
+      // Create project record linked to the external research project
+      const insertResult = await db.insert(researchProjects).values({
+        cookieId: input.cookieId,
+        sessionId: serviceProject.project_id,
+        name: input.projectName,
+        topic: input.projectName,
+        sourceCount: input.sources.length,
+      });
       const projectId = (insertResult[0] as { insertId?: number }).insertId ?? 0;
-      // Fire-and-forget scrape + embed via Python service
-      callResearchService("/sources/create-batch", {
-        sources: input.sources, project_name: input.projectName,
-      }).catch(err => console.warn("[research.ingest] Research service unavailable:", err));
       // Save source stubs to MySQL immediately (full text fills in async)
       for (const src of input.sources) {
         await db.insert(researchSources).values({
@@ -199,7 +271,6 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
           score: src.score ?? 0.5,
         }).onDuplicateKeyUpdate({ set: { title: src.title } }).catch(() => {});
       }
-      await db.update(researchProjects).set({ sourceCount: input.sources.length }).where(eq(researchProjects.id, projectId));
       await addXP(input.cookieId, 25);
       return { projectId, sourceCount: input.sources.length, success: true };
     }),
@@ -222,18 +293,11 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
   ragChat: publicProcedure
     .input(z.object({ cookieId: z.string(), projectId: z.number(), question: z.string().min(2).max(2000) }))
     .mutation(async ({ input }) => {
-      // Ownership check — verify the project belongs to this visitor
-      const db = await getDb();
-      if (db) {
-        const projects = await db.select({ cookieId: researchProjects.cookieId })
-          .from(researchProjects).where(eq(researchProjects.id, input.projectId)).limit(1);
-        if (projects.length > 0 && projects[0].cookieId !== input.cookieId) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
-        }
-      }
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
       try {
         const result = await callResearchService<{ answer: string; citations: Array<{ title: string; url: string; excerpt: string }> }>(
-          "/chat", { question: input.question, project_id: input.projectId, top_k: 5 }
+          "/chat", { question: input.question, project_id: serviceProjectId, top_k: 5 }
         );
         await addXP(input.cookieId, 5);
         return result;
@@ -251,18 +315,11 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       format: z.enum(["json", "csv", "markdown", "anki"]),
     }))
     .mutation(async ({ input }) => {
-      // Ownership check — verify this project belongs to the caller
-      const db = await getDb();
-      if (db) {
-        const projects = await db.select({ cookieId: researchProjects.cookieId })
-          .from(researchProjects).where(eq(researchProjects.id, input.projectId)).limit(1);
-        if (projects.length > 0 && projects[0].cookieId !== input.cookieId) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
-        }
-      }
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
       try {
         const result = await callResearchService<string | Record<string, unknown>>(
-          `/export/${input.projectId}?format=${input.format}`
+          `/export/${serviceProjectId}?format=${input.format}`
         );
         const content = typeof result === "string" ? result : JSON.stringify(result, null, 2);
         return { content, format: input.format };
@@ -279,6 +336,122 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       if (!db) return { projects: [] };
       const projects = await db.select().from(researchProjects).where(eq(researchProjects.cookieId, input.cookieId)).orderBy(desc(researchProjects.createdAt)).limit(50);
       return { projects };
+    }),
+
+  getProjectWorkspace: publicProcedure
+    .input(z.object({ cookieId: z.string(), projectId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
+      try {
+        const [sourcesResult, summaryResult, insightsResult, graphResult] = await Promise.all([
+          callResearchService<{ sources: ResearchServiceSource[]; count: number }>(`/projects/${serviceProjectId}/sources`),
+          callResearchService<{ global_summary: string; source_count: number }>(`/projects/${serviceProjectId}/summary`),
+          callResearchService<Record<string, unknown>>(`/projects/${serviceProjectId}/insights`),
+          callResearchService<{ nodes: Array<{ id: string; label: string; type: string }>; edges: Array<{ from: string; to: string; label: string }> }>(`/projects/${serviceProjectId}/graph`),
+        ]);
+
+        return {
+          project: {
+            id: project.id,
+            name: project.name,
+            topic: project.topic,
+            sourceCount: project.sourceCount,
+            isIndexed: !!project.sessionId,
+            createdAt: project.createdAt,
+          },
+          sources: sourcesResult.sources ?? [],
+          summary: summaryResult.global_summary ?? "",
+          insights: insightsResult,
+          graph: graphResult,
+        };
+      } catch (err) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: err instanceof Error ? err.message : "Research workspace unavailable",
+        });
+      }
+    }),
+
+  getSourceDetail: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      projectId: z.number().int().positive(),
+      sourceId: z.number().int().positive(),
+    }))
+    .query(async ({ input }) => {
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
+
+      const projectSources = await callResearchService<{ sources: ResearchServiceSource[]; count: number }>(
+        `/projects/${serviceProjectId}/sources`
+      );
+      const belongsToProject = (projectSources.sources ?? []).some((source) => source.id === input.sourceId);
+      if (!belongsToProject) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Source not found in this project" });
+      }
+
+      return callResearchService<ResearchServiceSourceDetail>(`/sources/${input.sourceId}`);
+    }),
+
+  listProjectAudioOverviews: publicProcedure
+    .input(z.object({ cookieId: z.string(), projectId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
+      const response = await callResearchService<{ items: Array<{
+        id: number;
+        title: string;
+        summary: string;
+        voice_a: string;
+        voice_b: string;
+        style: string;
+        duration_seconds: number;
+        created_at: string | null;
+        audio_url: string;
+        cached?: boolean;
+      }> }>(`/projects/${serviceProjectId}/audio-overviews`);
+      return {
+        items: (response.items ?? []).map((item) => ({
+          ...item,
+          audio_url: resolveResearchServiceUrl(item.audio_url),
+        })),
+      };
+    }),
+
+  generateProjectAudioOverview: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      projectId: z.number().int().positive(),
+      forceRefresh: z.boolean().optional(),
+      voiceA: z.string().optional(),
+      voiceB: z.string().optional(),
+      style: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
+      const item = await callResearchService<{
+        id: number;
+        title: string;
+        summary: string;
+        voice_a: string;
+        voice_b: string;
+        style: string;
+        duration_seconds: number;
+        created_at: string | null;
+        audio_url: string;
+        cached?: boolean;
+      }>(`/projects/${serviceProjectId}/audio-overviews`, {
+        force_refresh: input.forceRefresh ?? false,
+        voice_a: input.voiceA ?? "Kore",
+        voice_b: input.voiceB ?? "Puck",
+        style: input.style ?? "conversational",
+      });
+      return {
+        ...item,
+        audio_url: resolveResearchServiceUrl(item.audio_url),
+      };
     }),
 
   // ─── Generate audio overview (ElevenLabs) ───────────────────────────────

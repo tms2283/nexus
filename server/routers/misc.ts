@@ -70,13 +70,18 @@ export const aiProviderRouter = router({
     .input(z.object({ cookieId: z.string() }))
     .query(async ({ input }) => {
       const s = await getAIProviderSettings(input.cookieId);
-      return { provider: s?.provider ?? "gemini", model: s?.model ?? null, hasCustomKey: !!(s?.apiKey), defaultModels: DEFAULT_MODELS };
+      return {
+        provider: s?.provider === "openai" ? "gemini" : (s?.provider ?? "gemini"),
+        model: s?.model ?? null,
+        hasCustomKey: !!(s?.apiKey),
+        defaultModels: DEFAULT_MODELS,
+      };
     }),
 
   set: publicProcedure
     .input(z.object({
       cookieId: z.string(),
-      provider: z.enum(["gemini", "perplexity", "openai"]),
+      provider: z.enum(["gemini", "perplexity"]),
       apiKey: z.string().optional(),
       model: z.string().optional(),
     }))
@@ -86,14 +91,20 @@ export const aiProviderRouter = router({
     }),
 
   test: publicProcedure
-    .input(z.object({ provider: z.enum(["gemini", "perplexity", "openai"]), apiKey: z.string().optional(), model: z.string().optional() }))
+    .input(z.object({ provider: z.enum(["gemini", "perplexity"]), apiKey: z.string().optional(), model: z.string().optional() }))
     .mutation(async ({ input }) => testProviderConnection({ provider: input.provider as AIProvider, apiKey: input.apiKey ?? null, model: input.model ?? null })),
 
   clearKey: publicProcedure
     .input(z.object({ cookieId: z.string() }))
     .mutation(async ({ input }) => {
       const s = await getAIProviderSettings(input.cookieId);
-      if (s) await upsertAIProviderSettings(input.cookieId, { provider: s.provider, apiKey: undefined, model: s.model ?? undefined });
+      if (s) {
+        await upsertAIProviderSettings(input.cookieId, {
+          provider: s.provider === "openai" ? "gemini" : s.provider,
+          apiKey: undefined,
+          model: s.model ?? undefined,
+        });
+      }
       return { success: true };
     }),
 });

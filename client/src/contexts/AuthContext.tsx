@@ -22,7 +22,7 @@ interface AuthContextValue {
   continueAsGuest: () => void;
   logout: () => void;
   setUser: (user: AuthUser | null) => void;
-  refreshUser: () => void;
+  refreshUser: () => Promise<AuthUser | null>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -33,7 +33,7 @@ const AuthContext = createContext<AuthContextValue>({
   continueAsGuest: () => {},
   logout: () => {},
   setUser: () => {},
-  refreshUser: () => {},
+  refreshUser: async () => null,
 });
 
 const GUEST_KEY = "nexus_guest_mode";
@@ -79,8 +79,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logoutMutation.mutate();
   }, [logoutMutation]);
 
-  const refreshUser = useCallback(() => {
-    meQuery.refetch();
+  const refreshUser = useCallback(async () => {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const result = await meQuery.refetch();
+      const nextUser = (result.data ?? null) as AuthUser | null;
+
+      if (nextUser) {
+        setUser(nextUser);
+        setIsGuest(false);
+        localStorage.removeItem(GUEST_KEY);
+        return nextUser;
+      }
+
+      if (attempt < 2) {
+        // Give the browser a beat to persist the auth cookie after OAuth returns.
+        await new Promise((resolve) => window.setTimeout(resolve, 250 * (attempt + 1)));
+      }
+    }
+
+    setUser(null);
+    return null;
   }, [meQuery]);
 
   return (

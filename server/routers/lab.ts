@@ -75,14 +75,13 @@ export const labRouter = router({
     }),
 
   tokenCount: publicProcedure
-    .input(z.object({ cookieId: z.string(), text: z.string(), model: z.enum(["gpt-4o", "gpt-3.5-turbo", "claude-3-opus", "gemini-1.5-pro", "llama-3-70b"]) }))
+    .input(z.object({ cookieId: z.string(), text: z.string(), model: z.enum(["claude-3-opus", "gemini-1.5-pro", "gemini-2.5-pro", "llama-3-70b"]) }))
     .mutation(async ({ input }) => {
       const approxTokens = Math.round(input.text.length / 4);
       const pricing: Record<string, { input: number; output: number; contextWindow: number }> = {
-        "gpt-4o": { input: 2.50, output: 10.00, contextWindow: 128000 },
-        "gpt-3.5-turbo": { input: 0.50, output: 1.50, contextWindow: 16385 },
         "claude-3-opus": { input: 15.00, output: 75.00, contextWindow: 200000 },
         "gemini-1.5-pro": { input: 1.25, output: 5.00, contextWindow: 1000000 },
+        "gemini-2.5-pro": { input: 1.25, output: 10.00, contextWindow: 1000000 },
         "llama-3-70b": { input: 0.59, output: 0.79, contextWindow: 8192 },
       };
       const m = pricing[input.model];

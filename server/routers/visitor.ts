@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
-import { getOrCreateVisitorProfile, recordPageVisit, addXP, updateVisitorProfile } from "../db";
+import { getOrCreateVisitorProfile, recordPageVisit, addXP, updateVisitorProfile, getDb } from "../db";
 import { checkXpRateLimit } from "../_core/xpRateLimit";
 import { parse as parseCookieHeader } from "cookie";
+import { pageViews } from "../../drizzle/schema";
 
 // ─── Helper: resolve cookieId from the request cookie header ─────────────────
 // The visitor identity (cookieId) is stored in a separate first-party cookie
@@ -29,7 +30,21 @@ export const visitorRouter = router({
 
   recordVisit: publicProcedure
     .input(z.object({ cookieId: z.string(), page: z.string().max(512) }))
-    .mutation(async ({ input }) => recordPageVisit(input.cookieId, input.page)),
+    .mutation(async ({ input, ctx }) => {
+      const result = await recordPageVisit(input.cookieId, input.page);
+      const db = await getDb();
+      if (db) {
+        const referrerHeader = ctx.req.headers.referer;
+        const userAgentHeader = ctx.req.headers["user-agent"];
+        await db.insert(pageViews).values({
+          path: input.page,
+          referrer: typeof referrerHeader === "string" ? referrerHeader : undefined,
+          ipAddress: ctx.req.ip ?? undefined,
+          userAgent: typeof userAgentHeader === "string" ? userAgentHeader : undefined,
+        });
+      }
+      return result;
+    }),
 
   // ─── addXP: server-side cookieId verification + rate limiting ─────────────
   addXP: publicProcedure

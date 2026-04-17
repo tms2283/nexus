@@ -2,6 +2,7 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import { type Permission, userHasPermission } from "../permissions/rbac";
 
 // ─── User-facing error messages keyed by tRPC error code ─────────────────────
 // Raw tRPC errors (especially TOO_MANY_REQUESTS) contain internal stack traces
@@ -68,3 +69,18 @@ export const adminProcedure = t.procedure.use(
     });
   }),
 );
+
+export function permissionProcedure(permission: Permission) {
+  return protectedProcedure.use(
+    t.middleware(async ({ ctx, next }) => {
+      if (!ctx.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+      }
+      const allowed = await userHasPermission(ctx.user, permission);
+      if (!allowed) {
+        throw new TRPCError({ code: "FORBIDDEN", message: `Missing permission: ${permission}` });
+      }
+      return next();
+    })
+  );
+}

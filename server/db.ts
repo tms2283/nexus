@@ -406,7 +406,7 @@ export async function getAIProviderSettings(cookieId: string): Promise<AIProvide
 }
 
 export async function upsertAIProviderSettings(cookieId: string, data: {
-  provider: "gemini" | "perplexity" | "openai";
+  provider: "gemini" | "perplexity";
   apiKey?: string;
   model?: string;
 }): Promise<void> {

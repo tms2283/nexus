@@ -604,3 +604,168 @@ export interface MindMapNode {
   expanded?: boolean;
   notes?: string;
 }
+
+// Admin/Studio platform tables (hybrid desktop + web control plane)
+export const roleAssignments = mysqlTable("role_assignments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", ["owner", "admin", "editor", "analyst", "support"]).notNull(),
+  assignedByUserId: int("assignedByUserId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  userRoleIdx: index("role_assignments_user_role_idx").on(t.userId, t.role),
+}));
+export type RoleAssignment = typeof roleAssignments.$inferSelect;
+export type InsertRoleAssignment = typeof roleAssignments.$inferInsert;
+
+export const auditLogs = mysqlTable("audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  actorUserId: int("actorUserId"),
+  action: varchar("action", { length: 128 }).notNull(),
+  resourceType: varchar("resourceType", { length: 128 }).notNull(),
+  resourceId: varchar("resourceId", { length: 128 }),
+  beforeJson: json("beforeJson").$type<Record<string, unknown> | null>(),
+  afterJson: json("afterJson").$type<Record<string, unknown> | null>(),
+  ipAddress: varchar("ipAddress", { length: 64 }),
+  userAgent: varchar("userAgent", { length: 512 }),
+  clientType: mysqlEnum("clientType", ["web-admin", "desktop-studio", "system"]).default("web-admin").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  actorIdx: index("audit_logs_actor_idx").on(t.actorUserId),
+  actionIdx: index("audit_logs_action_idx").on(t.action),
+  resourceIdx: index("audit_logs_resource_idx").on(t.resourceType, t.resourceId),
+  createdAtIdx: index("audit_logs_createdAt_idx").on(t.createdAt),
+}));
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+export const pages = mysqlTable("pages", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  title: varchar("title", { length: 512 }).notNull(),
+  status: mysqlEnum("status", ["draft", "staged", "published", "archived"]).default("draft").notNull(),
+  currentRevisionId: int("currentRevisionId"),
+  publishedRevisionId: int("publishedRevisionId"),
+  createdBy: int("createdBy"),
+  updatedBy: int("updatedBy"),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  statusIdx: index("pages_status_idx").on(t.status),
+}));
+export type Page = typeof pages.$inferSelect;
+export type InsertPage = typeof pages.$inferInsert;
+
+export const pageSections = mysqlTable("page_sections", {
+  id: int("id").autoincrement().primaryKey(),
+  pageId: int("pageId").notNull(),
+  variantId: int("variantId"),
+  type: varchar("type", { length: 64 }).notNull(),
+  position: int("position").notNull(),
+  contentJson: json("contentJson").$type<Record<string, unknown>>().notNull(),
+  settingsJson: json("settingsJson").$type<Record<string, unknown>>(),
+  isVisible: boolean("isVisible").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  pagePosIdx: index("page_sections_page_pos_idx").on(t.pageId, t.position),
+  variantPosIdx: index("page_sections_variant_pos_idx").on(t.variantId, t.position),
+}));
+export type PageSection = typeof pageSections.$inferSelect;
+export type InsertPageSection = typeof pageSections.$inferInsert;
+
+export const pageVariants = mysqlTable("page_variants", {
+  id: int("id").autoincrement().primaryKey(),
+  pageId: int("pageId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["candidate", "rejected", "archived", "published"]).default("candidate").notNull(),
+  hypothesis: text("hypothesis"),
+  commentary: text("commentary"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  pageStatusIdx: index("page_variants_page_status_idx").on(t.pageId, t.status),
+}));
+export type PageVariant = typeof pageVariants.$inferSelect;
+export type InsertPageVariant = typeof pageVariants.$inferInsert;
+
+export const pageRevisions = mysqlTable("page_revisions", {
+  id: int("id").autoincrement().primaryKey(),
+  pageId: int("pageId").notNull(),
+  variantId: int("variantId"),
+  snapshotJson: json("snapshotJson").$type<Record<string, unknown>>().notNull(),
+  createdBy: int("createdBy"),
+  revisionLabel: varchar("revisionLabel", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  pageCreatedAtIdx: index("page_revisions_page_created_idx").on(t.pageId, t.createdAt),
+}));
+export type PageRevision = typeof pageRevisions.$inferSelect;
+export type InsertPageRevision = typeof pageRevisions.$inferInsert;
+
+export const aiRequests = mysqlTable("ai_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  requestId: varchar("requestId", { length: 64 }).notNull().unique(),
+  userId: int("userId"),
+  feature: varchar("feature", { length: 128 }).notNull(),
+  provider: varchar("provider", { length: 64 }).notNull(),
+  model: varchar("model", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["success", "error"]).notNull(),
+  latencyMs: int("latencyMs").notNull(),
+  timeToFirstTokenMs: int("timeToFirstTokenMs"),
+  inputTokens: int("inputTokens").default(0).notNull(),
+  outputTokens: int("outputTokens").default(0).notNull(),
+  estimatedCostUsd: float("estimatedCostUsd").default(0).notNull(),
+  errorType: varchar("errorType", { length: 128 }),
+  errorMessage: text("errorMessage"),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  finishedAt: timestamp("finishedAt").defaultNow().notNull(),
+}, (t) => ({
+  featureIdx: index("ai_requests_feature_idx").on(t.feature),
+  providerModelIdx: index("ai_requests_provider_model_idx").on(t.provider, t.model),
+  statusIdx: index("ai_requests_status_idx").on(t.status),
+  finishedIdx: index("ai_requests_finished_idx").on(t.finishedAt),
+}));
+export type AiRequest = typeof aiRequests.$inferSelect;
+export type InsertAiRequest = typeof aiRequests.$inferInsert;
+
+export const providerHealthChecks = mysqlTable("provider_health_checks", {
+  id: int("id").autoincrement().primaryKey(),
+  provider: varchar("provider", { length: 64 }).notNull(),
+  model: varchar("model", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["healthy", "degraded", "down"]).notNull(),
+  latencyMs: int("latencyMs"),
+  errorMessage: text("errorMessage"),
+  checkedAt: timestamp("checkedAt").defaultNow().notNull(),
+}, (t) => ({
+  providerTimeIdx: index("provider_health_checks_provider_time_idx").on(t.provider, t.checkedAt),
+}));
+export type ProviderHealthCheck = typeof providerHealthChecks.$inferSelect;
+
+export const pageViews = mysqlTable("page_views", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  path: varchar("path", { length: 512 }).notNull(),
+  referrer: varchar("referrer", { length: 1024 }),
+  ipAddress: varchar("ipAddress", { length: 64 }),
+  userAgent: varchar("userAgent", { length: 512 }),
+  viewedAt: timestamp("viewedAt").defaultNow().notNull(),
+}, (t) => ({
+  pathIdx: index("page_views_path_idx").on(t.path),
+  viewedAtIdx: index("page_views_viewedAt_idx").on(t.viewedAt),
+}));
+export type PageView = typeof pageViews.$inferSelect;
+
+export const eventMetrics = mysqlTable("event_metrics", {
+  id: int("id").autoincrement().primaryKey(),
+  metric: varchar("metric", { length: 128 }).notNull(),
+  dimension: varchar("dimension", { length: 128 }),
+  value: float("value").notNull(),
+  measuredAt: timestamp("measuredAt").defaultNow().notNull(),
+}, (t) => ({
+  metricTimeIdx: index("event_metrics_metric_time_idx").on(t.metric, t.measuredAt),
+}));
+export type EventMetric = typeof eventMetrics.$inferSelect;

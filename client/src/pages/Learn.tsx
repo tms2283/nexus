@@ -6622,6 +6622,7 @@ function SocraticTutor() {
 function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [, setLocation] = useLocation();
   const categories = ["All", ...Array.from(new Set(featuredPaths.map(p => p.category)))];
   const filtered = featuredPaths.filter(p => {
     const matchCat = activeCategory === "All" || p.category === activeCategory;
@@ -6665,7 +6666,7 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               className="glass rounded-xl p-5 border border-white/8 hover:border-white/15 transition-all group cursor-pointer relative"
-              onClick={() => onSelectPath(path.title)}
+              onClick={() => path.href ? setLocation(path.href) : onSelectPath(path.title)}
             >
               {path.popular && (
                 <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
@@ -6690,10 +6691,17 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
                 </div>
                 <motion.button
                   whileHover={{ x: 3 }}
-                  onClick={(e) => { e.stopPropagation(); onSelectPath(path.title); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (path.href) {
+                      setLocation(path.href);
+                      return;
+                    }
+                    onSelectPath(path.title);
+                  }}
                   className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  Generate path <ArrowRight size={12} />
+                  {path.href ? "Open course" : "Generate path"} <ArrowRight size={12} />
                 </motion.button>
               </div>
             </motion.div>
@@ -6706,7 +6714,7 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
 
 // ─── Featured Learning Paths ────────────────────────────────────────────
 const featuredPaths = [
-  { title: "AI & Machine Learning Fundamentals", level: "Beginner", duration: "8 weeks", modules: 12, category: "Technology", color: "oklch(0.75_0.18_55)", popular: true },
+  { title: "AI Literacy for Adults - Full Course", level: "Beginner", duration: "3 hours", modules: 5, category: "AI", color: "oklch(0.75_0.18_55)", popular: true, href: "/ai-literacy" },
   { title: "Full-Stack Web Development", level: "Intermediate", duration: "12 weeks", modules: 16, category: "Engineering", color: "oklch(0.65_0.22_200)", popular: true },
   { title: "Data Science & Analytics", level: "Beginner", duration: "10 weeks", modules: 14, category: "Data", color: "oklch(0.72_0.2_290)", popular: false },
   { title: "Systems Thinking & Design", level: "Advanced", duration: "6 weeks", modules: 8, category: "Strategy", color: "oklch(0.72_0.18_150)", popular: false },

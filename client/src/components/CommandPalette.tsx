@@ -110,6 +110,9 @@ export default function CommandPalette() {
     { id: "dashboard", label: "My Progress", description: "Track your learning journey", icon: <BarChart3 size={16} />, action: () => goto("/dashboard"), category: "Tools", keywords: ["progress", "stats", "charts", "scores"] },
     { id: "leaderboard", label: "Leaderboard", description: "Global XP rankings", icon: <Trophy size={16} />, action: () => goto("/leaderboard"), category: "Tools", keywords: ["rank", "top", "xp", "global"] },
     { id: "settings", label: "AI Settings", description: "Configure AI providers & API keys", icon: <Settings2 size={16} />, action: () => goto("/settings"), category: "Tools", keywords: ["api", "key", "provider", "config"] },
+    { id: "web-admin", label: "Web Admin Lite", description: "Operational dashboard and publishing controls", icon: <Settings2 size={16} />, action: () => goto("/admin"), category: "Admin", keywords: ["admin", "dashboard", "publish", "audit"] },
+    { id: "desktop-studio", label: "Desktop Studio", description: "Draft sync and conflict-aware workspace", icon: <FlaskConical size={16} />, action: () => goto("/studio"), category: "Admin", keywords: ["studio", "sync", "variant", "workflow"] },
+    { id: "ai-literacy", label: "AI Literacy Course", description: "Module 1 - Introduction to AI for Adults", icon: <GraduationCap size={16} />, action: () => goto("/ai-literacy"), category: "Courses", keywords: ["ai", "literacy", "course", "module", "beginner", "intro", "learn"] },
     // Quick actions
     { id: "iq-test", label: "Take IQ Test", description: "Start the full IQ assessment", icon: <Zap size={16} />, action: () => goto("/testing"), category: "Quick Actions", keywords: ["iq", "intelligence", "test"] },
     { id: "new-research", label: "Start Research Session", description: "Open Research Forge", icon: <Search size={16} />, action: () => goto("/research"), category: "Quick Actions", keywords: ["research", "new", "start"] },

@@ -15,6 +15,8 @@ import { foundationRouter } from "./foundation";
 import { leaderboardRouter, dashboardRouter } from "./dashboard";
 import { contactRouter, codexRouter, aiProviderRouter, dailyRouter } from "./misc";
 import { skillsRouter } from "./skills";
+import { adminRouter } from "./admin";
+import { studioRouter } from "./studio";
 
 export const appRouter = router({
   system: systemRouter,
@@ -36,6 +38,8 @@ export const appRouter = router({
   aiProvider: aiProviderRouter,
   daily: dailyRouter,
   skills: skillsRouter,
+  admin: adminRouter,
+  studio: studioRouter,
 });
 
 export type AppRouter = typeof appRouter;

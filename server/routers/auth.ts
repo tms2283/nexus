@@ -15,6 +15,19 @@ import { ENV } from "../_core/env";
 
 const googleClient = new OAuth2Client(ENV.googleClientId);
 
+function tryDecodeJwtPayload(token: string) {
+  try {
+    const [, payload] = token.split(".");
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4 || 4)) % 4);
+    const json = Buffer.from(padded, "base64").toString("utf8");
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Input schemas ────────────────────────────────────────────────────────────
 
 const registerSchema = z.object({
@@ -150,6 +163,21 @@ export const authRouter = router({
         const { passwordHash: _, ...safeUser } = user;
         return { user: safeUser };
       } catch (e) {
+        const decodedPayload = tryDecodeJwtPayload(input.idToken);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.error("[auth.googleSignIn] verification failed", {
+          message: errorMessage,
+          host: ctx.req.headers.host,
+          origin: ctx.req.headers.origin,
+          referer: ctx.req.headers.referer,
+          secure: ctx.req.secure,
+          forwardedProto: ctx.req.headers["x-forwarded-proto"],
+          configuredAudience: ENV.googleClientId,
+          tokenAudience: decodedPayload?.aud ?? null,
+          tokenAuthorizedParty: decodedPayload?.azp ?? null,
+          tokenIssuer: decodedPayload?.iss ?? null,
+          tokenPrefix: input.idToken.slice(0, 16),
+        });
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Google sign-in failed. Please try again." });
       }
     }),

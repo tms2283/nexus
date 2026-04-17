@@ -15,14 +15,19 @@ import {
   BookOpen,
   Search,
   Flame,
+  GraduationCap,
   TrendingUp,
   User,
   BookMarked,
   Layers,
+  ShieldCheck,
+  MonitorCog,
   LogOut,
+  PenSquare,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const navLinks = [
   { href: "/app", label: "Home" },
@@ -85,6 +90,12 @@ const toolsLinks = [
     desc: "Today's AI challenge",
   },
   {
+    href: "/ai-literacy",
+    label: "AI Literacy Course",
+    Icon: GraduationCap,
+    desc: "Module 1 - Intro to AI",
+  },
+  {
     href: "/progress",
     label: "Progress",
     Icon: TrendingUp,
@@ -108,6 +119,18 @@ const toolsLinks = [
     Icon: User,
     desc: "Your account & preferences",
   },
+  {
+    href: "/admin",
+    label: "Web Admin Lite",
+    Icon: ShieldCheck,
+    desc: "Operations and publishing controls",
+  },
+  {
+    href: "/studio",
+    label: "Desktop Studio",
+    Icon: MonitorCog,
+    desc: "Draft sync and conflict workspace",
+  },
 ];
 
 export default function Navigation() {
@@ -117,7 +140,9 @@ export default function Navigation() {
   const [toolsOpen, setToolsOpen] = useState(false);
   const { profile } = usePersonalization();
   const { user, isGuest, logout } = useAuth();
+  const { isEditMode, toggleEditMode } = useEditMode();
   const toolsRef = useRef<HTMLDivElement>(null);
+  const canEdit = user?.role === "admin";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -274,24 +299,40 @@ export default function Navigation() {
           </div>
 
           {/* Ctrl/Cmd+K search button */}
-          <button
-            onClick={() => {
-              const event = new KeyboardEvent("keydown", {
-                key: "k",
-                metaKey: true,
-                ctrlKey: true,
-                bubbles: true,
-              });
-              window.dispatchEvent(event);
-            }}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-xs text-muted-foreground hover:bg-white/8 hover:text-foreground transition-all group"
-          >
-            <Search size={12} />
-            <span>Search</span>
-            <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/8 text-[10px] font-mono group-hover:bg-white/12 transition-colors">
-              Ctrl/Cmd+K
-            </kbd>
-          </button>
+          <div className="hidden md:flex items-center gap-2">
+            {canEdit && (
+              <button
+                onClick={toggleEditMode}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-all ${
+                  isEditMode
+                    ? "border-[oklch(0.75_0.18_55_/_0.45)] bg-[oklch(0.75_0.18_55_/_0.18)] text-[oklch(0.85_0.18_55)]"
+                    : "bg-white/5 border-white/8 text-muted-foreground hover:bg-white/8 hover:text-foreground"
+                }`}
+              >
+                <PenSquare size={12} />
+                {isEditMode ? "Editing" : "Edit Mode"}
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                const event = new KeyboardEvent("keydown", {
+                  key: "k",
+                  metaKey: true,
+                  ctrlKey: true,
+                  bubbles: true,
+                });
+                window.dispatchEvent(event);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-xs text-muted-foreground hover:bg-white/8 hover:text-foreground transition-all group"
+            >
+              <Search size={12} />
+              <span>Search</span>
+              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/8 text-[10px] font-mono group-hover:bg-white/12 transition-colors">
+                Ctrl/Cmd+K
+              </kbd>
+            </button>
+          </div>
 
           {/* XP indicator + user info + mobile menu */}
           <div className="flex items-center gap-3">

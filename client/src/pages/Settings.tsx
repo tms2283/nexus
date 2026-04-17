@@ -11,7 +11,7 @@ import {
   Cpu, Globe, Sparkles
 } from "lucide-react";
 
-type AIProvider = "gemini" | "perplexity" | "openai";
+type AIProvider = "gemini" | "perplexity";
 
 const PROVIDERS: Array<{
   id: AIProvider;
@@ -46,23 +46,11 @@ const PROVIDERS: Array<{
     color: "from-teal-600 to-emerald-500",
     icon: "P",
   },
-  {
-    id: "openai",
-    name: "OpenAI GPT",
-    description: "The industry-standard AI with exceptional instruction-following, code generation, and structured output capabilities.",
-    strengths: ["Excellent code generation", "JSON mode", "Function calling", "Wide ecosystem"],
-    docsUrl: "https://platform.openai.com/docs",
-    keyUrl: "https://platform.openai.com/api-keys",
-    keyPlaceholder: "sk-...",
-    color: "from-violet-600 to-purple-500",
-    icon: "O",
-  },
 ];
 
 const MODELS: Record<AIProvider, string[]> = {
   gemini: ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
   perplexity: ["llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online", "llama-3.1-sonar-huge-128k-online"],
-  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
 };
 
 export default function Settings() {

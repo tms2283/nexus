@@ -64,7 +64,7 @@ const experiments = [
   { id: "particle-sim", title: "Particle Physics Sim", desc: "Real-time particle simulation with gravity and collision detection. Click to spawn particles. Built with Canvas API.", status: "live", color: "oklch(0.65 0.22 20)", icon: Cpu, tag: "Canvas API" },
   { id: "neural-viz", title: "Neural Network Visualizer", desc: "Watch a neural network train in real time. Adjust learning rate and see weights update live.", status: "live", color: "oklch(0.65 0.22 160)", icon: Sparkles, tag: "ML Concepts" },
   { id: "image-describer", title: "AI Image Describer", desc: "Paste any image URL and watch the AI analyze it in rich detail — subjects, composition, colors, mood, and hidden insights.", status: "live", color: "oklch(0.72 0.20 310)", icon: Image, tag: "Vision AI" },
-  { id: "token-counter", title: "Token Counter & Cost Estimator", desc: "Understand how LLMs tokenize text. Estimate API costs across GPT-4o, Claude, Gemini, and Llama models in real time.", status: "live", color: "oklch(0.75 0.18 55)", icon: DollarSign, tag: "LLM Economics" },
+  { id: "token-counter", title: "Token Counter & Cost Estimator", desc: "Understand how LLMs tokenize text. Estimate API costs across Claude, Gemini, and Llama models in real time.", status: "live", color: "oklch(0.75 0.18 55)", icon: DollarSign, tag: "LLM Economics" },
   { id: "socratic-tutor", title: "Socratic Tutor", desc: "The AI never gives you the answer. It asks 6 probing questions that guide you to discover any concept yourself. Proven 2× better retention.", status: "live", color: "oklch(0.72 0.18 150)", icon: HelpCircle, tag: "Socratic Method" },
   { id: "story-gen", title: "AI Story Generator", desc: "Collaborative fiction with branching choices. You and the AI co-write a story — every choice you make shapes the narrative.", status: "live", color: "oklch(0.78 0.16 30)", icon: BookOpen, tag: "Creative AI" },
   { id: "bias-detect", title: "Cognitive Bias Detector", desc: "Paste any text — news, essays, social media posts. The AI identifies logical fallacies, cognitive biases, and rhetorical manipulation.", status: "live", color: "oklch(0.65 0.22 20)", icon: AlertTriangle, tag: "Critical Thinking" },
@@ -252,7 +252,7 @@ function PromptLabExperiment({ cookieId }: { cookieId: string }) {
     setLoading(true); setResult("");
     try {
       const r = await promptMutation.mutateAsync({ cookieId, task, technique });
-      setResult(r.response);
+      setResult(r.response?.trim() ? r.response : "Error running experiment. Please try again.");
     } catch { setResult("Error running experiment. Please try again."); }
     finally { setLoading(false); }
   };
@@ -483,11 +483,11 @@ function ImageDescriberExperiment({ cookieId }: { cookieId: string }) {
 // ─── Token Counter ────────────────────────────────────────────────────────────
 function TokenCounterExperiment({ cookieId }: { cookieId: string }) {
   const [text, setText] = useState("The quick brown fox jumps over the lazy dog. This is a sample sentence to demonstrate how LLMs tokenize text into subword units.");
-  const [model, setModel] = useState<"gpt-4o" | "gpt-3.5-turbo" | "claude-3-opus" | "gemini-1.5-pro" | "llama-3-70b">("gpt-4o");
+  const [model, setModel] = useState<"claude-3-opus" | "gemini-1.5-pro" | "gemini-2.5-pro" | "llama-3-70b">("gemini-2.5-pro");
   const [result, setResult] = useState<{ tokens: number; characters: number; words: number; model: string; inputCostUSD: number; outputCostUSD: number; contextWindowTokens: number; contextUsedPercent: number; fitsInContext: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
   const countMutation = trpc.lab.tokenCount.useMutation();
-  const models = ["gpt-4o", "gpt-3.5-turbo", "claude-3-opus", "gemini-1.5-pro", "llama-3-70b"] as const;
+  const models = ["claude-3-opus", "gemini-1.5-pro", "gemini-2.5-pro", "llama-3-70b"] as const;
   const run = async () => {
     if (!text.trim()) return;
     setLoading(true);
@@ -562,34 +562,47 @@ function SocraticTutorExperiment({ cookieId }: { cookieId: string }) {
   const [insight, setInsight] = useState("");
   const [history, setHistory] = useState<Array<{q:string;a:string}>>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const socraticMutation = trpc.lab.socraticTutor.useMutation();
   const startSession = async () => {
     if (!topic.trim()) return;
     setLoading(true);
+    setError("");
     try {
       const res = await socraticMutation.mutateAsync({ cookieId, topic, questionNumber: 1 });
+      if (!res.question?.trim()) throw new Error("The tutor did not return a question.");
       setQuestion(res.question);
       setStarted(true);
+    } catch {
+      setError("The Socratic tutor could not generate a question. Please try again.");
+      toast.error("The Socratic tutor could not generate a question.");
     } finally { setLoading(false); }
   };
   const submitAnswer = async () => {
     if (!answer.trim()) return;
     setLoading(true);
+    setError("");
     const prevHistory = [...history, { q: question, a: answer }];
     setHistory(prevHistory);
     try {
       const res = await socraticMutation.mutateAsync({ cookieId, topic, userAnswer: answer, questionNumber: qNum + 1 });
+      if (!res.question?.trim() && !res.isComplete) throw new Error("The tutor did not return a follow-up question.");
       setQuestion(res.question);
       setQNum(n => n + 1);
       setAnswer("");
       if (res.isComplete) { setIsComplete(true); setInsight(res.insight); }
+    } catch {
+      setHistory(history);
+      setError("The Socratic tutor could not continue the session. Please try again.");
+      toast.error("The Socratic tutor could not continue the session.");
     } finally { setLoading(false); }
   };
-  const reset = () => { setStarted(false); setQuestion(""); setAnswer(""); setQNum(1); setIsComplete(false); setInsight(""); setHistory([]); setTopic(""); };
+  const reset = () => { setStarted(false); setQuestion(""); setAnswer(""); setQNum(1); setIsComplete(false); setInsight(""); setHistory([]); setTopic(""); setError(""); };
   if (!started) return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Enter any topic and the AI will guide you to understand it through 6 probing questions — never giving the answer directly.</p>
       <input value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key === "Enter" && startSession()} placeholder="e.g. Quantum entanglement, The French Revolution, Neural networks..." className="w-full px-4 py-3 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.4)] bg-transparent" />
+      {error && <div className="text-sm text-[oklch(0.65_0.22_20)]">{error}</div>}
       <button onClick={startSession} disabled={loading || !topic.trim()} className="w-full py-3 rounded-xl font-semibold text-sm transition-all" style={{background:"oklch(0.72 0.18 150 / 0.15)",border:"1px solid oklch(0.72 0.18 150 / 0.3)",color:"oklch(0.85 0.14 150)"}}>
         {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" /> Starting session...</span> : "Begin Socratic Session"}
       </button>
@@ -613,6 +626,7 @@ function SocraticTutorExperiment({ cookieId }: { cookieId: string }) {
         <span className="text-xs text-muted-foreground">Topic: <span className="text-foreground">{topic}</span></span>
         <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{background:"oklch(0.72 0.18 150 / 0.1)",color:"oklch(0.72 0.18 150)"}}>Question {qNum} of 6</span>
       </div>
+      {error && <div className="text-sm text-[oklch(0.65_0.22_20)]">{error}</div>}
       <div className="p-4 rounded-xl" style={{background:"oklch(0.72 0.18 150 / 0.06)",border:"1px solid oklch(0.72 0.18 150 / 0.2)"}}>
         <p className="text-sm text-foreground leading-relaxed">{question}</p>
       </div>
