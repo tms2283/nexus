@@ -3041,7 +3041,7 @@ const CT_CAPSTONE_STEPS = [
 function ClearThinkingTab() {
   const [activeLesson, setActiveLesson] = useState<CTLessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
-  const [activeModule, setActiveModule] = useState<1 | 2>(1);
+  const [activeModule, setActiveModule] = useState<1 | 2 | 3>(1);
   const { addXP } = usePersonalization();
 
   // L1 state — segmented
@@ -3699,12 +3699,15 @@ function ClearThinkingTab() {
   if (activeModule === 2) {
     return <ClearThinkingModule2 onBack={() => setActiveModule(1)} />;
   }
+  if (activeModule === 3) {
+    return <ClearThinkingModule3 onBack={() => setActiveModule(1)} />;
+  }
 
   return (
     <div className="space-y-4">
       {/* Module switcher */}
       <div className="flex gap-2 p-1 glass rounded-xl border border-white/8">
-        {([{ n: 1, label: "Module 1", sub: "The Architecture of an Argument" }, { n: 2, label: "Module 2", sub: "Thinking in Real Life" }] as const).map(({ n, label, sub }) => (
+        {([{ n: 1, label: "Module 1", sub: "The Architecture of an Argument" }, { n: 2, label: "Module 2", sub: "Thinking in Real Life" }, { n: 3, label: "Module 3", sub: "Systems & Self" }] as const).map(({ n, label, sub }) => (
           <button key={n} onClick={() => setActiveModule(n)}
             className={`flex-1 py-2.5 px-4 rounded-lg text-sm transition-all text-left ${ activeModule === n ? "bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)] font-semibold" : "text-muted-foreground hover:text-foreground" }`}>
             <div className="font-medium">{label}</div>
@@ -3786,11 +3789,25 @@ function ClearThinkingTab() {
             <ArrowRight size={18} className="text-[oklch(0.82_0.2_290)]" />
           </div>
           <div className="flex-1">
-            <div className="text-xs text-[oklch(0.72_0.2_290)] font-semibold mb-0.5">NEXT — MODULE 2</div>
+            <div className="text-xs text-[oklch(0.72_0.2_290)] font-semibold mb-0.5">MODULE 2</div>
             <div className="font-semibold text-foreground">Thinking in Real Life</div>
             <p className="text-xs text-muted-foreground mt-0.5">Misinformation, statistical traps, persuasion, and decisions under uncertainty · 380 XP</p>
           </div>
           <ChevronRight size={16} className="text-[oklch(0.72_0.2_290)] shrink-0" />
+        </div>
+      </motion.button>
+      <motion.button onClick={() => setActiveModule(3)} whileHover={{ scale: 1.005, x: 4 }}
+        className="w-full glass rounded-2xl p-5 border border-[oklch(0.70_0.22_270_/_0.25)] hover:border-[oklch(0.70_0.22_270_/_0.5)] transition-all text-left">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.70_0.22_270_/_0.15)] border border-[oklch(0.70_0.22_270_/_0.3)]">
+            <ArrowRight size={18} className="text-[oklch(0.82_0.22_270)]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-xs text-[oklch(0.70_0.22_270)] font-semibold mb-0.5">MODULE 3</div>
+            <div className="font-semibold text-foreground">Systems &amp; Self</div>
+            <p className="text-xs text-muted-foreground mt-0.5">Mental models, argument mapping, systems thinking, and motivated reasoning · 390 XP</p>
+          </div>
+          <ChevronRight size={16} className="text-[oklch(0.70_0.22_270)] shrink-0" />
         </div>
       </motion.button>
     </div>
@@ -4793,6 +4810,1339 @@ function ClearThinkingModule2({ onBack }: { onBack: () => void }) {
         })}
       </div>
     </motion.div>
+  );
+}
+
+// ─── Clear Thinking Module 3 Data ──────────────────────────────────────────────
+type CT3LessonId = "ct11" | "ct12" | "ct13" | "ct14" | "ct15";
+
+const CT3_LESSON_META: { id: CT3LessonId; title: string; subtitle: string; duration: string; color: string; xp: number }[] = [
+  { id: "ct11" as CT3LessonId, title: "Mental Models", subtitle: "The thinking frameworks that compress reality into usable maps", duration: "25 min", color: "oklch(0.70_0.22_270)", xp: 65 },
+  { id: "ct12" as CT3LessonId, title: "Argument Mapping", subtitle: "Structuring debates, surfacing hidden assumptions, steel-manning", duration: "25 min", color: "oklch(0.68_0.20_140)", xp: 65 },
+  { id: "ct13" as CT3LessonId, title: "Reasoning About Systems", subtitle: "Feedback loops, unintended consequences, and emergence", duration: "30 min", color: "oklch(0.72_0.18_40)", xp: 70 },
+  { id: "ct14" as CT3LessonId, title: "Motivated Reasoning", subtitle: "How smart people talk themselves into wrong conclusions", duration: "25 min", color: "oklch(0.68_0.22_10)", xp: 65 },
+  { id: "ct15" as CT3LessonId, title: "Capstone: Build Your Argument", subtitle: "Construct a steel-manned position on a real controversy", duration: "30 min", color: "oklch(0.75_0.18_55)", xp: 125 },
+];
+
+const CT3_MENTAL_MODELS = [
+  {
+    name: "First Principles",
+    icon: "FP",
+    color: "oklch(0.70_0.22_270)",
+    what: "Break a problem down to its most basic, undeniable truths — then reason up from there.",
+    why: "Most thinking starts from analogy ('this is like X'). First principles starts from fundamentals, which surfaces genuinely new solutions.",
+    example: "Elon Musk asked: 'What are rocket components actually made of, atomically?' Battery packs cost $600/kWh — but the raw materials cost $80/kWh. So the problem was manufacturing, not physics.",
+    trap: "Can be overused: reinventing well-solved problems wastes time. Apply when analogies keep failing.",
+  },
+  {
+    name: "Inversion",
+    icon: "IV",
+    color: "oklch(0.68_0.20_140)",
+    what: "Instead of asking 'How do I succeed?' ask 'What would guarantee failure?' Then avoid those things.",
+    why: "Humans are better at spotting what's wrong than what's right. Inversion makes the obstacles vivid and concrete.",
+    example: "Charlie Munger: 'Invert, always invert.' A manager improving team morale inverts: 'What would destroy morale fastest?' Micromanagement, unclear goals, ignoring feedback — now you have a prioritized to-don't list.",
+    trap: "Don't stop at inversion — use it alongside positive analysis. Knowing what to avoid doesn't tell you what to do.",
+  },
+  {
+    name: "Second-Order Effects",
+    icon: "2O",
+    color: "oklch(0.72_0.18_40)",
+    what: "First-order: the direct, intended result. Second-order: what happens next because of that result.",
+    why: "Most bad policy, business decisions, and life choices fail because planners stopped at the first-order effect.",
+    example: "First-order: subsidize housing construction → more affordable housing. Second-order: increased demand from subsidy may drive up land prices, offsetting gains. Third-order: developers concentrate on subsidized units only, reducing unsubsidized supply.",
+    trap: "Analysis paralysis. Second-order thinking is a check, not a veto — don't use possible negative downstream effects to justify inaction.",
+  },
+  {
+    name: "Occam's Razor",
+    icon: "OR",
+    color: "oklch(0.68_0.22_10)",
+    what: "Among competing explanations that equally fit the evidence, prefer the simplest.",
+    why: "Complex explanations have more places to be wrong. Simpler ones are easier to test and falsify.",
+    example: "Your car won't start. Occam's: dead battery or empty fuel. Not: the fuel injectors AND the alternator AND the ECU all failed simultaneously.",
+    trap: "Simplest does not mean 'most comfortable' or 'requires least change to your current beliefs.' The simplest explanation must still fit all the evidence.",
+  },
+  {
+    name: "The Map ≠ Territory",
+    icon: "MT",
+    color: "oklch(0.75_0.18_55)",
+    what: "Every model, framework, or mental map is a simplification. It is not the thing it describes.",
+    why: "We forget this constantly. A spreadsheet model of a business is not the business. A political theory is not the society it describes. Confusing the map for the territory is the source of enormous error.",
+    example: "GDP measures economic output, not well-being. When countries optimize for GDP growth while ignoring inequality, pollution, and social cohesion, they optimized for the map — and found the territory got worse.",
+    trap: "This doesn't mean models are useless. A map that gets you from A to B is extremely useful — just don't eat it when you're hungry.",
+  },
+];
+
+const CT3_QUIZ_L11 = [
+  {
+    id: "ct11q1",
+    question: "First-principles thinking differs from analogical thinking because:",
+    options: [
+      "First principles is always slower and less practical",
+      "First principles builds from verified fundamentals rather than inherited assumptions from similar situations",
+      "Analogical thinking is less accurate in all circumstances",
+      "First principles applies only to engineering problems",
+    ],
+    correct: 1,
+    explanation: "Analogical thinking ('this is like X') inherits all of X's constraints — including ones that may not apply. First principles strips those away and asks what is fundamentally true, which can reveal solutions invisible from the analogical frame.",
+  },
+  {
+    id: "ct11q2",
+    question: "A manager using inversion to improve team culture asks:",
+    options: [
+      "'What would make people love working here?'",
+      "'What would make everyone quit within a month?'",
+      "'What do other successful companies do?'",
+      "'What did we do last quarter?'",
+    ],
+    correct: 1,
+    explanation: "Inversion reframes the question toward guaranteed failure — which humans identify more reliably than guaranteed success. The resulting list of failure conditions becomes a high-value avoidance checklist.",
+  },
+  {
+    id: "ct11q3",
+    question: "The 'map is not the territory' principle warns us that:",
+    options: [
+      "Geographic maps are inaccurate",
+      "Our models and frameworks are simplifications that can diverge dangerously from the reality they represent",
+      "Abstract thinking is less useful than concrete thinking",
+      "We should avoid using frameworks altogether",
+    ],
+    correct: 1,
+    explanation: "Every model — economic, scientific, social, cognitive — is a simplification. The danger is mistaking the model for the thing it represents. Optimizing for the metric (the map) instead of the underlying reality (the territory) is one of the most common institutional failures.",
+  },
+];
+
+const CT3_ARGUMENT_MAP_EXAMPLES = [
+  {
+    claim: "Remote work increases productivity",
+    premises: [
+      "Stanford study: remote workers were 13% more productive than office counterparts",
+      "Commute elimination saves 2+ hours/day, reducing fatigue",
+      "Flexible schedule allows work during personal peak focus hours",
+    ],
+    hidden_assumptions: [
+      "Productivity is accurately captured by output metrics, not just hours",
+      "Home environments are suitable for focused work (no childcare, noise, etc.)",
+      "The benefits generalize beyond individual contributors to collaborative teams",
+    ],
+    steelman: "Remote work likely increases productivity for roles requiring deep, individual focus — but may reduce effectiveness for roles requiring spontaneous collaboration, mentorship, or real-time iteration. The question is role-dependent, not universal.",
+    color: "oklch(0.68_0.20_140)",
+  },
+  {
+    claim: "Social media is harmful to democracy",
+    premises: [
+      "Algorithmic amplification of outrage-inducing content creates filter bubbles",
+      "Foreign state actors use platforms to spread coordinated disinformation",
+      "Political polarization metrics have risen alongside social media adoption",
+    ],
+    hidden_assumptions: [
+      "Correlation between social media rise and polarization implies causation",
+      "Pre-social-media democracy was the healthier baseline",
+      "The harms are distributed equally across populations and political groups",
+    ],
+    steelman: "Social media likely amplifies pre-existing polarization tendencies rather than creating them. The platform design — not social media in principle — drives most identified harms. Platform-specific regulation may address root causes better than broad restriction.",
+    color: "oklch(0.70_0.22_270)",
+  },
+];
+
+const CT3_QUIZ_L12 = [
+  {
+    id: "ct12q1",
+    question: "A hidden assumption is best described as:",
+    options: [
+      "A premise the arguer is deliberately concealing",
+      "An unstated belief the argument must be true for it to work",
+      "Evidence that contradicts the conclusion",
+      "A conclusion that hasn't been proven yet",
+    ],
+    correct: 1,
+    explanation: "Hidden assumptions are not necessarily dishonest — the arguer often isn't aware of them. They are the unstated background beliefs that a conclusion depends on. Surfacing them is how you test whether an argument actually holds under scrutiny.",
+  },
+  {
+    id: "ct12q2",
+    question: "Steel-manning an argument means:",
+    options: [
+      "Repeating the argument back in weaker terms to make it easier to refute",
+      "Constructing the strongest possible version of the opposing view before responding",
+      "Finding all factual errors in the argument",
+      "Agreeing with the conclusion while disputing the premises",
+    ],
+    correct: 1,
+    explanation: "Steel-manning is the opposite of straw-manning. It forces you to engage with the best version of the opposing view — which reveals whether your rebuttal holds up against real objections, not caricatures.",
+  },
+  {
+    id: "ct12q3",
+    question: "An argument mapping diagram helps most by:",
+    options: [
+      "Making arguments look more persuasive through visual presentation",
+      "Revealing the logical structure so each premise can be evaluated independently",
+      "Summarizing both sides of a debate into equal length",
+      "Replacing the need to read the original argument",
+    ],
+    correct: 1,
+    explanation: "Argument maps force you to identify which claims support which conclusions — making the logical structure visible. This allows each premise to be challenged or validated individually, without the rhetorical packaging of the original text.",
+  },
+];
+
+const CT3_SYSTEMS_CONCEPTS = [
+  {
+    name: "Feedback Loops",
+    type: "Reinforcing (R)",
+    color: "oklch(0.68_0.22_10)",
+    description: "Output feeds back as input, amplifying the original signal. Growth compounds. Decline spirals.",
+    example: "More users → more content → better recommendations → more users. Also: poverty → limited opportunity → poverty.",
+    insight: "Reinforcing loops don't continue forever. They hit limits — physical, social, economic. Identifying those limits is the key question.",
+  },
+  {
+    name: "Balancing Loops",
+    type: "Stabilizing (B)",
+    color: "oklch(0.70_0.22_270)",
+    description: "The system resists change and seeks equilibrium. The output feeds back to reduce the gap between actual and desired state.",
+    example: "Thermostat: if temperature drops below target → heater activates → temperature rises → heater deactivates. Body temperature regulation works the same way.",
+    insight: "Balancing loops underlie most stable systems — biology, economics, ecosystems. Breaking them produces instability.",
+  },
+  {
+    name: "Unintended Consequences",
+    type: "Emergence",
+    color: "oklch(0.72_0.18_40)",
+    description: "Interventions in complex systems produce effects beyond those intended — often working through second- and third-order feedback loops invisible at the time of the decision.",
+    example: "Cobra Effect (India, British colonial era): bounty offered for dead cobras → entrepreneurs bred cobras to collect bounties → cobra population increased after program ended.",
+    insight: "The more tightly coupled a system (parts interact with many other parts), the higher the probability of unintended consequences. This isn't a reason for inaction — it's a reason for monitoring and iteration.",
+  },
+  {
+    name: "Emergence",
+    type: "Complexity",
+    color: "oklch(0.68_0.20_140)",
+    description: "Properties that appear at the system level that cannot be predicted from examining any individual component.",
+    example: "No individual neuron understands language, but 86 billion neurons collectively produce comprehension, creativity, and consciousness. Markets 'know' prices that no individual participant knows.",
+    insight: "Emergence makes purely reductionist analysis fail. You cannot understand traffic by studying one car. You cannot understand a market by studying one trader.",
+  },
+];
+
+const CT3_QUIZ_L13 = [
+  {
+    id: "ct13q1",
+    question: "A reinforcing feedback loop is one where:",
+    options: [
+      "The system corrects toward a stable equilibrium",
+      "Output feeds back as input, amplifying the original direction",
+      "External forces balance competing pressures",
+      "Multiple systems check each other's growth",
+    ],
+    correct: 1,
+    explanation: "Reinforcing loops amplify — they drive growth or decline depending on direction. They do not self-correct. Understanding whether a loop is reinforcing or balancing tells you whether a trend will accelerate or stabilize.",
+  },
+  {
+    id: "ct13q2",
+    question: "The Cobra Effect illustrates:",
+    options: [
+      "That bounties are an ineffective motivator",
+      "How interventions in complex systems can produce outcomes opposite to those intended through adaptive behavior",
+      "That colonial policies were always poorly designed",
+      "How to eliminate an invasive species",
+    ],
+    correct: 1,
+    explanation: "The Cobra Effect is the archetypal unintended consequence: the incentive changed behavior in an unexpected way that worked against the goal. Complex systems contain adaptive agents who respond to interventions — often by finding loopholes.",
+  },
+  {
+    id: "ct13q3",
+    question: "Emergence means that complex system properties:",
+    options: [
+      "Are caused by a single dominant component",
+      "Can be fully predicted by studying parts in isolation",
+      "Arise at the system level and cannot be predicted from components alone",
+      "Are random and therefore not worth studying",
+    ],
+    correct: 2,
+    explanation: "Emergence is why reductionism has limits. The wetness of water is not a property of H2O molecules in isolation. Consciousness is not a property of a single neuron. The price signal in a market is not held by any one trader. The system level has properties that parts do not.",
+  },
+];
+
+const CT3_MOTIVATED_REASONING_PATTERNS = [
+  {
+    name: "Conclusion-First Reasoning",
+    shortname: "Conclusion First",
+    color: "oklch(0.68_0.22_10)",
+    description: "You decide what you want to be true, then assemble evidence in its favor — treating disconfirming evidence as requiring disproof and confirming evidence as self-evident.",
+    signal: "You feel confident without having seriously engaged opposing evidence. You experience discomfort rather than curiosity when challenged.",
+    example: "A manager unconsciously wants to hire the candidate from their own alma mater. They rate 'culture fit' highly for that candidate and 'communication skills' as what's missing for the others.",
+    antidote: "Write down your conclusion before researching. After, list the three strongest arguments against it. Engage those honestly.",
+  },
+  {
+    name: "Identity-Protective Cognition",
+    shortname: "Identity Defense",
+    color: "oklch(0.70_0.22_270)",
+    description: "When evidence threatens a belief central to your group identity, intelligence is deployed to defend the belief rather than evaluate it.",
+    signal: "Your position on an issue tracks your tribal group perfectly. You've never publicly disagreed with your group on any issue.",
+    example: "Research shows that increasing scientific literacy among politically polarized groups increases disagreement on climate change — not reduces it. More information, more sophisticated motivated reasoning.",
+    antidote: "Ask: 'What would it take to change my mind on this?' If the answer is 'nothing,' the belief is tribal, not rational.",
+  },
+  {
+    name: "Galaxy-Brained Reasoning",
+    shortname: "Galaxy Brain",
+    color: "oklch(0.72_0.18_40)",
+    description: "A chain of individually plausible-seeming logical steps that leads to an absurd or monstrous conclusion — used to justify what common sense would reject.",
+    signal: "The argument is extremely clever. It requires many steps. It arrives at a conclusion almost everyone would find repugnant.",
+    example: "'If we could prevent X deaths by doing Y, and our moral duty is to minimize death, then we are obligated to do Y' — where Y is something almost universally considered wrong. The sophistication of the argument is the red flag.",
+    antidote: "Strong intuitions are evidence. If a conclusion feels deeply wrong, that's a signal to check the premises — not override the intuition with the logic.",
+  },
+  {
+    name: "The Motte and Bailey",
+    shortname: "Motte & Bailey",
+    color: "oklch(0.68_0.20_140)",
+    description: "Defend a controversial claim (the bailey) by retreating to an unobjectionable claim (the motte) when challenged — then return to the bailey when pressure eases.",
+    signal: "When challenged, the position suddenly becomes much more modest. When unchallenged, it makes much stronger claims.",
+    example: "Bailey: 'All gender differences are social constructs.' Challenged → Motte: 'Socialization plays a significant role in gender expression.' Nobody argues with the motte. Bailey reinstated when unchallenged.",
+    antidote: "Pin down the specific claim: 'Is this the strong version or the modest version of your position? Which one are you defending?'",
+  },
+];
+
+const CT3_QUIZ_L14 = [
+  {
+    id: "ct14q1",
+    question: "Identity-protective cognition means that for politically polarized people, greater scientific literacy tends to:",
+    options: [
+      "Reduce polarization on contested scientific issues",
+      "Have no effect on beliefs",
+      "Increase polarization because intelligence is applied to defend tribal positions",
+      "Improve factual accuracy while maintaining policy disagreements",
+    ],
+    correct: 2,
+    explanation: "Research by Dan Kahan (Cultural Cognition Project) found that among the politically polarized, higher scientific literacy correlated with greater disagreement on issues like climate change — not less. Smarter people are better at motivated reasoning.",
+  },
+  {
+    id: "ct14q2",
+    question: "A Motte and Bailey argument involves:",
+    options: [
+      "Using historical precedent to justify current policy",
+      "Switching between a strong, controversial claim and a weak, unobjectionable one depending on whether you're being challenged",
+      "Building an argument on two separate but compatible foundations",
+      "Using metaphors to explain technical concepts",
+    ],
+    correct: 1,
+    explanation: "The Motte (a defensible stronghold) is the modest claim you retreat to under attack. The Bailey (the valuable but exposed village) is the bold claim you actually want to make. The fallacy is treating success in defending the motte as vindication of the bailey.",
+  },
+  {
+    id: "ct14q3",
+    question: "When a chain of sophisticated logic leads to a conclusion that strikes almost everyone as deeply wrong, a critical thinker should:",
+    options: [
+      "Accept the conclusion if the logic is formally valid",
+      "Reject the logic as obviously flawed",
+      "Treat the near-universal intuitive rejection as evidence that a premise in the chain is false",
+      "Suspend judgment indefinitely",
+    ],
+    correct: 2,
+    explanation: "Strong moral intuitions are evidence. They represent accumulated human wisdom about consequences and values. In ethics especially, when a valid argument produces a repugnant conclusion (tollensing the ponens), the right move is often to reject a premise — not accept the conclusion because the logic is clean.",
+  },
+];
+
+const CT3_CAPSTONE_TOPICS = [
+  { id: "tax", label: "Should wealthy individuals pay higher tax rates?", complexity: "Political Economy" },
+  { id: "ubi", label: "Should governments provide a Universal Basic Income?", complexity: "Economic Policy" },
+  { id: "ai_reg", label: "Should powerful AI systems be regulated by governments?", complexity: "Technology Policy" },
+  { id: "speech", label: "Should social media platforms moderate political speech?", complexity: "Free Speech vs. Harm" },
+  { id: "vax", label: "Should vaccines be mandatory for school attendance?", complexity: "Public Health vs. Autonomy" },
+  { id: "custom", label: "A topic you care about (write it in)", complexity: "Your choice" },
+];
+
+const CT3_CAPSTONE_STEPS = [
+  {
+    label: "Claim",
+    q: "State your position in one clear, specific sentence. Avoid vague language like 'should be considered' — commit to a claim.",
+    ph: "Example: 'Government regulation of AI systems above a defined capability threshold is necessary and should be enacted within 5 years.'",
+  },
+  {
+    label: "Best Evidence",
+    q: "List the 3 strongest pieces of evidence or reasoning that support your claim. Be specific — cite studies, historical examples, or logical arguments.",
+    ph: "1. ...\n2. ...\n3. ...",
+  },
+  {
+    label: "Hidden Assumptions",
+    q: "What must be true for your argument to work? List 2–3 assumptions your position depends on — things you're taking for granted.",
+    ph: "My argument assumes that...\nIt also requires...",
+  },
+  {
+    label: "Steel-Man",
+    q: "State the strongest opposing argument in its most charitable form. This should be something an intelligent, good-faith opponent would actually say.",
+    ph: "The strongest case against my position is...",
+  },
+  {
+    label: "Rebuttal",
+    q: "Now respond to that steel-manned opposition. Acknowledge what's valid in it, then explain why your position still holds (or revise your position if needed).",
+    ph: "I acknowledge that... However...",
+  },
+  {
+    label: "Limits",
+    q: "Under what conditions would your position NOT hold? Every good argument has boundary conditions. Name at least one.",
+    ph: "My argument breaks down if...\nThis doesn't apply when...",
+  },
+];
+
+// ─── Clear Thinking Module 3 Component ──────────────────────────────────────────
+function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
+  const { addXP } = usePersonalization();
+  const [activeLesson, setActiveLesson] = useState<CT3LessonId>("ct11");
+  const [completedLessons, setCompletedLessons] = useState<Set<CT3LessonId>>(new Set());
+
+  function handleCT3Complete(id: CT3LessonId) {
+    if (completedLessons.has(id)) return;
+    const meta = CT3_LESSON_META.find((l) => l.id === id)!;
+    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — ${meta.title} complete!`);
+  }
+
+  const overallPct = Math.round((completedLessons.size / CT3_LESSON_META.length) * 100);
+
+  // Per-lesson state
+  const [ct11ModelIdx, setCt11ModelIdx] = useState(0);
+  const [ct11Revealed, setCt11Revealed] = useState<Set<number>>(new Set());
+  const [ct11Seg, setCt11Seg] = useState(0);
+
+  const [ct12ExIdx, setCt12ExIdx] = useState(0);
+  const [ct12MapStep, setCt12MapStep] = useState<"premises" | "assumptions" | "steelman">("premises");
+  const [ct12Practice, setCt12Practice] = useState({ claim: "", premises: "", assumptions: "", steelman: "" });
+  const [ct12Seg, setCt12Seg] = useState(0);
+
+  const [ct13ConceptIdx, setCt13ConceptIdx] = useState(0);
+  const [ct13Seg, setCt13Seg] = useState(0);
+
+  const [ct14PatternIdx, setCt14PatternIdx] = useState(0);
+  const [ct14Reflection, setCt14Reflection] = useState("");
+  const [ct14ReflectionDone, setCt14ReflectionDone] = useState(false);
+  const [ct14Seg, setCt14Seg] = useState(0);
+
+  const [ct15Topic, setCt15Topic] = useState<string | null>(null);
+  const [ct15CustomTopic, setCt15CustomTopic] = useState("");
+  const [ct15Step, setCt15Step] = useState(0);
+  const [ct15Answers, setCt15Answers] = useState<string[]>(Array(CT3_CAPSTONE_STEPS.length).fill(""));
+  const [ct15Done, setCt15Done] = useState(false);
+
+  // AI expand
+  const [expandResult, setExpandResult] = useState<string>("");
+  const expandMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => setExpandResult(data.explanation),
+  });
+
+  type SectionBadgeVariant = "hook" | "concept" | "explore" | "practice" | "capstone";
+  function SectionBadge({ variant }: { variant: SectionBadgeVariant }) {
+    const config: Record<SectionBadgeVariant, { label: string; color: string }> = {
+      hook:     { label: "HOOK",     color: "oklch(0.75_0.18_55)" },
+      concept:  { label: "CONCEPT",  color: "oklch(0.70_0.22_270)" },
+      explore:  { label: "EXPLORE",  color: "oklch(0.68_0.20_140)" },
+      practice: { label: "PRACTICE", color: "oklch(0.72_0.18_40)" },
+      capstone: { label: "CAPSTONE", color: "oklch(0.68_0.22_10)" },
+    };
+    const { label, color } = config[variant];
+    return (
+      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-widest mr-2 mb-3"
+        style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.35)` }}>
+        {label}
+      </span>
+    );
+  }
+
+  function CT3Shell({ id, children }: { id: CT3LessonId; children: React.ReactNode }) {
+    const meta = CT3_LESSON_META.find((l) => l.id === id)!;
+    const done = completedLessons.has(id);
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={() => setActiveLesson(CT3_LESSON_META[0].id)} className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+            <ChevronLeft size={14} className="text-muted-foreground" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-muted-foreground">Clear Thinking · Module 3 · {meta.title}</div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex-1 h-1 rounded-full bg-white/8">
+                <div className="h-full rounded-full transition-all" style={{ width: done ? "100%" : "40%", background: meta.color }} />
+              </div>
+              <span className="text-xs shrink-0" style={{ color: meta.color }}>+{meta.xp} XP</span>
+            </div>
+          </div>
+          {done
+            ? <span className="text-xs px-2 py-1 rounded-full bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.72_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.3)]">Done</span>
+            : <motion.button onClick={() => handleCT3Complete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-all"
+                style={{ background: `oklch(from ${meta.color} l c h / 0.15)`, color: meta.color, border: `1px solid oklch(from ${meta.color} l c h / 0.35)` }}>
+                Mark done
+              </motion.button>}
+        </div>
+        {children}
+        {id !== "ct15" && (
+          <div className="pt-2">
+            <button onClick={() => { const ids: CT3LessonId[] = ["ct11","ct12","ct13","ct14","ct15"]; const idx = ids.indexOf(id); setActiveLesson(ids[idx + 1]); }}
+              className="w-full py-3 rounded-xl glass border border-white/8 hover:border-white/20 text-sm text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2">
+              Next lesson <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── CT11: Mental Models ──────────────────────────────────────────────────────
+  const ct11Segments = [
+    {
+      title: "Why Your Thinking Needs Maps",
+      narration: "Reality is too complex to hold in your head. Mental models are compression algorithms — frameworks that let you reason about new situations using patterns from solved ones. The question isn't whether to use mental models — you already do. The question is whether yours are accurate.",
+      topics: ["mental models", "cognitive compression", "thinking frameworks"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="hook" />
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Charlie Munger called them a <strong className="text-foreground">"lattice of mental models"</strong> — a toolkit of frameworks that compound in value as they interact. A person with one mental model interprets every problem through that lens. A person with 50 has genuine intellectual flexibility.
+          </p>
+          <div className="glass rounded-xl p-4 border border-white/8">
+            <div className="text-xs font-semibold text-foreground mb-2">The core insight</div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Every expert in every domain has developed mental models for their field. The goal of cross-disciplinary thinking is to borrow the most powerful models from each domain and apply them beyond their origin.
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Five Essential Models",
+      narration: "These five models come from physics, philosophy, economics, and logic. Together they cover a large portion of the reasoning problems you will encounter.",
+      topics: ["first principles", "inversion", "second-order effects", "Occam's razor"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="concept" />
+          <div className="grid grid-cols-5 gap-1 mb-3">
+            {CT3_MENTAL_MODELS.map((m, i) => (
+              <button key={m.name} onClick={() => { setCt11ModelIdx(i); setCt11Revealed(new Set()); }}
+                className="py-2 px-1 rounded-lg text-xs font-bold transition-all text-center"
+                style={{
+                  background: ct11ModelIdx === i ? `oklch(from ${m.color} l c h / 0.2)` : "oklch(1 0 0 / 0.04)",
+                  color: ct11ModelIdx === i ? m.color : "oklch(0.6 0 0)",
+                  border: `1px solid ${ct11ModelIdx === i ? `oklch(from ${m.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+                }}>
+                {m.icon}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div key={ct11ModelIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              className="glass rounded-xl p-4 border" style={{ borderColor: `oklch(from ${CT3_MENTAL_MODELS[ct11ModelIdx].color} l c h / 0.3)` }}>
+              <div className="font-semibold mb-2" style={{ color: CT3_MENTAL_MODELS[ct11ModelIdx].color }}>{CT3_MENTAL_MODELS[ct11ModelIdx].name}</div>
+              <p className="text-sm text-foreground leading-relaxed mb-3">{CT3_MENTAL_MODELS[ct11ModelIdx].what}</p>
+              {[
+                { key: 0, label: "Why it works", content: CT3_MENTAL_MODELS[ct11ModelIdx].why },
+                { key: 1, label: "Real example", content: CT3_MENTAL_MODELS[ct11ModelIdx].example },
+                { key: 2, label: "Common trap", content: CT3_MENTAL_MODELS[ct11ModelIdx].trap },
+              ].map(({ key, label, content }) => (
+                <div key={key} className="mb-2">
+                  {ct11Revealed.has(key) ? (
+                    <div className="glass rounded-lg p-3 border border-white/8">
+                      <div className="text-xs font-semibold text-muted-foreground mb-1">{label}</div>
+                      <p className="text-sm text-foreground leading-relaxed">{content}</p>
+                    </div>
+                  ) : (
+                    <button onClick={() => setCt11Revealed(prev => new Set(Array.from(prev).concat(key)))}
+                      className="w-full text-left py-2 px-3 rounded-lg glass border border-white/8 hover:border-white/20 text-xs text-muted-foreground hover:text-foreground transition-all flex items-center gap-2">
+                      <Eye size={11} /> Reveal: {label}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+          <div className="text-xs text-muted-foreground text-center">{ct11ModelIdx + 1} of {CT3_MENTAL_MODELS.length} models</div>
+        </div>
+      ),
+    },
+    {
+      title: "Put a Model to Work",
+      narration: "Now try applying one. Pick any model and use it on a real problem you face — work, personal, or social.",
+      topics: ["applying mental models", "practice", "problem framing"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="practice" />
+          <p className="text-sm text-muted-foreground mb-3">Pick one of the five models and apply it to a current decision or problem. Use the AI below to check your reasoning.</p>
+          <div className="flex gap-1 flex-wrap mb-3">
+            {CT3_MENTAL_MODELS.map((m) => (
+              <button key={m.name} onClick={() => setCt11ModelIdx(CT3_MENTAL_MODELS.indexOf(m))}
+                className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                style={{
+                  background: `oklch(from ${m.color} l c h / 0.12)`,
+                  color: m.color,
+                  border: `1px solid oklch(from ${m.color} l c h / 0.3)`,
+                }}>
+                {m.name}
+              </button>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-[oklch(0.70_0.22_270_/_0.2)]">
+            <div className="text-xs font-semibold text-[oklch(0.80_0.22_270)] mb-2">Selected: {CT3_MENTAL_MODELS[ct11ModelIdx].name}</div>
+            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{CT3_MENTAL_MODELS[ct11ModelIdx].what}</p>
+            <div className="text-xs font-semibold text-muted-foreground mb-2">Applying this model to your problem:</div>
+            <textarea
+              placeholder={`Describe a problem, then apply ${CT3_MENTAL_MODELS[ct11ModelIdx].name} to it...`}
+              rows={5}
+              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+              id="ct11-practice-input"
+            />
+            <button
+              onClick={() => {
+                const input = (document.getElementById("ct11-practice-input") as HTMLTextAreaElement)?.value || "";
+                if (input.trim().length < 20) { toast.error("Describe your problem first"); return; }
+                setExpandResult(""); expandMutation.mutate({ concept: `Using the "${CT3_MENTAL_MODELS[ct11ModelIdx].name}" mental model, evaluate this reasoning: "${input}". Give brief feedback on whether they're applying the model correctly, and one suggestion.`, level: "student" });
+              }}
+              disabled={expandMutation.isPending}
+              className="mt-2 w-full py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 bg-[oklch(0.70_0.22_270_/_0.15)] text-[oklch(0.82_0.22_270)] border border-[oklch(0.70_0.22_270_/_0.3)] hover:bg-[oklch(0.70_0.22_270_/_0.25)]">
+              {expandMutation.isPending ? <><Loader2 size={13} className="animate-spin" />Analyzing...</> : <><Brain size={13} />Get AI feedback</>}
+            </button>
+            {expandResult && (
+              <div className="mt-3 p-3 rounded-lg bg-[oklch(0.70_0.22_270_/_0.1)] border border-[oklch(0.70_0.22_270_/_0.2)]">
+                <Streamdown>{expandResult}</Streamdown>
+              </div>
+            )}
+          </div>
+          <QuizBlock questions={CT3_QUIZ_L11} accentColor="oklch(0.70_0.22_270)" />
+        </div>
+      ),
+    },
+  ];
+
+  // ── CT12: Argument Mapping ───────────────────────────────────────────────────
+  const ct12Segments = [
+    {
+      title: "Arguments Have Architecture",
+      narration: "Every argument is a structure. It has a claim at the top, premises supporting it, and assumptions holding it all together. Most arguments look like prose — which hides the structure. Mapping forces you to expose it.",
+      topics: ["argument structure", "premise mapping", "logical architecture"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="hook" />
+          <div className="glass rounded-xl p-4 border border-[oklch(0.68_0.20_140_/_0.3)]">
+            <div className="text-xs font-semibold text-[oklch(0.78_0.20_140)] mb-3">Anatomy of an Argument</div>
+            {[
+              { role: "CONCLUSION", description: "The claim being argued for", color: "oklch(0.68_0.20_140)" },
+              { role: "PREMISES", description: "The reasons / evidence offered in support", color: "oklch(0.70_0.22_270)" },
+              { role: "HIDDEN ASSUMPTIONS", description: "Unstated beliefs the argument must be true to work", color: "oklch(0.72_0.18_40)" },
+              { role: "INFERENCE", description: "The logical bridge from premises to conclusion", color: "oklch(0.68_0.22_10)" },
+            ].map(({ role, description, color }) => (
+              <div key={role} className="flex items-start gap-3 mb-2.5">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 mt-0.5"
+                  style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.3)` }}>
+                  {role}
+                </span>
+                <p className="text-sm text-muted-foreground">{description}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Most poor reasoning fails not at the inference step but at hidden assumptions — things taken for granted that turn out to be false or contested.
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: "Case Studies: Map It",
+      narration: "Let's map two real arguments. Step through each layer — premises, hidden assumptions, then the steel-man of the opposing view.",
+      topics: ["argument mapping", "steel-manning", "hidden assumptions"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="explore" />
+          <div className="flex gap-2 mb-3">
+            {CT3_ARGUMENT_MAP_EXAMPLES.map((ex, i) => (
+              <button key={i} onClick={() => { setCt12ExIdx(i); setCt12MapStep("premises"); }}
+                className="flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all text-center"
+                style={{
+                  background: ct12ExIdx === i ? `oklch(from ${ex.color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                  color: ct12ExIdx === i ? ex.color : "oklch(0.6 0 0)",
+                  border: `1px solid ${ct12ExIdx === i ? `oklch(from ${ex.color} l c h / 0.35)` : "oklch(1 0 0 / 0.08)"}`,
+                }}>
+                Case {i + 1}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div key={ct12ExIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="glass rounded-xl p-4 border mb-3" style={{ borderColor: `oklch(from ${CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].color} l c h / 0.3)` }}>
+                <div className="text-xs font-semibold text-muted-foreground mb-1">CLAIM</div>
+                <p className="font-semibold text-foreground text-sm">{CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].claim}</p>
+              </div>
+              <div className="flex gap-1 mb-3">
+                {(["premises", "assumptions", "steelman"] as const).map((step) => (
+                  <button key={step} onClick={() => setCt12MapStep(step)}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-medium capitalize transition-all"
+                    style={{
+                      background: ct12MapStep === step ? `oklch(from ${CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                      color: ct12MapStep === step ? CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].color : "oklch(0.6 0 0)",
+                      border: `1px solid ${ct12MapStep === step ? `oklch(from ${CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].color} l c h / 0.35)` : "oklch(1 0 0 / 0.08)"}`,
+                    }}>
+                    {step === "steelman" ? "Steel-Man" : step.charAt(0).toUpperCase() + step.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.div key={ct12MapStep} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                  className="glass rounded-xl p-4 border border-white/8">
+                  {ct12MapStep === "premises" && (
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground mb-2">SUPPORTING PREMISES</div>
+                      {CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].premises.map((p, i) => (
+                        <div key={i} className="flex items-start gap-2 mb-2">
+                          <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
+                            style={{ background: `oklch(from ${CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].color} l c h / 0.2)`, color: CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].color }}>
+                            {i + 1}
+                          </span>
+                          <p className="text-sm text-foreground leading-relaxed">{p}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {ct12MapStep === "assumptions" && (
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground mb-2">HIDDEN ASSUMPTIONS</div>
+                      <p className="text-xs text-muted-foreground mb-3">These are not stated in the argument but must be true for the argument to work.</p>
+                      {CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].hidden_assumptions.map((a, i) => (
+                        <div key={i} className="flex items-start gap-2 mb-2 p-2 rounded-lg bg-[oklch(0.72_0.18_40_/_0.08)] border border-[oklch(0.72_0.18_40_/_0.2)]">
+                          <AlertTriangle size={12} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
+                          <p className="text-sm text-foreground leading-relaxed">{a}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {ct12MapStep === "steelman" && (
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground mb-2">STEEL-MAN (STRONGEST OPPOSING VIEW)</div>
+                      <p className="text-sm text-foreground leading-relaxed">{CT3_ARGUMENT_MAP_EXAMPLES[ct12ExIdx].steelman}</p>
+                      <div className="mt-3 p-2 rounded-lg bg-[oklch(0.68_0.20_140_/_0.08)] border border-[oklch(0.68_0.20_140_/_0.2)]">
+                        <p className="text-xs text-muted-foreground">A steel-man is not a concession — it's intellectual honesty. If you can't state the opposing view in a way that proponent would recognize, you haven't understood the debate.</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      ),
+    },
+    {
+      title: "Map Your Own Argument",
+      narration: "Now you try. Take any claim you believe and map it — identify the premises, surface the hidden assumptions, and write a steel-man of the opposition.",
+      topics: ["argument mapping practice", "steel-manning", "self-assessment"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="practice" />
+          {(["claim", "premises", "assumptions", "steelman"] as const).map((field) => {
+            const labels: Record<string, string> = {
+              claim: "Your Claim",
+              premises: "Your 3 Strongest Premises",
+              assumptions: "Hidden Assumptions (what must be true for your argument to work?)",
+              steelman: "Steel-Man the Opposition",
+            };
+            const phs: Record<string, string> = {
+              claim: "State your position clearly...",
+              premises: "1. \n2. \n3. ",
+              assumptions: "My argument assumes that...",
+              steelman: "The strongest case against my view is...",
+            };
+            return (
+              <div key={field} className="glass rounded-xl p-3 border border-white/8">
+                <div className="text-xs font-semibold text-muted-foreground mb-1.5">{labels[field]}</div>
+                <textarea
+                  value={ct12Practice[field]}
+                  onChange={(e) => setCt12Practice(prev => ({ ...prev, [field]: e.target.value }))}
+                  placeholder={phs[field]}
+                  rows={field === "claim" ? 2 : 3}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+                />
+              </div>
+            );
+          })}
+          <button
+            onClick={() => {
+              const filled = Object.values(ct12Practice).every(v => v.trim().length > 10);
+              if (!filled) { toast.error("Fill in all four fields first"); return; }
+              setExpandResult(""); expandMutation.mutate({ concept: `Review this argument map:\nClaim: ${ct12Practice.claim}\nPremises: ${ct12Practice.premises}\nHidden Assumptions: ${ct12Practice.assumptions}\nSteel-Man: ${ct12Practice.steelman}\n\nGive brief feedback: is the claim specific? Are the premises genuinely supporting? Are the hidden assumptions real? Is the steel-man charitable? One concrete improvement suggestion.`, level: "student" });
+            }}
+            disabled={expandMutation.isPending}
+            className="w-full py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 bg-[oklch(0.68_0.20_140_/_0.15)] text-[oklch(0.78_0.20_140)] border border-[oklch(0.68_0.20_140_/_0.3)] hover:bg-[oklch(0.68_0.20_140_/_0.25)]">
+            {expandMutation.isPending ? <><Loader2 size={13} className="animate-spin" />Reviewing...</> : <><Brain size={13} />AI argument review</>}
+          </button>
+          {expandResult && (
+            <div className="p-3 rounded-xl bg-[oklch(0.68_0.20_140_/_0.1)] border border-[oklch(0.68_0.20_140_/_0.25)]">
+              <Streamdown>{expandResult}</Streamdown>
+            </div>
+          )}
+          <QuizBlock questions={CT3_QUIZ_L12} accentColor="oklch(0.68_0.20_140)" />
+        </div>
+      ),
+    },
+  ];
+
+  // ── CT13: Systems Thinking ───────────────────────────────────────────────────
+  const ct13Segments = [
+    {
+      title: "Why Smart People Cause Disasters",
+      narration: "The most consequential policy failures, business collapses, and social crises are rarely caused by stupid people. They're caused by intelligent people reasoning correctly about components while missing the system.",
+      topics: ["systems thinking", "complex systems", "why interventions fail"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="hook" />
+          <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_40_/_0.3)]">
+            <p className="text-sm text-foreground leading-relaxed mb-3">
+              In 1956, the US Army Corps of Engineers straightened the Kissimmee River in Florida to reduce flooding. It worked — flooding stopped. Then:
+            </p>
+            <div className="space-y-2">
+              {[
+                "Fish populations collapsed — they needed the meanders to spawn",
+                "Wading bird populations fell 90% — they hunted in the shallow floodplains",
+                "Water quality degraded — natural filtration systems were destroyed",
+                "Downstream Lake Okeechobee began eutrophication cycles",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[oklch(0.75_0.18_55)] mt-1.5 shrink-0" />
+                  <p className="text-sm text-muted-foreground">{item}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">The engineers solved the problem they could see. They were blind to the system.</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Four Systems Concepts",
+      narration: "These four concepts explain most of how complex systems behave — and most of how interventions in them go wrong.",
+      topics: ["feedback loops", "balancing loops", "unintended consequences", "emergence"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="concept" />
+          <div className="flex gap-1 flex-wrap mb-2">
+            {CT3_SYSTEMS_CONCEPTS.map((c, i) => (
+              <button key={c.name} onClick={() => setCt13ConceptIdx(i)}
+                className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                style={{
+                  background: ct13ConceptIdx === i ? `oklch(from ${c.color} l c h / 0.18)` : "oklch(1 0 0 / 0.04)",
+                  color: ct13ConceptIdx === i ? c.color : "oklch(0.6 0 0)",
+                  border: `1px solid ${ct13ConceptIdx === i ? `oklch(from ${c.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+                }}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div key={ct13ConceptIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              className="glass rounded-xl p-4 border" style={{ borderColor: `oklch(from ${CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].color} l c h / 0.35)` }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs px-2 py-0.5 rounded font-bold"
+                  style={{ background: `oklch(from ${CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].color} l c h / 0.15)`, color: CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].color, border: `1px solid oklch(from ${CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].color} l c h / 0.3)` }}>
+                  {CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].type}
+                </span>
+                <span className="font-semibold text-foreground">{CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].name}</span>
+              </div>
+              <p className="text-sm text-foreground leading-relaxed mb-3">{CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].description}</p>
+              <div className="glass rounded-lg p-3 border border-white/8 mb-2">
+                <div className="text-xs font-semibold text-muted-foreground mb-1">Example</div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].example}</p>
+              </div>
+              <div className="glass rounded-lg p-3 border border-white/8">
+                <div className="text-xs font-semibold text-muted-foreground mb-1">Key insight</div>
+                <p className="text-sm text-foreground leading-relaxed">{CT3_SYSTEMS_CONCEPTS[ct13ConceptIdx].insight}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      ),
+    },
+    {
+      title: "Spot the System",
+      narration: "Let's test your systems lens. Read a scenario and identify which system dynamic is driving the outcome.",
+      topics: ["systems identification", "feedback analysis", "practice"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="practice" />
+          <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_40_/_0.25)]">
+            <div className="text-xs font-semibold text-muted-foreground mb-3">SCENARIO ANALYSIS</div>
+            {[
+              {
+                scenario: "A city installs speed cameras to reduce accidents. Drivers slow down near cameras but speed up between them — total accidents remain constant.",
+                dynamics: ["Feedback Loop (Balancing)", "Unintended Consequences", "Emergent Behavior", "Reinforcing Loop"],
+                correct: 1,
+                explanation: "This is an unintended consequence: drivers adapted their behavior in a way the intervention didn't anticipate. The cameras created a local balancing loop (near-camera) but the adaptive agents (drivers) found the system boundary.",
+              },
+              {
+                scenario: "A popular social platform's algorithm rewards engagement. Controversial content gets more engagement than neutral content. The platform gradually fills with increasingly extreme content.",
+                dynamics: ["Balancing Loop", "Reinforcing Loop (compounding amplification)", "Emergence", "Hidden Assumption"],
+                correct: 1,
+                explanation: "Reinforcing loop: controversial content → more engagement → more algorithmic promotion → more controversial content produced. No single decision caused this — it emerges from the feedback structure of the system.",
+              },
+            ].map((q, qi) => {
+              const [selected, setSelected] = useState<number | null>(null);
+              return (
+                <div key={qi} className={qi > 0 ? "mt-4 pt-4 border-t border-white/8" : ""}>
+                  <p className="text-sm text-foreground leading-snug mb-3">{q.scenario}</p>
+                  <div className="space-y-1.5">
+                    {q.dynamics.map((d, di) => (
+                      <button key={di} onClick={() => setSelected(di)}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2"
+                        style={{
+                          background: selected === null ? "oklch(1 0 0 / 0.04)" : selected === di ? (di === q.correct ? "oklch(0.72_0.18_150_/_0.15)" : "oklch(0.68_0.22_10_/_0.15)") : "oklch(1 0 0 / 0.04)",
+                          color: selected === null ? "oklch(0.7 0 0)" : selected === di ? (di === q.correct ? "oklch(0.80_0.18_150)" : "oklch(0.78_0.22_10)") : "oklch(0.5 0 0)",
+                          border: `1px solid ${selected === di ? (di === q.correct ? "oklch(0.72_0.18_150_/_0.4)" : "oklch(0.68_0.22_10_/_0.4)") : "oklch(1 0 0 / 0.08)"}`,
+                        }}>
+                        {selected !== null && di === q.correct && <CheckCircle2 size={12} className="shrink-0" />}
+                        {selected !== null && selected === di && di !== q.correct && <XCircle size={12} className="shrink-0" />}
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                  {selected !== null && (
+                    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 p-3 rounded-lg bg-[oklch(0.72_0.18_40_/_0.08)] border border-[oklch(0.72_0.18_40_/_0.2)]">
+                      <p className="text-xs text-muted-foreground leading-relaxed">{q.explanation}</p>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <QuizBlock questions={CT3_QUIZ_L13} accentColor="oklch(0.72_0.18_40)" />
+        </div>
+      ),
+    },
+  ];
+
+  // ── CT14: Motivated Reasoning ────────────────────────────────────────────────
+  const ct14Segments = [
+    {
+      title: "The Lawyer in Your Head",
+      narration: "Psychologist Jonathan Haidt described human reasoning as mostly post-hoc rationalization — the emotional/intuitive system decides first, and the rational mind constructs justifications afterward. You are not usually a scientist seeking truth. You are usually a lawyer defending a client you already believe is innocent.",
+      topics: ["motivated reasoning", "rationalization", "intellectual honesty"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="hook" />
+          <div className="glass rounded-xl p-4 border border-[oklch(0.68_0.22_10_/_0.3)]">
+            <div className="text-xs font-semibold text-[oklch(0.78_0.22_10)] mb-2">The Haidt Rider-Elephant Model</div>
+            <p className="text-sm text-foreground leading-relaxed mb-3">
+              Jonathan Haidt's metaphor: moral and political reasoning is an <strong className="text-foreground">elephant</strong> (automatic emotional response) with a <strong className="text-foreground">rider</strong> (conscious reasoning) on top. The rider believes it controls the elephant. In reality, the elephant goes where it wants, and the rider narrates a justification.
+            </p>
+            <div className="glass rounded-lg p-3 border border-white/8">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                This isn't a flaw in bad reasoners — it's the default mode of essentially all human reasoning, including highly educated, highly intelligent people. The defense against it is <strong className="text-foreground">process</strong>, not intelligence.
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Four Patterns of Self-Deception",
+      narration: "These four patterns are the most common ways motivated reasoning expresses itself. Learning to name them is the first step to catching them in yourself.",
+      topics: ["conclusion-first reasoning", "identity-protective cognition", "galaxy brain", "motte and bailey"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="concept" />
+          <div className="flex gap-1 flex-wrap mb-2">
+            {CT3_MOTIVATED_REASONING_PATTERNS.map((p, i) => (
+              <button key={p.name} onClick={() => setCt14PatternIdx(i)}
+                className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                style={{
+                  background: ct14PatternIdx === i ? `oklch(from ${p.color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                  color: ct14PatternIdx === i ? p.color : "oklch(0.6 0 0)",
+                  border: `1px solid ${ct14PatternIdx === i ? `oklch(from ${p.color} l c h / 0.35)` : "oklch(1 0 0 / 0.08)"}`,
+                }}>
+                {p.shortname}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div key={ct14PatternIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              className="glass rounded-xl p-4 border" style={{ borderColor: `oklch(from ${CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].color} l c h / 0.3)` }}>
+              <div className="font-semibold mb-2 text-sm" style={{ color: CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].color }}>
+                {CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].name}
+              </div>
+              <p className="text-sm text-foreground leading-relaxed mb-3">{CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].description}</p>
+              <div className="space-y-2">
+                {[
+                  { label: "Warning signal", content: CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].signal },
+                  { label: "Example", content: CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].example },
+                  { label: "Antidote", content: CT3_MOTIVATED_REASONING_PATTERNS[ct14PatternIdx].antidote },
+                ].map(({ label, content }) => (
+                  <div key={label} className="glass rounded-lg p-3 border border-white/8">
+                    <div className="text-xs font-semibold text-muted-foreground mb-1">{label}</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{content}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      ),
+    },
+    {
+      title: "Intellectual Honesty as Practice",
+      narration: "Intellectual honesty isn't a personality trait — it's a set of practices. Here are the ones with the strongest evidence base for reducing motivated reasoning.",
+      topics: ["intellectual honesty", "epistemic hygiene", "debiasing"],
+      body: (
+        <div className="space-y-3">
+          <SectionBadge variant="practice" />
+          <div className="space-y-2">
+            {[
+              { practice: "Pre-mortem", description: "Before committing to a decision, imagine it has failed catastrophically. What went wrong? Forces you to surface objections your motivated mind suppressed.", icon: <Eye size={13} /> },
+              { practice: "Consider the opposite", description: "For every conclusion, spend 2 minutes seriously generating the best case for the contrary position.", icon: <RotateCcw size={13} /> },
+              { practice: "Confidence calibration", description: "Attach probabilities to your beliefs. '90% sure' forces more honesty than 'I know this is true.' Track your calibration over time.", icon: <Target size={13} /> },
+              { practice: "Outsider test", description: "Ask: would I evaluate this evidence the same way if someone I disagree with politically/socially made this argument?", icon: <Users size={13} /> },
+            ].map(({ practice, description, icon }) => (
+              <div key={practice} className="glass rounded-xl p-3 border border-white/8 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[oklch(0.68_0.22_10_/_0.15)] text-[oklch(0.78_0.22_10)] border border-[oklch(0.68_0.22_10_/_0.3)]">
+                  {icon}
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-foreground mb-0.5">{practice}</div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-[oklch(0.68_0.22_10_/_0.2)]">
+            <div className="text-xs font-semibold text-muted-foreground mb-2">REFLECTION — Where Have You Done This?</div>
+            <p className="text-xs text-muted-foreground mb-2 leading-relaxed">Describe a time you held a position that, in retrospect, was more about identity or emotion than evidence. What was the position? What were the signals you missed?</p>
+            <textarea
+              value={ct14Reflection}
+              onChange={(e) => setCt14Reflection(e.target.value)}
+              placeholder="Be honest — everyone has examples of this. The goal isn't confession, it's calibration..."
+              rows={5}
+              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+            />
+            {ct14Reflection.length > 30 && !ct14ReflectionDone && (
+              <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                onClick={() => { setCt14ReflectionDone(true); addXP(10); toast.success("+10 XP — Reflection complete"); }}
+                className="mt-2 w-full py-2 rounded-lg text-sm font-medium bg-[oklch(0.68_0.22_10_/_0.15)] text-[oklch(0.78_0.22_10)] border border-[oklch(0.68_0.22_10_/_0.35)] hover:bg-[oklch(0.68_0.22_10_/_0.25)] transition-all">
+                Submit reflection (+10 XP)
+              </motion.button>
+            )}
+            {ct14ReflectionDone && (
+              <div className="mt-2 p-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.12)] border border-[oklch(0.72_0.18_150_/_0.3)] text-xs text-[oklch(0.72_0.18_150)] text-center">
+                Reflection logged. Intellectual honesty is a practice, not a destination.
+              </div>
+            )}
+          </div>
+          <QuizBlock questions={CT3_QUIZ_L14} accentColor="oklch(0.68_0.22_10)" />
+        </div>
+      ),
+    },
+  ];
+
+  function LessonWithSegments({
+    id, segments, seg, setSeg,
+  }: {
+    id: CT3LessonId;
+    segments: { title: string; narration: string; topics: string[]; body: React.ReactNode }[];
+    seg: number;
+    setSeg: (n: number) => void;
+  }) {
+    return (
+      <CT3Shell id={id}>
+        <div className="flex gap-1 mb-3">
+          {segments.map((s, i) => (
+            <button key={i} onClick={() => setSeg(i)}
+              className="flex-1 py-1.5 px-2 rounded-lg text-xs transition-all text-center font-medium"
+              style={{
+                background: seg === i ? "oklch(0.70_0.22_270_/_0.15)" : "oklch(1 0 0 / 0.04)",
+                color: seg === i ? "oklch(0.82_0.22_270)" : "oklch(0.5 0 0)",
+                border: `1px solid ${seg === i ? "oklch(0.70_0.22_270_/_0.35)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {i + 1}
+            </button>
+          ))}
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div key={seg} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+            <h3 className="font-semibold text-foreground mb-3">{segments[seg].title}</h3>
+            <Narrator text={segments[seg].narration} />
+            {segments[seg].body}
+          </motion.div>
+        </AnimatePresence>
+        <SegmentFooter
+          onReady={seg < segments.length - 1 ? () => setSeg(seg + 1) : undefined}
+          topics={segments[seg].topics}
+        />
+        <div className="flex gap-2 mt-2">
+          <button onClick={() => setSeg(Math.max(0, seg - 1))} disabled={seg === 0}
+            className="flex-1 py-2 rounded-lg glass border border-white/8 text-xs text-muted-foreground disabled:opacity-30 hover:border-white/20 transition-all flex items-center justify-center gap-1">
+            <ChevronLeft size={12} /> Back
+          </button>
+          {seg < segments.length - 1 && (
+            <button onClick={() => setSeg(seg + 1)}
+              className="flex-1 py-2 rounded-lg glass border border-white/8 text-xs text-muted-foreground hover:border-white/20 transition-all flex items-center justify-center gap-1">
+              Next <ChevronRight size={12} />
+            </button>
+          )}
+        </div>
+      </CT3Shell>
+    );
+  }
+
+  // ── Lesson list overview ─────────────────────────────────────────────────────
+  if (activeLesson === "ct11" && ct11Seg === 0 && !completedLessons.has("ct11")) {
+    // show full lesson
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 mb-2">
+        <button onClick={onBack} className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+          <ChevronLeft size={14} className="text-muted-foreground" />
+        </button>
+        <div className="flex-1">
+          <div className="text-xs text-muted-foreground mb-0.5">Clear Thinking · Module 3</div>
+          <div className="font-semibold text-foreground">Systems &amp; Self</div>
+        </div>
+        {completedLessons.size > 0 && (
+          <span className="text-sm font-bold" style={{ color: "oklch(0.70_0.22_270)" }}>{overallPct}%</span>
+        )}
+      </div>
+
+      {completedLessons.size > 0 && (
+        <div className="w-full h-2 rounded-full bg-white/8">
+          <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.70_0.22_270)] to-[oklch(0.68_0.20_140)] transition-all" style={{ width: `${overallPct}%` }} />
+        </div>
+      )}
+
+      <AnimatePresence mode="wait">
+        {/* CT11 */}
+        {activeLesson === "ct11" && (
+          <motion.div key="ct11" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LessonWithSegments id="ct11" segments={ct11Segments} seg={ct11Seg} setSeg={setCt11Seg} />
+          </motion.div>
+        )}
+
+        {/* CT12 */}
+        {activeLesson === "ct12" && (
+          <motion.div key="ct12" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LessonWithSegments id="ct12" segments={ct12Segments} seg={ct12Seg} setSeg={setCt12Seg} />
+          </motion.div>
+        )}
+
+        {/* CT13 */}
+        {activeLesson === "ct13" && (
+          <motion.div key="ct13" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LessonWithSegments id="ct13" segments={ct13Segments} seg={ct13Seg} setSeg={setCt13Seg} />
+          </motion.div>
+        )}
+
+        {/* CT14 */}
+        {activeLesson === "ct14" && (
+          <motion.div key="ct14" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LessonWithSegments id="ct14" segments={ct14Segments} seg={ct14Seg} setSeg={setCt14Seg} />
+          </motion.div>
+        )}
+
+        {/* CT15 — Capstone */}
+        {activeLesson === "ct15" && (
+          <motion.div key="ct15" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <CT3Shell id="ct15">
+              <div className="space-y-4">
+                <Narrator text="This is the capstone for the entire Clear Thinking track — Modules 1, 2, and 3. You're going to build a complete, well-reasoned argument from scratch: a specific claim, strong premises, explicit assumptions, a genuine steel-man of the opposition, a rebuttal, and your argument's boundary conditions. This is what rigorous thinking looks like in practice." />
+
+                {!ct15Topic ? (
+                  <div className="space-y-3">
+                    <SectionBadge variant="capstone" />
+                    <div className="text-sm font-semibold text-foreground mb-2">Choose your controversy</div>
+                    <p className="text-xs text-muted-foreground mb-3">Pick a topic you have a genuine opinion about. These are complex issues with legitimate positions on multiple sides — which makes them good test cases for your reasoning.</p>
+                    <div className="space-y-2">
+                      {CT3_CAPSTONE_TOPICS.map((t) => (
+                        <button key={t.id} onClick={() => { setCt15Topic(t.id === "custom" ? "" : t.label); }}
+                          className="w-full text-left p-3 rounded-xl glass border border-white/8 hover:border-white/20 transition-all">
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="text-sm text-foreground leading-snug">{t.label}</span>
+                            <span className="text-xs text-muted-foreground shrink-0 mt-0.5">{t.complexity}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : ct15Topic === "" ? (
+                  <div className="space-y-3">
+                    <SectionBadge variant="capstone" />
+                    <div className="text-sm font-semibold text-foreground mb-2">Write your own topic</div>
+                    <textarea
+                      value={ct15CustomTopic}
+                      onChange={(e) => setCt15CustomTopic(e.target.value)}
+                      placeholder="Describe a controversial topic you care about..."
+                      rows={3}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+                    />
+                    <button onClick={() => { if (ct15CustomTopic.trim().length > 5) setCt15Topic(ct15CustomTopic); }}
+                      disabled={ct15CustomTopic.trim().length < 5}
+                      className="w-full py-2.5 rounded-xl text-sm font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)] disabled:opacity-40 hover:bg-[oklch(0.75_0.18_55_/_0.25)] transition-all">
+                      Use this topic
+                    </button>
+                  </div>
+                ) : !ct15Done ? (
+                  <div className="space-y-3">
+                    <SectionBadge variant="capstone" />
+                    <div className="glass rounded-xl p-3 border border-[oklch(0.75_0.18_55_/_0.3)]">
+                      <div className="text-xs font-semibold text-[oklch(0.85_0.18_55)] mb-1">Your topic</div>
+                      <p className="text-sm text-foreground leading-snug">{ct15Topic}</p>
+                      <button onClick={() => { setCt15Topic(null); setCt15Step(0); setCt15Answers(Array(CT3_CAPSTONE_STEPS.length).fill("")); }}
+                        className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">Change topic</button>
+                    </div>
+                    <div className="flex gap-1">
+                      {CT3_CAPSTONE_STEPS.map((s, i) => (
+                        <button key={i} onClick={() => setCt15Step(i)}
+                          className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all text-center"
+                          style={{
+                            background: ct15Step === i ? "oklch(0.75_0.18_55_/_0.15)" : "oklch(1 0 0 / 0.04)",
+                            color: ct15Step === i ? "oklch(0.85_0.18_55)" : ct15Answers[i].length > 20 ? "oklch(0.72_0.18_150)" : "oklch(0.5 0 0)",
+                            border: `1px solid ${ct15Step === i ? "oklch(0.75_0.18_55_/_0.35)" : "oklch(1 0 0 / 0.08)"}`,
+                          }}>
+                          {ct15Answers[i].length > 20 ? <CheckCircle2 size={10} className="inline" /> : i + 1} {s.label}
+                        </button>
+                      ))}
+                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.div key={ct15Step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+                        <div className="glass rounded-xl p-4 border border-white/8">
+                          <div className="text-xs font-semibold text-[oklch(0.85_0.18_55)] mb-2">STEP {ct15Step + 1} — {CT3_CAPSTONE_STEPS[ct15Step].label.toUpperCase()}</div>
+                          <p className="text-sm text-foreground leading-snug mb-3">{CT3_CAPSTONE_STEPS[ct15Step].q}</p>
+                          <textarea
+                            value={ct15Answers[ct15Step]}
+                            onChange={(e) => { const u = [...ct15Answers]; u[ct15Step] = e.target.value; setCt15Answers(u); }}
+                            placeholder={CT3_CAPSTONE_STEPS[ct15Step].ph}
+                            rows={7}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+                          />
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="text-xs text-muted-foreground">{ct15Answers[ct15Step].length} chars</span>
+                            <div className="flex gap-2">
+                              {ct15Step > 0 && (
+                                <button onClick={() => setCt15Step(ct15Step - 1)}
+                                  className="px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground hover:text-foreground transition-all">
+                                  Back
+                                </button>
+                              )}
+                              {ct15Step < CT3_CAPSTONE_STEPS.length - 1
+                                ? <button onClick={() => setCt15Step(ct15Step + 1)}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.35)] hover:bg-[oklch(0.75_0.18_55_/_0.25)]">
+                                    Next step
+                                  </button>
+                                : !ct15Done && (
+                                  <button
+                                    onClick={() => {
+                                      const complete = ct15Answers.filter(a => a.length > 20).length;
+                                      if (complete < 5) { toast.error(`Complete at least 5 of 6 steps (${complete}/6 done)`); return; }
+                                      setCt15Done(true);
+                                      handleCT3Complete("ct15");
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.35)] hover:bg-[oklch(0.72_0.18_150_/_0.25)] transition-all">
+                                    Submit argument
+                                  </button>
+                                )
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+                    {ct15Answers.every(a => a.length > 20) && (
+                      <button
+                        onClick={() => { setExpandResult(""); expandMutation.mutate({ concept: `Review this complete argument:\n\nTopic: ${ct15Topic}\n\nClaim: ${ct15Answers[0]}\n\nEvidence: ${ct15Answers[1]}\n\nHidden Assumptions: ${ct15Answers[2]}\n\nSteel-Man Opposition: ${ct15Answers[3]}\n\nRebuttal: ${ct15Answers[4]}\n\nLimits: ${ct15Answers[5]}\n\nProvide substantive feedback: (1) Is the claim specific and falsifiable? (2) Is the evidence compelling and diverse? (3) Are the hidden assumptions genuinely identified? (4) Is the steel-man truly the strongest opposing view? (5) Does the rebuttal actually address the steel-man? (6) Are the limits honest? Give an overall quality rating and one key suggestion.`, level: "student" }); }}
+                        disabled={expandMutation.isPending}
+                        className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 bg-[oklch(0.70_0.22_270_/_0.15)] text-[oklch(0.82_0.22_270)] border border-[oklch(0.70_0.22_270_/_0.3)] hover:bg-[oklch(0.70_0.22_270_/_0.25)] transition-all">
+                        {expandMutation.isPending ? <><Loader2 size={13} className="animate-spin" />Reviewing...</> : <><Brain size={13} />Get AI critique of my full argument</>}
+                      </button>
+                    )}
+                    {expandResult && (
+                      <div className="p-4 rounded-xl bg-[oklch(0.70_0.22_270_/_0.1)] border border-[oklch(0.70_0.22_270_/_0.25)]">
+                        <Streamdown>{expandResult}</Streamdown>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+                    <div className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.4)] text-center">
+                      <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.4)]">
+                        <Trophy size={28} className="text-[oklch(0.85_0.18_55)]" />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Clear Thinking Certificate</h3>
+                      <p className="text-sm text-muted-foreground mb-1">Module 3 — Systems &amp; Self</p>
+                      <p className="text-xs text-muted-foreground mb-4">You have completed all 15 Clear Thinking lessons across 3 modules.</p>
+                      <div className="flex flex-wrap gap-2 justify-center mb-5">
+                        {[
+                          { badge: "Argument Architect", color: "oklch(0.70_0.22_270)" },
+                          { badge: "Systems Thinker", color: "oklch(0.72_0.18_40)" },
+                          { badge: "Bias Spotter", color: "oklch(0.68_0.22_10)" },
+                          { badge: "Steel-Manner", color: "oklch(0.68_0.20_140)" },
+                          { badge: "Evidence Analyst", color: "oklch(0.72_0.18_150)" },
+                          { badge: "Model Builder", color: "oklch(0.75_0.18_55)" },
+                        ].map(({ badge, color }) => (
+                          <span key={badge} className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                            style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.35)` }}>
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">You can now: build structured arguments from first principles, map logical architecture, identify motivated reasoning in yourself and others, reason about complex systems, and construct well-bounded positions on contested issues.</p>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </CT3Shell>
+          </motion.div>
+        )}
+
+        {/* Lesson overview (default) */}
+        {!["ct11","ct12","ct13","ct14","ct15"].includes(activeLesson) && (
+          <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="space-y-2">
+            {CT3_LESSON_META.map((lesson, i) => {
+              const done = completedLessons.has(lesson.id);
+              const locked = i > 0 && !completedLessons.has(CT3_LESSON_META[i - 1].id);
+              return (
+                <motion.div key={lesson.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                  className={`glass rounded-2xl border overflow-hidden transition-all ${done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : "border-white/8 hover:border-white/15"}`}>
+                  <button onClick={() => !locked && setActiveLesson(lesson.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
+                      style={{ background: `color-mix(in oklch, ${lesson.color} 15%, transparent)`, border: `1px solid color-mix(in oklch, ${lesson.color} 30%, transparent)`, color: lesson.color }}>
+                      {locked ? <Lock size={14} className="text-muted-foreground" /> : i + 11}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-foreground">{lesson.title}</div>
+                      <p className="text-sm text-muted-foreground truncate">{lesson.subtitle}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
+                      <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp} XP</span>
+                      {done ? <span className="text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={10} /> Done</span> : <ChevronRight size={13} className="text-muted-foreground" />}
+                    </div>
+                  </button>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Lesson list always visible below active lesson */}
+      {["ct11","ct12","ct13","ct14","ct15"].includes(activeLesson) && (
+        <div className="space-y-1.5 pt-2">
+          <div className="text-xs text-muted-foreground px-1 mb-1">All Module 3 Lessons</div>
+          {CT3_LESSON_META.map((lesson, i) => {
+            const done = completedLessons.has(lesson.id);
+            const isActive = activeLesson === lesson.id;
+            return (
+              <button key={lesson.id} onClick={() => setActiveLesson(lesson.id)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl glass border transition-all text-left"
+                style={{ borderColor: isActive ? `oklch(from ${lesson.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)" }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold"
+                  style={{ background: `oklch(from ${lesson.color} l c h / 0.15)`, color: lesson.color }}>
+                  {i + 11}
+                </div>
+                <span className="flex-1 text-sm text-foreground truncate">{lesson.title}</span>
+                {done && <CheckCircle2 size={13} className="text-[oklch(0.72_0.18_150)] shrink-0" />}
+                {isActive && !done && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: lesson.color }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
