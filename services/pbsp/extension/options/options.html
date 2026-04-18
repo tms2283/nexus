@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PBSP — Settings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1117;
+      color: #e4e4e7;
+      padding: 32px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 24px; margin-bottom: 24px; color: #a5b4fc; }
+    h2 { font-size: 16px; margin: 24px 0 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; }
+    label { display: block; margin-bottom: 8px; font-size: 14px; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 8px 12px;
+      background: #1e1e2e;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #e4e4e7;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    input:focus { outline: none; border-color: #6366f1; }
+    button {
+      padding: 10px 20px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:hover { background: #4f46e5; }
+    .status { margin-top: 12px; font-size: 13px; color: #22c55e; }
+  </style>
+</head>
+<body>
+  <h1>PBSP Extension Settings</h1>
+
+  <h2>API Connection</h2>
+  <label for="apiUrl">API Server URL</label>
+  <input type="text" id="apiUrl" placeholder="http://127.0.0.1:8002/api" />
+
+  <label for="apiKey">API Key</label>
+  <input type="password" id="apiKey" placeholder="Enter your PBSP API key" />
+
+  <button id="saveBtn">Save Settings</button>
+  <div class="status" id="status"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

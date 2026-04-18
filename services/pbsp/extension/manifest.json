@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "PBSP — Behavioral Signal Processor",
+  "version": "0.2.0",
+  "description": "Captures browsing behavioral signals for learning personalization. No raw content is logged — only patterns.",
+  "permissions": [
+    "tabs",
+    "history",
+    "bookmarks",
+    "idle",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8002/*",
+    "http://localhost:8002/*",
+    "http://localhost:3000/*",
+    "http://localhost:5173/*",
+    "https://nexus2042.com/*",
+    "https://*.nexus2042.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost:3000/*",
+        "http://localhost:5173/*",
+        "http://127.0.0.1:3000/*",
+        "http://127.0.0.1:5173/*",
+        "https://nexus2042.com/*",
+        "https://*.nexus2042.com/*"
+      ],
+      "js": ["nexus_tracker.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

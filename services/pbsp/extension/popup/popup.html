@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PBSP</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1117;
+      color: #e4e4e7;
+      padding: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #a5b4fc;
+    }
+    .indicator {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .indicator.off { background: #ef4444; }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .stat {
+      background: #1e1e2e;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-top: 2px;
+    }
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #27272a;
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 13px; }
+    .toggle {
+      position: relative;
+      width: 36px; height: 20px;
+    }
+    .toggle input {
+      opacity: 0; width: 0; height: 0;
+    }
+    .toggle .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #3f3f46;
+      border-radius: 20px;
+      transition: .2s;
+    }
+    .toggle .slider::before {
+      content: "";
+      position: absolute;
+      height: 14px; width: 14px;
+      left: 3px; bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: .2s;
+    }
+    .toggle input:checked + .slider {
+      background: #6366f1;
+    }
+    .toggle input:checked + .slider::before {
+      transform: translateX(16px);
+    }
+    .footer {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #52525b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="indicator" id="statusIndicator"></div>
+    <h1>Behavioral Signal Processor</h1>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Buffered</div>
+      <div class="stat-value" id="bufferedCount">-</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Tabs Tracked</div>
+      <div class="stat-value" id="tabCount">-</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Switches/min</div>
+      <div class="stat-value" id="switchRate">-</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Status</div>
+      <div class="stat-value" id="statusText" style="font-size:13px;">-</div>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <span class="toggle-label">Enabled</span>
+    <label class="toggle">
+      <input type="checkbox" id="toggleEnabled" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Track searches</span>
+    <label class="toggle">
+      <input type="checkbox" id="toggleSearches" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Track reading time</span>
+    <label class="toggle">
+      <input type="checkbox" id="toggleReading" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Track tab patterns</span>
+    <label class="toggle">
+      <input type="checkbox" id="toggleTabs" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="footer">PBSP v0.1.0 — Data stays local</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

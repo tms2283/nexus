@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  pbsp-api:
+    build: .
+    container_name: pbsp-api
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    volumes:
+      - pbsp_data:/app/data
+    environment:
+      - ENVIRONMENT=production
+      # - DATABASE_URL=mysql://user:pass@host:3306/db # Future config when switching off SQLite
+      # - PBSP_API_KEY=your_secure_api_key
+
+volumes:
+  pbsp_data:
+    name: pbsp_data_volume
