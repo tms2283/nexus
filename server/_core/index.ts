@@ -15,6 +15,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startJobRunner } from "./jobRunner";
 import { applyCsrfProtection } from "./csrf";
+import { ensureAdaptiveLessonTables } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -71,6 +72,9 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     startJobRunner();
+    ensureAdaptiveLessonTables().catch((err) =>
+      console.error("[Bootstrap] ensureAdaptiveLessonTables threw:", err)
+    );
   });
 }
 

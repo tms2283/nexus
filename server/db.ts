@@ -15,6 +15,8 @@ import {
   lessonFeedback, LessonFeedback, InsertLessonFeedback,
   lessonProgress, LessonProgress, InsertLessonProgress,
   curriculumProgress, CurriculumProgress, InsertCurriculumProgress,
+  lessonAssessmentResponses, LessonAssessmentResponse,
+  lessonReflections, LessonReflection,
   flashcardDecks, flashcards, flashcardReviews,
   aiProviderSettings, mindMaps, libraryResources,
   FlashcardDeck, Flashcard, AIProviderSettings, MindMap, LibraryResource,
@@ -70,6 +72,52 @@ export async function getDb() {
     catch (error) { console.warn("[Database] Failed to connect:", error); _db = null; }
   }
   return _db;
+}
+
+/**
+ * Idempotently ensures the adaptive-lesson persistence tables exist.
+ * Called on server boot so a fresh deploy doesn't require manual migration.
+ * The statements mirror drizzle/0014_known_clint_barton.sql.
+ */
+export async function ensureAdaptiveLessonTables(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS lesson_assessment_responses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT,
+        cookieId VARCHAR(128) NOT NULL,
+        lessonId VARCHAR(64) NOT NULL,
+        itemId VARCHAR(128) NOT NULL,
+        itemKind VARCHAR(32) NOT NULL,
+        correct BOOLEAN,
+        confidence INT,
+        responsePayload JSON,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        INDEX lesson_assessment_cookie_lesson_idx (cookieId, lessonId),
+        INDEX lesson_assessment_user_lesson_idx (userId, lessonId)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS lesson_reflections (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT,
+        cookieId VARCHAR(128) NOT NULL,
+        lessonId VARCHAR(64) NOT NULL,
+        itemId VARCHAR(128) NOT NULL,
+        prompt TEXT NOT NULL,
+        response TEXT NOT NULL,
+        rubricFeedback JSON,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        INDEX lesson_reflections_cookie_lesson_idx (cookieId, lessonId),
+        INDEX lesson_reflections_user_lesson_idx (userId, lessonId)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    console.log("[Database] Adaptive lesson tables ready.");
+  } catch (error) {
+    console.error("[Database] Failed to ensure adaptive lesson tables:", error);
+  }
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -805,6 +853,99 @@ export async function getUserProgress(cookieId: string): Promise<{ lessons: Less
   const lessons_data = await db.select().from(lessonProgress).where(eq(lessonProgress.cookieId, cookieId));
   const curricula = await db.select().from(curriculumProgress).where(eq(curriculumProgress.cookieId, cookieId));
   return { lessons: lessons_data, curricula };
+}
+
+// Adaptive lesson persistence helpers ───────────────────────────────────────
+
+export async function recordAssessmentResponse(data: {
+  userId?: number | null;
+  cookieId: string;
+  lessonId: string;
+  itemId: string;
+  itemKind: string;
+  correct?: boolean | null;
+  confidence?: number | null;
+  responsePayload?: Record<string, unknown>;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(lessonAssessmentResponses).values({
+    userId: data.userId ?? null,
+    cookieId: data.cookieId,
+    lessonId: data.lessonId,
+    itemId: data.itemId,
+    itemKind: data.itemKind,
+    correct: data.correct ?? null,
+    confidence: data.confidence ?? null,
+    responsePayload: data.responsePayload ?? {},
+  });
+}
+
+export async function getAssessmentHistory(
+  cookieId: string,
+  lessonId?: string
+): Promise<LessonAssessmentResponse[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const where = lessonId
+    ? and(eq(lessonAssessmentResponses.cookieId, cookieId), eq(lessonAssessmentResponses.lessonId, lessonId))
+    : eq(lessonAssessmentResponses.cookieId, cookieId);
+  return db
+    .select()
+    .from(lessonAssessmentResponses)
+    .where(where)
+    .orderBy(desc(lessonAssessmentResponses.createdAt))
+    .limit(500);
+}
+
+export async function recordReflection(data: {
+  userId?: number | null;
+  cookieId: string;
+  lessonId: string;
+  itemId: string;
+  prompt: string;
+  response: string;
+  rubricFeedback?: LessonReflection["rubricFeedback"];
+}): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(lessonReflections).values({
+    userId: data.userId ?? null,
+    cookieId: data.cookieId,
+    lessonId: data.lessonId,
+    itemId: data.itemId,
+    prompt: data.prompt,
+    response: data.response,
+    rubricFeedback: data.rubricFeedback ?? null,
+  });
+  const insertedId = result[0]?.insertId;
+  return typeof insertedId === "number" ? insertedId : null;
+}
+
+export async function updateReflectionRubric(
+  reflectionId: number,
+  rubricFeedback: LessonReflection["rubricFeedback"]
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(lessonReflections)
+    .set({ rubricFeedback })
+    .where(eq(lessonReflections.id, reflectionId));
+}
+
+export async function getReflectionsForLesson(
+  cookieId: string,
+  lessonId: string
+): Promise<LessonReflection[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(lessonReflections)
+    .where(and(eq(lessonReflections.cookieId, cookieId), eq(lessonReflections.lessonId, lessonId)))
+    .orderBy(desc(lessonReflections.createdAt))
+    .limit(50);
 }
 
 export async function getStudyStats(cookieId: string): Promise<{ totalTimeSeconds: number; lessonsCompleted: number; streak: number; lastStudyDate: Date | null }> {

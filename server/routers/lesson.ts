@@ -3,6 +3,10 @@ import { TRPCError } from "@trpc/server";
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import { publicProcedure, router } from "../_core/trpc";
+import { composeLessonSeed } from "../services/lessonSeedFactory";
+import { getLearnerProfile, getDefaultProfile } from "../services/learnerProfileService";
+import { AI_LITERACY_TEMPLATES } from "../../shared/content/aiLiteracy/lessonTemplates";
+import { callAI } from "./shared";
 import {
   addXP,
   saveLesson,
@@ -19,6 +23,11 @@ import {
   startCurriculumProgress,
   getCurriculumProgress,
   getFoundationProgress,
+  recordAssessmentResponse,
+  getAssessmentHistory,
+  recordReflection,
+  updateReflectionRubric,
+  getReflectionsForLesson,
   incrementLessonViewCount,
   getOrCreateVisitorProfile,
   ensureVisitorBadge,
@@ -33,7 +42,6 @@ import {
   createFlashcardDeck,
   addScheduledFlashcardsToDeck,
 } from "../db";
-import { callAI } from "./shared";
 import { type InsertLesson, type InsertLessonSection } from "../../drizzle/schema";
 import { ENV } from "../_core/env";
 
@@ -429,6 +437,153 @@ export const lessonRouter = router({
   getStudyStats: publicProcedure.input(z.object({ cookieId: z.string() })).query(async ({ input }) => getStudyStats(input.cookieId)),
   startCurriculumProgress: publicProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string(), totalLessons: z.number() })).mutation(async ({ input }) => startCurriculumProgress(input.cookieId, input.curriculumId, input.totalLessons)),
   getCurriculumProgress: publicProcedure.input(z.object({ cookieId: z.string(), curriculumId: z.string() })).query(async ({ input }) => getCurriculumProgress(input.cookieId, input.curriculumId)),
+
+  /**
+   * Returns a personalised LessonSeed by composing a lesson template with
+   * the caller's LearnerProfile. Used by the new adaptive lesson UI.
+   */
+  getSeededLesson: publicProcedure
+    .input(z.object({ lessonId: z.string().max(64), cookieId: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      const template = AI_LITERACY_TEMPLATES[input.lessonId];
+      if (!template) {
+        throw new TRPCError({ code: "NOT_FOUND", message: `No lesson template: ${input.lessonId}` });
+      }
+      const profile = ctx.user?.id
+        ? await getLearnerProfile(ctx.user.id)
+        : getDefaultProfile(null, input.cookieId ?? null);
+      return composeLessonSeed(template, profile);
+    }),
+
+  // ── Adaptive lesson persistence (for any course on the platform) ──────────
+
+  recordAssessment: publicProcedure
+    .input(
+      z.object({
+        cookieId: z.string().min(1).max(128),
+        lessonId: z.string().max(64),
+        itemId: z.string().max(128),
+        itemKind: z.string().max(32),
+        correct: z.boolean().optional(),
+        confidence: z.number().int().min(1).max(5).optional(),
+        responsePayload: z.record(z.string(), z.unknown()).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await recordAssessmentResponse({
+        userId: ctx.user?.id ?? null,
+        cookieId: input.cookieId,
+        lessonId: input.lessonId,
+        itemId: input.itemId,
+        itemKind: input.itemKind,
+        correct: input.correct,
+        confidence: input.confidence,
+        responsePayload: input.responsePayload,
+      });
+      return { success: true };
+    }),
+
+  getAssessmentHistory: publicProcedure
+    .input(z.object({ cookieId: z.string(), lessonId: z.string().max(64).optional() }))
+    .query(async ({ input }) => getAssessmentHistory(input.cookieId, input.lessonId)),
+
+  recordReflection: publicProcedure
+    .input(
+      z.object({
+        cookieId: z.string().min(1).max(128),
+        lessonId: z.string().max(64),
+        itemId: z.string().max(128),
+        prompt: z.string().max(2000),
+        response: z.string().max(8000),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const id = await recordReflection({
+        userId: ctx.user?.id ?? null,
+        cookieId: input.cookieId,
+        lessonId: input.lessonId,
+        itemId: input.itemId,
+        prompt: input.prompt,
+        response: input.response,
+      });
+      return { success: true, reflectionId: id };
+    }),
+
+  getReflections: publicProcedure
+    .input(z.object({ cookieId: z.string(), lessonId: z.string().max(64) }))
+    .query(async ({ input }) => getReflectionsForLesson(input.cookieId, input.lessonId)),
+
+  /**
+   * LLM-graded rubric. Caller passes the prompt, the learner's response,
+   * and the rubric criteria. Returns structured per-criterion feedback.
+   * Persists the grade against the original reflection if reflectionId given.
+   */
+  gradeRubric: publicProcedure
+    .input(
+      z.object({
+        cookieId: z.string().min(1).max(128),
+        prompt: z.string().max(2000),
+        response: z.string().max(8000),
+        rubricCriteria: z
+          .array(
+            z.object({
+              label: z.string().max(64),
+              description: z.string().max(500),
+              weight: z.number().min(0).max(10),
+            })
+          )
+          .min(1)
+          .max(8),
+        reflectionId: z.number().int().positive().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const rubricText = input.rubricCriteria
+        .map(
+          (c, i) =>
+            `${i + 1}. ${c.label} (weight ${c.weight}) — ${c.description}`
+        )
+        .join("\n");
+
+      const system =
+        "You are an expert pedagogical grader. You return ONLY a single JSON object — no prose, no markdown fences. Be specific, name what is missing, and give actionable next steps. Score each criterion 0–5.";
+
+      const userPrompt = `Grade the following learner response against the rubric.
+
+PROMPT TO LEARNER:
+${input.prompt}
+
+LEARNER RESPONSE:
+${input.response}
+
+RUBRIC CRITERIA:
+${rubricText}
+
+Respond with this exact JSON shape:
+{
+  "overall": "<2-3 sentence summary, plain language>",
+  "perCriterion": [
+    { "label": "<criterion label>", "score": <0-5 integer>, "comment": "<one specific sentence>" }
+  ]
+}`;
+
+      const raw = await callAI(input.cookieId, userPrompt, system, 800);
+      let parsed: { overall: string; perCriterion: Array<{ label: string; score: number; comment: string }> };
+      try {
+        const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+        parsed = JSON.parse(cleaned);
+      } catch {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Grader returned malformed JSON. Please retry.",
+        });
+      }
+
+      if (input.reflectionId) {
+        await updateReflectionRubric(input.reflectionId, parsed);
+      }
+      return parsed;
+    }),
 
   getOrCreateLesson: publicProcedure
     .input(z.object({ cookieId: z.string(), title: z.string(), topic: z.string(), curriculumId: z.string() }))

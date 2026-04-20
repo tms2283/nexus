@@ -112,6 +112,8 @@ pnpm run build 2>&1 | tail -3
 
 echo "       Running migrations..."
 node scripts/migrate-v4.mjs 2>&1 | tail -5
+node scripts/migrate-v5.mjs 2>&1 | tail -5
+node scripts/migrate-v6.mjs 2>&1 | tail -5
 echo "       Build complete."
 
 # ── 9. Start with PM2 ────────────────────────────────────────

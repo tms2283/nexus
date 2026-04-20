@@ -99,6 +99,12 @@ const toolsLinks = [
     desc: "Module 1 - Intro to AI",
   },
   {
+    href: "/learn/my-profile",
+    label: "My Learner Profile",
+    Icon: User,
+    desc: "How adaptive lessons are tuned for you",
+  },
+  {
     href: "/progress",
     label: "Progress",
     Icon: TrendingUp,
