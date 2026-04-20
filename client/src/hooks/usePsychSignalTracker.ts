@@ -30,15 +30,16 @@ function createState(): TrackerState {
 function isTrackableTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
 
+  if (target.isContentEditable || target.closest('[contenteditable="true"]')) {
+    return true;
+  }
+
   if (target instanceof HTMLInputElement) {
     const type = target.type?.toLowerCase();
     return !["password", "hidden"].includes(type);
   }
 
-  return (
-    target instanceof HTMLTextAreaElement ||
-    target.isContentEditable
-  );
+  return target instanceof HTMLTextAreaElement;
 }
 
 export function usePsychSignalTracker(enabled: boolean) {
@@ -74,6 +75,7 @@ export function usePsychSignalTracker(enabled: boolean) {
     };
 
     const handleKeydown = (event: KeyboardEvent) => {
+      if (event.isComposing || event.defaultPrevented) return;
       if (!isTrackableTarget(event.target)) return;
 
       const now = Date.now();
@@ -113,14 +115,14 @@ export function usePsychSignalTracker(enabled: boolean) {
     };
     const handlePageHide = () => flush();
 
-    window.addEventListener("keydown", handleKeydown, true);
+    window.addEventListener("keydown", handleKeydown);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("pagehide", handlePageHide);
 
     return () => {
       window.clearInterval(intervalId);
       flush();
-      window.removeEventListener("keydown", handleKeydown, true);
+      window.removeEventListener("keydown", handleKeydown);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);
     };

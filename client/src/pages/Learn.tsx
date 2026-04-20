@@ -6736,6 +6736,20 @@ const featuredPaths = [
 export default function Learn() {
   const [activeTab, setActiveTab] = useState<"ailiteracy" | "clearthinking" | "curriculum" | "socratic" | "paths">("ailiteracy");
   const [prefillGoal, setPrefillGoal] = useState("");
+  const handleLearnKeyDownCapture = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    if (
+      target.isContentEditable ||
+      target.closest('[contenteditable="true"]') ||
+      target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "SELECT"
+    ) {
+      e.stopPropagation();
+    }
+  }, []);
+
   const handleSelectPath = (pathTitle: string) => {
     setPrefillGoal(`I want to learn: ${pathTitle}`);
     setActiveTab("curriculum");
@@ -6750,7 +6764,7 @@ export default function Learn() {
 
   return (
     <PageWrapper pageName="learn">
-      <div className="min-h-screen pt-20">
+      <div className="min-h-screen pt-20" onKeyDownCapture={handleLearnKeyDownCapture}>
         {/* Hero */}
         <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">

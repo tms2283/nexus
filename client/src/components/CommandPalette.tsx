@@ -84,6 +84,12 @@ export default function CommandPalette() {
   const [, navigate] = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const isEditableTarget = useCallback((target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    if (target.isContentEditable || target.closest('[contenteditable="true"]')) return true;
+    const tag = target.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  }, []);
 
   const goto = useCallback((path: string) => {
     navigate(path);
@@ -153,8 +159,10 @@ export default function CommandPalette() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const targetIsEditable = isEditableTarget(e.target);
+
       // Open/close palette
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if (!targetIsEditable && (e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setOpen(prev => !prev);
         setQuery("");
@@ -162,7 +170,7 @@ export default function CommandPalette() {
         return;
       }
       // Show shortcuts overlay
-      if (!open && e.key === "?" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) {
+      if (!open && !targetIsEditable && e.key === "?") {
         e.preventDefault();
         setShowShortcuts(prev => !prev);
         return;
@@ -187,7 +195,7 @@ export default function CommandPalette() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, showShortcuts, flatItems, selectedIndex]);
+  }, [isEditableTarget, open, showShortcuts, flatItems, selectedIndex]);
 
   // Track flat index across groups
   let flatIdx = 0;
