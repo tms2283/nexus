@@ -47,12 +47,16 @@ function SectionBlock({ section, lessonId }: { section: LessonSection; lessonId:
       return (
         <div className="glass rounded-2xl p-5 border border-white/10">
           {section.heading && (
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
+            <div className="flex items-center gap-2 text-muted-foreground mb-3">
               <BookOpen size={14} />
               <span className="text-xs font-semibold uppercase tracking-wide">{section.heading}</span>
             </div>
           )}
-          <p className="text-sm text-foreground leading-relaxed">{section.body}</p>
+          <div className="space-y-3">
+            {section.body.split("\n\n").map((para, i) => (
+              <p key={i} className="text-sm text-foreground leading-relaxed">{para}</p>
+            ))}
+          </div>
         </div>
       );
     case "analogy":
