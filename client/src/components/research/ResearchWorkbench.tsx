@@ -422,11 +422,11 @@ function KnowledgeTreeView({
       .force(
         "link",
         forceLink<KTNode, KTLink & { source: KTNode; target: KTNode }>(simLinks as any)
-          .id((d) => d.id)
+          .id((d: KTNode) => d.id)
           .distance((l: any) => l.type === "seed" ? 140 : 110)
           .strength(0.18),
       )
-      .force("charge", forceManyBody<KTNode>().strength((d) => d.id === rId ? -480 : -200))
+      .force("charge", forceManyBody<KTNode>().strength((d: KTNode | null) => d?.id === rId ? -480 : -200))
       .force("collide", forceCollide<KTNode>().radius(30).iterations(2))
       .alphaDecay(0.07)
       .velocityDecay(0.35)
