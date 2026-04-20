@@ -7,7 +7,7 @@
  */
 
 import { z } from "zod";
-import { router, publicProcedure } from "../../_core/trpc";
+import { router, publicProcedure } from "../_core/trpc";
 
 const PBSP_SERVICE_URL =
   process.env.PBSP_SERVICE_URL || "http://localhost:8002/api";
@@ -83,7 +83,7 @@ const BehavioralEventSchema = z.object({
   source: z.string(),
   confidence: z.number().default(1.0),
   context: EventContextSchema.optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   timestamp: z.number().optional(),
 });
 
