@@ -479,6 +479,59 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
       return result;
     }),
 
+  // ─── Generate content (study guide, FAQ, briefing, etc.) ────────────────
+  generateContent: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      projectId: z.number().int().positive(),
+      type: z.enum(["study-guide", "briefing", "faq", "timeline", "mindmap", "summary"]),
+    }))
+    .mutation(async ({ input }) => {
+      const project = await assertProjectOwnership(input.cookieId, input.projectId);
+      const serviceProjectId = getServiceProjectId(project);
+      const sourcesResult = await callResearchService<{ sources: ResearchServiceSource[]; count: number }>(
+        `/projects/${serviceProjectId}/sources`
+      );
+      const context = (sourcesResult.sources ?? [])
+        .slice(0, 15)
+        .map(s => `[${s.title}]${s.topics?.length ? ` (${s.topics.slice(0, 4).join(', ')})` : ''}\n${s.summary || ''}`)
+        .join('\n\n---\n\n')
+        .slice(0, 12000);
+      const prompts: Record<string, string> = {
+        "study-guide": `Create a comprehensive study guide with key concepts, definitions, and review questions based on these research sources:\n\nSOURCES:\n${context}`,
+        "briefing": `Create a professional executive briefing document with key findings, insights, and recommendations based on these sources:\n\nSOURCES:\n${context}`,
+        "faq": `Generate 10 insightful frequently asked questions with detailed answers based on these research sources:\n\nSOURCES:\n${context}`,
+        "timeline": `Extract all dates, events, and milestones from these sources and present them as a chronological timeline:\n\nSOURCES:\n${context}`,
+        "mindmap": `Create a hierarchical mind map outline (use indented text with dashes and sub-dashes) showing the main topics and their conceptual relationships from these sources:\n\nSOURCES:\n${context}`,
+        "summary": `Create a comprehensive synthesis covering all major themes, findings, and connections across these research sources:\n\nSOURCES:\n${context}`,
+      };
+      const content = await callAI(input.cookieId, prompts[input.type], undefined, 2500);
+      await addXP(input.cookieId, 5);
+      return { content, type: input.type };
+    }),
+
+  // ─── Expand a knowledge tree topic (AI summary + subtopics) ─────────────
+  expandKnowledgeTopic: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      topic: z.string().min(1).max(300),
+      exclusions: z.array(z.string()).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const exclusionText = (input.exclusions?.length ?? 0) > 0
+        ? `Do not repeat these already-mapped topics: ${input.exclusions!.slice(0, 20).join(', ')}.`
+        : "Return a balanced mix of foundational and adjacent concepts.";
+      const prompt = `You are building a knowledge graph. For the topic "${input.topic}", return ONLY valid JSON with no other text:
+{"summary":"4-6 sentence wiki-style factual overview covering definition, significance, and connections to other ideas","subtopics":["specific topic 1","specific topic 2","specific topic 3","specific topic 4","specific topic 5","specific topic 6"]}
+Requirements: subtopics must be specific adjacent concepts worth exploring next, not generic terms. No duplicates. ${exclusionText}`;
+      const raw = await callAI(input.cookieId, prompt, undefined, 700);
+      try {
+        const m = raw.match(/\{[\s\S]*\}/);
+        if (m) return JSON.parse(m[0]) as { summary: string; subtopics: string[] };
+      } catch (_) { /* fallthrough */ }
+      return { summary: raw.slice(0, 700), subtopics: [] };
+    }),
+
   // ─── Get audio overviews for a source ────────────────────────────────────
   getAudioOverviews: publicProcedure
     .input(z.object({ cookieId: z.string(), sourceType: z.enum(["research_session", "lesson"]), sourceId: z.number() }))

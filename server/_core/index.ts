@@ -52,6 +52,10 @@ async function startServer() {
     createExpressMiddleware({ router: appRouter, createContext })
   );
 
+  // Standalone Research Engine API
+  const { researchEngineRouter } = require("../routers/researchEngine");
+  app.use("/api/research", researchEngineRouter);
+
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {

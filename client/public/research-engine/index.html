@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://d3js.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: data: file:; connect-src 'self' https://generativelanguage.googleapis.com https://html.duckduckgo.com https://d3js.org;">
+  <title>SchmoCo Research Engine</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #0F172A;
+      --secondary: #1E293B;
+      --accent: #6366F1;
+      --accent-hover: #4F46E5;
+      --surface: #FFFFFF;
+      --surface-hover: #F8FAFC;
+      --background: #F1F5F9;
+      --text: #0F172A;
+      --text-secondary: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --error: #EF4444;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 3-Panel Layout like NotebookLM */
+    .app-container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Left Panel - Sources */
+    .panel-sources {
+      flex: 1.5;
+      min-width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .source-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .add-source-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .add-source-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .source-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .source-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 4px;
+    }
+
+    .source-item:hover {
+      background: var(--surface-hover);
+    }
+
+    .source-item.active {
+      background: #EEF2FF;
+      border: 1px solid var(--accent);
+    }
+
+    .source-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--background);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .source-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .source-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .source-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .source-delete {
+      opacity: 0;
+      padding: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .source-item:hover .source-delete {
+      opacity: 1;
+    }
+
+    /* Middle Panel - Chat */
+    .panel-chat {
+      flex: 2;
+      min-width: 280px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .chat-message {
+      margin-bottom: 16px;
+    }
+
+    .chat-message.user {
+      text-align: right;
+    }
+
+    .chat-bubble {
+      display: inline-block;
+      max-width: 90%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-message.user .chat-bubble {
+      background: var(--accent);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.assistant .chat-bubble {
+      background: var(--background);
+      border-bottom-left-radius: 4px;
+      text-align: left;
+    }
+
+    .chat-citations {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .chat-input-container {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      background: var(--background);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      resize: none;
+      font-size: 14px;
+      max-height: 100px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .chat-send-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .chat-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Right Panel - Studio */
+    .panel-studio {
+      flex: 3;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      min-width: 300px;
+      overflow: hidden;
+    }
+
+    .studio-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .studio-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .studio-outputs {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .output-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .output-tile {
+      padding: 20px;
+      background: var(--background);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .output-tile:hover {
+      background: #EEF2FF;
+      transform: translateY(-2px);
+    }
+
+    .output-tile-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .output-tile-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .generated-content {
+      padding: 16px;
+      background: var(--background);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .generated-content h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .generated-content p {
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .modal input, .modal textarea, .modal select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    /* Discovery Results */
+    .discover-results {
+      margin: 16px 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .discover-result {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .discover-result:hover {
+      background: var(--surface-hover);
+    }
+
+    .discover-result input {
+      margin-top: 4px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .discover-result-info h4 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .discover-result-info p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .discover-result-source {
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* Empty States */
+    .empty-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 24px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .empty-panel-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-panel h3 {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .empty-panel p {
+      font-size: 14px;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* View Notebook Button */
+    .view-notebook-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 8px 16px;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      z-index: 100;
+    }
+
+    .view-notebook-btn:hover {
+      background: var(--primary);
+    }
+
+    /* Welcome Modal */
+    #welcomeModal .modal {
+      text-align: center;
+    }
+
+    #welcomeModal .modal-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    #welcomeModal .modal h3 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    #welcomeModal .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    /* ── Tab bar ── */
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px 0;
+      background: var(--primary);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 44px;
+      z-index: 200;
+    }
+    .tab-bar-tab {
+      padding: 6px 16px;
+      border-radius: 8px 8px 0 0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: rgba(255,255,255,0.6);
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .tab-bar-tab:hover { color: white; }
+    .tab-bar-tab.active {
+      background: var(--background);
+      color: var(--text);
+    }
+    .tab-bar-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+    .tab-bar-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+    }
+    .tab-bar-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    .app-container { padding-top: 44px; }
+
+    /* Knowledge graph explorer */
+    .view-notebook { display: flex; height: 100%; }
+    .view-kt {
+      display: flex;
+      height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(99,102,241,0.08), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(16,185,129,0.08), transparent 32%),
+        var(--background);
+    }
+
+    .kt-tree-panel {
+      flex: 1.28;
+      min-width: 460px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.92));
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    html.dark .kt-tree-panel {
+      background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(15,23,42,0.88));
+    }
+    .kt-tree-header {
+      padding: 18px 18px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.7));
+      backdrop-filter: blur(14px);
+      z-index: 2;
+    }
+    html.dark .kt-tree-header {
+      background: linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.75));
+    }
+    .kt-tree-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+    .kt-tree-title h2 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+    .kt-tree-title p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 540px;
+    }
+    .kt-status-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(99,102,241,0.18);
+      background: rgba(99,102,241,0.08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .kt-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .kt-seed-input {
+      flex: 1 1 340px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148,163,184,0.35);
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      background: rgba(255,255,255,0.86);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+    html.dark .kt-seed-input {
+      background: rgba(15,23,42,0.82);
+    }
+    .kt-seed-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    }
+    .kt-start-btn, .kt-secondary-btn {
+      padding: 11px 15px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+    }
+    .kt-start-btn {
+      background: linear-gradient(135deg, #2563eb, #6366f1);
+      color: white;
+      border: none;
+      box-shadow: 0 10px 24px rgba(37,99,235,0.18);
+    }
+    .kt-start-btn:hover, .kt-secondary-btn:hover { transform: translateY(-1px); }
+    .kt-start-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .kt-secondary-btn {
+      background: rgba(255,255,255,0.7);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    html.dark .kt-secondary-btn {
+      background: rgba(15,23,42,0.58);
+    }
+    .kt-tree-metrics {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .kt-metric {
+      min-width: 120px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,0.22);
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 12px 24px rgba(15,23,42,0.04);
+    }
+    html.dark .kt-metric {
+      background: rgba(30,41,59,0.58);
+    }
+    .kt-metric-label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .kt-metric strong {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .kt-tree-stage {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(99,102,241,0.09), transparent 28%),
+        radial-gradient(circle at 20% 20%, rgba(14,165,233,0.09), transparent 18%),
+        linear-gradient(180deg, rgba(248,250,252,0.94), rgba(241,245,249,0.98));
+    }
+    html.dark .kt-tree-stage {
+      background:
+        radial-gradient(circle at center, rgba(99,102,241,0.12), transparent 28%),
+        radial-gradient(circle at 20% 20%, rgba(14,165,233,0.12), transparent 18%),
+        linear-gradient(180deg, rgba(2,6,23,0.96), rgba(15,23,42,0.98));
+    }
+    #ktSvg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .kt-graph-overlay {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .kt-overlay-card {
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(148,163,184,0.18);
+      box-shadow: 0 18px 36px rgba(15,23,42,0.08);
+      backdrop-filter: blur(16px);
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    html.dark .kt-overlay-card {
+      background: rgba(15,23,42,0.76);
+    }
+    .kt-overlay-title {
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .kt-legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .kt-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .kt-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+    .kt-dot-root { background: #2563eb; }
+    .kt-dot-explored { background: #10b981; }
+    .kt-dot-frontier { background: #475569; }
+    .kt-dot-selected { background: #f59e0b; }
+
+    .kt-wiki-panel {
+      flex: 1;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,250,252,0.94));
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    html.dark .kt-wiki-panel {
+      background: linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.9));
+    }
+    .kt-wiki-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.66));
+      backdrop-filter: blur(14px);
+    }
+    html.dark .kt-wiki-header {
+      background: linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.72));
+    }
+    .kt-wiki-header-main {
+      flex: 1;
+      min-width: 0;
+    }
+    .kt-wiki-header h2 {
+      font-size: 28px;
+      font-weight: 750;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+    .kt-wiki-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .kt-meta-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.14);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .kt-wiki-add-btn {
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #2563eb, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 12px 24px rgba(37,99,235,0.18);
+    }
+    .kt-wiki-add-btn:hover { background: linear-gradient(135deg, #1d4ed8, #4f46e5); }
+    .kt-wiki-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 24px 30px;
+    }
+    .kt-summary-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .kt-link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: rgba(255,255,255,0.72);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.14s ease, transform 0.14s ease;
+    }
+    .kt-link-button:hover {
+      border-color: rgba(99,102,241,0.34);
+      transform: translateY(-1px);
+    }
+    html.dark .kt-link-button {
+      background: rgba(30,41,59,0.56);
+    }
+    .kt-wiki-summary {
+      font-size: 15px;
+      line-height: 1.82;
+      color: var(--text);
+      white-space: pre-wrap;
+      margin-bottom: 24px;
+    }
+    .kt-section {
+      margin-top: 28px;
+    }
+    .kt-section h4 {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .kt-section-note {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .kt-subtopic-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .kt-subtopic-chip {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(148,163,184,0.22);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+    }
+    .kt-subtopic-chip:hover {
+      background: #eef2ff;
+      border-color: rgba(99,102,241,0.42);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    html.dark .kt-subtopic-chip {
+      background: rgba(30,41,59,0.7);
+    }
+    .kt-neighborhood-list {
+      display: grid;
+      gap: 10px;
+    }
+    .kt-neighborhood-item {
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+    .kt-neighborhood-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(99,102,241,0.34);
+    }
+    html.dark .kt-neighborhood-item {
+      background: rgba(30,41,59,0.58);
+    }
+    .kt-neighborhood-topic {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .kt-neighborhood-meta {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .kt-wiki-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 48px;
+    }
+    .kt-wiki-empty-icon {
+      width: 74px;
+      height: 74px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(16,185,129,0.12));
+      color: var(--accent);
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .kt-wiki-empty h3 {
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .kt-wiki-empty p {
+      max-width: 420px;
+      line-height: 1.7;
+    }
+
+    /* Citation links (Wikipedia-style) */
+    .cite-link {
+      color: #3b82f6;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(59,130,246,0.35);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .cite-link:hover {
+      color: #1d4ed8;
+      border-bottom-color: #1d4ed8;
+    }
+    html.dark .cite-link { color: #93c5fd; border-bottom-color: rgba(147,197,253,0.4); }
+    html.dark .cite-link:hover { color: #bfdbfe; border-bottom-color: #bfdbfe; }
+
+    /* Podcast */
+    .podcast-tile { border: 1px solid var(--accent) !important; background: linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03)) !important; }
+    .podcast-tile:hover { background: linear-gradient(135deg,rgba(99,102,241,0.18),rgba(99,102,241,0.1)) !important; transform: translateY(-1px); }
+    .podcast-transcript { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; max-height: 300px; overflow-y: auto; padding-right: 4px; }
+    .transcript-line { display: flex; gap: 10px; font-size: 13px; line-height: 1.55; }
+    .transcript-speaker { font-weight: 700; min-width: 52px; padding-top: 1px; }
+    .transcript-line.host1 .transcript-speaker { color: #6366f1; }
+    .transcript-line.host2 .transcript-speaker { color: #10b981; }
+    .transcript-text { color: var(--text); }
+
+    /* Knowledge Tree Panel (old — hide it) */
+    .kt-panel { display: none; }
+
+    /* ── Dark mode ── */
+    html.dark {
+      --surface: #1e293b;
+      --surface-hover: #293548;
+      --background: #0f172a;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+    }
+    html.dark body { background: var(--background); color: var(--text); }
+    html.dark .modal { background: #1e293b; color: var(--text); }
+    html.dark .modal input,
+    html.dark .modal textarea,
+    html.dark .modal select {
+      background: #0f172a;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    html.dark .modal input::placeholder,
+    html.dark .modal textarea::placeholder { color: var(--text-secondary); }
+    html.dark .chat-input { color: var(--text); }
+    html.dark .chat-input::placeholder { color: var(--text-secondary); }
+    html.dark .source-item.active,
+    html.dark .notebook-list-item.active { background: rgba(99,102,241,0.2); }
+    html.dark .output-tile:hover { background: rgba(99,102,241,0.2); transform: translateY(-2px); }
+    html.dark .kt-subtopic-chip:hover { background: rgba(99,102,241,0.2); border-color: var(--accent); color: #a5b4fc; }
+    html.dark .discover-result { background: #0f172a; border-color: var(--border); color: var(--text); }
+    html.dark .discover-result a { color: #a5b4fc; }
+
+    /* Dark mode toggle switch */
+    .dark-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-top: 1px solid var(--border); margin-top: 12px;
+    }
+    .dark-toggle-label { font-size: 14px; font-weight: 500; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; cursor: pointer;
+      background: var(--border); border-radius: 24px; transition: 0.2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Notebook list in modal */
+    .notebook-list { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; margin-bottom: 14px; }
+    .notebook-list-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px; border-radius: 8px;
+      border: 1px solid transparent; transition: background 0.12s;
+    }
+    .notebook-list-item:hover { background: var(--surface-hover); }
+    .notebook-list-item.active { background: #EEF2FF; border-color: var(--accent); }
+    .notebook-list-name { flex: 1; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .notebook-rename-btn,
+    .notebook-delete-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 14px; padding: 2px 5px; border-radius: 5px;
+      opacity: 0.45; transition: opacity 0.15s;
+    }
+    .notebook-rename-btn:hover { opacity: 1; background: var(--surface-hover); }
+    .notebook-delete-btn:hover { opacity: 1; background: rgba(239,68,68,0.12); }
+
+    /* Right-click context menu */
+    .ctx-menu {
+      position: fixed; z-index: 9999;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 4px; min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+    .ctx-item {
+      padding: 8px 12px; font-size: 13px; border-radius: 5px;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+    }
+    .ctx-item:hover { background: var(--surface-hover); }
+    .ctx-item-danger { color: var(--error); }
+    .ctx-item-danger:hover { background: rgba(239,68,68,0.1); }
+    .notebook-rename-input {
+      flex: 1; padding: 5px 9px; font-size: 13px; font-family: inherit;
+      border: 1px solid var(--accent); border-radius: 6px; outline: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-bar-tab active" id="tabNotebook" onclick="Tabs.show('notebook')">📚 Notebook</button>
+    <button class="tab-bar-tab" id="tabKnowledgeTree" onclick="Tabs.show('kt')">🌱 Knowledge Tree</button>
+    <div class="tab-bar-right">
+      <button class="tab-bar-btn" id="viewNotebookBtn" style="display:none;" onclick="UI.openModal('notebookModal')">📓 Notebooks</button>
+      <button class="tab-bar-btn" id="settingsBtn">⚙ Settings</button>
+    </div>
+  </div>
+
+  <!-- Main App Container -->
+  <div class="app-container" style="height: calc(100vh - 44px);">
+
+    <!-- ═══ NOTEBOOK VIEW ═══ -->
+    <div class="view-notebook" id="viewNotebook">
+      <!-- Left Panel - Sources -->
+      <div class="panel-sources">
+        <div class="panel-header">
+          <h2>📚 Sources</h2>
+          <div class="source-count" id="sourceCount">0 sources</div>
+          <button class="add-source-btn" id="addSourcesBtn"><span>+</span> Add Sources</button>
+        </div>
+        <div class="source-list" id="sourceList">
+          <div class="empty-panel">
+            <div class="empty-panel-icon">📄</div>
+            <h3>No sources yet</h3>
+            <p>Click Add Sources to get started</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle Panel - Chat -->
+      <div class="panel-chat">
+        <div class="panel-header">
+          <h2>💬 Ask about your sources</h2>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="empty-panel">
+            <div class="empty-panel-icon">💬</div>
+            <h3>Chat with your sources</h3>
+            <p>Ask questions and get answers with citations</p>
+          </div>
+        </div>
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask anything about your sources..." rows="1"></textarea>
+            <button class="chat-send-btn" id="chatSendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel - Studio -->
+      <div class="panel-studio">
+        <div class="studio-header"><h2>⚡ Create</h2></div>
+        <div class="studio-outputs" id="studioOutputs">
+          <div class="output-tile podcast-tile" onclick="Podcast.generate()" style="margin-bottom:12px;display:flex;align-items:center;gap:14px;text-align:left;padding:16px 20px;">
+            <div class="output-tile-icon" style="font-size:28px;margin:0;">🎙</div>
+            <div>
+              <div class="output-tile-label" style="font-size:14px;font-weight:600;">Audio Overview</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Two-host podcast · Emma &amp; Andrew</div>
+            </div>
+          </div>
+          <div class="output-grid">
+            <div class="output-tile" onclick="Generator.generate('study-guide')">
+              <div class="output-tile-icon">📚</div>
+              <div class="output-tile-label">Study Guide</div>
+            </div>
+            <div class="output-tile" onclick="Generator.generate('briefing')">
+              <div class="output-tile-icon">📋</div>
+              <div class="output-tile-label">Briefing Doc</div>
+            </div>
+            <div class="output-tile" onclick="Generator.generate('mindmap')">
+              <div class="output-tile-icon">🗺️</div>
+              <div class="output-tile-label">Mind Map</div>
+            </div>
+            <div class="output-tile" onclick="Generator.generate('timeline')">
+              <div class="output-tile-icon">📅</div>
+              <div class="output-tile-label">Timeline</div>
+            </div>
+            <div class="output-tile" onclick="Generator.generate('faq')">
+              <div class="output-tile-icon">❓</div>
+              <div class="output-tile-label">FAQ</div>
+            </div>
+            <div class="output-tile" onclick="Generator.generate('summary')">
+              <div class="output-tile-icon">📝</div>
+              <div class="output-tile-label">Summary</div>
+            </div>
+          </div>
+          <div id="generatedContent">
+            <div class="empty-panel">
+              <div class="empty-panel-icon">✨</div>
+              <h3>Generate from your sources</h3>
+              <p>Click any output type above to generate content</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-notebook -->
+
+    <!-- Knowledge Tree View -->
+    <div class="view-kt" id="viewKT" style="display:none;">
+      <div class="kt-tree-panel">
+        <div class="kt-tree-header">
+          <div class="kt-tree-title-row">
+            <div class="kt-tree-title">
+              <h2>Knowledge Graph</h2>
+              <p>Explore a converging constellation of ideas. Repeated topics merge into shared nodes so the map becomes smarter as it grows.</p>
+            </div>
+            <div class="kt-status-pill" id="ktStatusPill">Idle</div>
+          </div>
+          <div class="kt-toolbar">
+            <input type="text" class="kt-seed-input" id="ktSeedInput" placeholder="Start with a seed topic">
+            <button class="kt-start-btn" id="ktStartBtn">Explore</button>
+            <button class="kt-secondary-btn" id="ktRecenterBtn">Center Selection</button>
+            <button class="kt-secondary-btn" id="ktResetViewBtn">Reset View</button>
+          </div>
+          <div class="kt-tree-metrics">
+            <div class="kt-metric">
+              <span class="kt-metric-label">Topics</span>
+              <strong id="ktNodeCount">0</strong>
+            </div>
+            <div class="kt-metric">
+              <span class="kt-metric-label">Connections</span>
+              <strong id="ktLinkCount">0</strong>
+            </div>
+            <div class="kt-metric">
+              <span class="kt-metric-label">Frontier</span>
+              <strong id="ktFrontierCount">0</strong>
+            </div>
+          </div>
+        </div>
+        <div class="kt-tree-stage">
+          <svg id="ktSvg"></svg>
+          <div class="kt-graph-overlay">
+            <div class="kt-overlay-card">
+              <div class="kt-overlay-title">Read the graph</div>
+              <div class="kt-legend">
+                <span class="kt-legend-item"><span class="kt-dot kt-dot-root"></span> Seed topic</span>
+                <span class="kt-legend-item"><span class="kt-dot kt-dot-explored"></span> Explored</span>
+                <span class="kt-legend-item"><span class="kt-dot kt-dot-frontier"></span> Suggested</span>
+                <span class="kt-legend-item"><span class="kt-dot kt-dot-selected"></span> Focused</span>
+              </div>
+            </div>
+            <div class="kt-overlay-card" id="ktSelectionHint">Select any topic to focus its neighborhood, inspect its wiki page, and keep growing the map without spawning duplicate ideas.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kt-wiki-panel">
+        <div class="kt-wiki-header" id="ktWikiHeader" style="display:none;">
+          <div class="kt-wiki-header-main">
+            <h2 id="ktWikiTitle"></h2>
+            <div class="kt-wiki-meta" id="ktWikiMeta"></div>
+          </div>
+          <button class="kt-wiki-add-btn" id="ktWikiAddBtn" onclick="KnowledgeTree.addCurrentAsSource()">+ Add as Source</button>
+        </div>
+        <div class="kt-wiki-body" id="ktWikiBody">
+          <div class="kt-wiki-empty">
+            <div class="kt-wiki-empty-icon">KG</div>
+            <h3>Build a map, not just a branch</h3>
+            <p>Start from a seed topic or click a topic in the graph. The right pane becomes a living wiki page while the left pane keeps the wider structure in view.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /view-kt -->
+
+  </div><!-- /app-container -->
+
+  <!-- Discover Sources Modal -->
+  <div class="modal-overlay" id="discoverModal">
+    <div class="modal" style="max-width: 700px;">
+      <h3>🔍 Discover Sources</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 16px;">Enter a topic and we'll find relevant sources from the web</p>
+      
+      <input type="text" id="discoverTopic" placeholder="What do you want to research?" style="padding: 14px; font-size: 16px;">
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+        <select id="sourceTypeSelect" style="flex: 1;">
+          <option value="all">All Sources</option>
+          <option value="academic-only">🎓 Academic Only</option>
+        </select>
+        <select id="sourceCountSelect" style="flex: 1;">
+          <option value="5">5 sources</option>
+          <option value="10" selected>10 sources</option>
+          <option value="15">15 sources</option>
+          <option value="20">20 sources</option>
+          <option value="25">25 sources</option>
+          <option value="50">50 sources</option>
+        </select>
+      </div>
+      
+       <button class="btn btn-primary" id="searchBtn" style="width: 100%; margin-bottom: 16px;">
+         🔍 Search for Sources
+       </button>
+      
+      <div class="discover-results" id="discoverResults">
+        <p style="text-align: center; color: var(--text-secondary); padding: 20px;">Sources will appear here</p>
+      </div>
+      
+       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <label style="font-size: 14px;">
+          <input type="checkbox" id="selectAllSources" onchange="toggleSelectAll()"> Select All
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="cancelDiscoverBtn">Cancel</button>
+          <button class="btn btn-primary" id="importSelectedBtn" disabled>Import Selected</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notebooks Modal -->
+  <div class="modal-overlay" id="notebookModal">
+    <div class="modal" style="max-width:480px;">
+      <h3>📓 Notebooks</h3>
+      <div id="notebookList" class="notebook-list"></div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+        <input type="text" id="notebookName" placeholder="New notebook name…" style="margin-bottom:10px;">
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeModal('notebookModal')">Close</button>
+          <button class="btn btn-primary" onclick="createNotebook()">+ Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <h3>⚙ Settings</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 16px;">API keys are stored locally on this device.</p>
+      <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Gemini API Key</label>
+      <input type="password" id="geminiApiKeyInput" placeholder="Gemini API key..." style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Tavily Search API Key</label>
+      <input type="password" id="tavilyApiKeyInput" placeholder="Tavily API key..." style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">ElevenLabs API Key (Audio Overview)</label>
+      <input type="password" id="elevenLabsApiKeyInput" placeholder="ElevenLabs API key..." style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Audio Overview Engine</label>
+      <select id="ttsProviderSelect" style="margin-bottom:8px;">
+        <option value="auto">Auto (recommended: Edge-TTS first, ElevenLabs fallback)</option>
+        <option value="edge-tts">Edge-TTS (local two-speaker audio)</option>
+        <option value="elevenlabs">ElevenLabs (cloud fallback)</option>
+      </select>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Edge-TTS is installed locally and is the most reliable path for the two-host Audio Overview. MaryTTS is not wired in yet.</p>
+      <div class="dark-toggle-row" style="margin-top:14px;">
+        <span class="dark-toggle-label">🌙 Dark Mode</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="darkModeToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Cancel</button>
+        <button class="btn btn-primary" id="saveSettingsBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome Modal -->
+  <div class="modal-overlay open" id="welcomeModal">
+    <div class="modal">
+      <div class="modal-icon">🧠</div>
+      <h3>Welcome to SchmoCo Research Engine</h3>
+      <p>Your AI-powered research assistant. Add sources, ask questions, and generate insights.</p>
+      <button class="btn btn-primary" onclick="closeModal('welcomeModal'); openModal('notebookModal');" style="width: 100%; padding: 14px;">
+        🚀 Create Your First Notebook
+      </button>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
