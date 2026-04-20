@@ -113,8 +113,10 @@ sudo chown deploy:deploy /var/log/nexus
 pnpm install --frozen-lockfile
 pnpm build
 
-# Run database migrations
+# Run database migrations (in order)
 node scripts/migrate-v4.mjs
+node scripts/migrate-v5.mjs
+node scripts/migrate-v6.mjs   # adaptive lesson assessment + reflection tables
 ```
 
 ---

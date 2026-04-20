@@ -18,6 +18,7 @@ import { skillsRouter } from "./skills";
 import { adminRouter } from "./admin";
 import { studioRouter } from "./studio";
 import { psychRouter } from "./psych";
+import { learnerRouter } from "./learner";
 
 export const appRouter = router({
   system: systemRouter,
@@ -40,6 +41,7 @@ export const appRouter = router({
   daily: dailyRouter,
   skills: skillsRouter,
   psych: psychRouter,
+  learner: learnerRouter,
   admin: adminRouter,
   studio: studioRouter,
 });

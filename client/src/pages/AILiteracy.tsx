@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, BookOpen, Lightbulb, Shield, Trophy, ChevronRight,
@@ -13,6 +14,7 @@ import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { AdaptiveLessonView } from "@/components/lesson/AdaptiveLessonView";
 
 // --- Types -------------------------------------------------------------------
 type LessonId = 1 | 2 | 3 | 4 | 5;
@@ -67,7 +69,7 @@ const LESSONS: LessonMeta[] = [
     mayer: "Personalization + Redundancy", xp: 60,
   },
   {
-    id: 3, title: "Prompt Engineering", subtitle: "Speak AI fluently ó craft prompts that work",
+    id: 3, title: "Prompt Engineering", subtitle: "Speak AI fluently ‚Äî craft prompts that work",
     duration: "30 min", icon: <Zap size={20} />, color: "oklch(0.72_0.2_290)",
     mayer: "Interactivity + Guided Discovery", xp: 80,
   },
@@ -77,7 +79,7 @@ const LESSONS: LessonMeta[] = [
     mayer: "Embodied Cognition + Dialogue", xp: 70,
   },
   {
-    id: 5, title: "Putting It Together", subtitle: "Apply everything ó your AI literacy capstone",
+    id: 5, title: "Putting It Together", subtitle: "Apply everything ‚Äî your AI literacy capstone",
     duration: "20 min", icon: <Trophy size={20} />, color: "oklch(0.78_0.16_30)",
     mayer: "Signaling + Coherence", xp: 100,
   },
@@ -87,13 +89,13 @@ const LESSONS: LessonMeta[] = [
 const MYTH_QUIZ: QuizQuestion[] = [
   {
     id: "m1", question: "AI systems like ChatGPT are conscious and have feelings.",
-    options: ["True ó they learn from human emotion", "False ó they process patterns, not feelings", "Partly true ó they simulate empathy", "Scientists disagree on this"],
+    options: ["True ‚Äî they learn from human emotion", "False ‚Äî they process patterns, not feelings", "Partly true ‚Äî they simulate empathy", "Scientists disagree on this"],
     correct: 1, myth: true,
-    explanation: "LLMs are statistical pattern-matchers. They predict likely next tokens based on training data. There is no subjective experience, emotion, or consciousness ó however convincing the output feels."
+    explanation: "LLMs are statistical pattern-matchers. They predict likely next tokens based on training data. There is no subjective experience, emotion, or consciousness ‚Äî however convincing the output feels."
   },
   {
     id: "m2", question: "AI will replace ALL jobs within the next decade.",
-    options: ["True ó automation always eliminates jobs", "False ó it transforms and creates new roles too", "Only blue-collar jobs are at risk", "Only white-collar jobs are at risk"],
+    options: ["True ‚Äî automation always eliminates jobs", "False ‚Äî it transforms and creates new roles too", "Only blue-collar jobs are at risk", "Only white-collar jobs are at risk"],
     correct: 1, myth: true,
     explanation: "History shows that automation displaces tasks, not entire occupations. New jobs emerge (AI trainers, auditors, designers). The risk is real for some roles but 'all jobs' is an overstatement with no economic consensus."
   },
@@ -101,23 +103,23 @@ const MYTH_QUIZ: QuizQuestion[] = [
     id: "m3", question: "What does 'machine learning' actually mean?",
     options: ["A robot physically learning to walk", "Algorithms improving from data without explicit rules", "A computer memorizing a textbook", "Software that mimics human thought step by step"],
     correct: 1, myth: false,
-    explanation: "Machine learning finds patterns in data to make predictions or decisions ó without being explicitly programmed with every rule. It's statistics at scale, not a digital brain."
+    explanation: "Machine learning finds patterns in data to make predictions or decisions ‚Äî without being explicitly programmed with every rule. It's statistics at scale, not a digital brain."
   },
   {
     id: "m4", question: "AI is 100% objective because it's just math.",
-    options: ["True ó algorithms can't be biased", "False ó AI inherits bias from training data and designers", "True ó bias is a human problem only", "Partially true for supervised learning"],
+    options: ["True ‚Äî algorithms can't be biased", "False ‚Äî AI inherits bias from training data and designers", "True ‚Äî bias is a human problem only", "Partially true for supervised learning"],
     correct: 1, myth: true,
-    explanation: "AI reflects what's in its training data. If historical data encodes racial, gender, or socioeconomic bias, the model will too. 'It's just math' doesn't eliminate human bias ó it can amplify it at scale."
+    explanation: "AI reflects what's in its training data. If historical data encodes racial, gender, or socioeconomic bias, the model will too. 'It's just math' doesn't eliminate human bias ‚Äî it can amplify it at scale."
   },
   {
     id: "m5", question: "Which of these best describes a Large Language Model (LLM)?",
     options: ["A database that looks up answers", "A model trained to predict the next most likely word/token", "A program that understands language like a human", "A search engine with a chat interface"],
     correct: 1, myth: false,
-    explanation: "LLMs are trained on enormous text corpora to predict what comes next, token by token. They don't 'understand' in a human sense ó they model statistical relationships between words with remarkable results."
+    explanation: "LLMs are trained on enormous text corpora to predict what comes next, token by token. They don't 'understand' in a human sense ‚Äî they model statistical relationships between words with remarkable results."
   },
   {
     id: "m6", question: "AI systems always give accurate, truthful answers.",
-    options: ["True ó they're trained on verified data", "False ó they can 'hallucinate' plausible-sounding falsehoods", "True if you use a premium tier", "Only false for open-source models"],
+    options: ["True ‚Äî they're trained on verified data", "False ‚Äî they can 'hallucinate' plausible-sounding falsehoods", "True if you use a premium tier", "Only false for open-source models"],
     correct: 1, myth: true,
     explanation: "AI hallucination is a well-documented phenomenon: models produce confident-sounding but factually wrong answers because they optimize for plausibility, not truth. Always verify critical AI-generated claims."
   },
@@ -128,13 +130,13 @@ const DEFINITIONS_QUIZ: QuizQuestion[] = [
     id: "d1", question: "AI stands for:",
     options: ["Automated Intelligence", "Artificial Intelligence", "Advanced Integration", "Algorithmic Interface"],
     correct: 1,
-    explanation: "Artificial Intelligence ó the simulation of human-like reasoning by machines, encompassing machine learning, natural language processing, computer vision, and more."
+    explanation: "Artificial Intelligence ‚Äî the simulation of human-like reasoning by machines, encompassing machine learning, natural language processing, computer vision, and more."
   },
   {
     id: "d2", question: "Which term describes AI that can perform any intellectual task a human can?",
     options: ["Narrow AI", "Strong AI / AGI", "Supervised Learning", "Neural Network"],
     correct: 1,
-    explanation: "Artificial General Intelligence (AGI) is hypothetical AI that matches human cognitive flexibility across all domains. Today's AI is narrow ó excellent at specific tasks, brittle outside them."
+    explanation: "Artificial General Intelligence (AGI) is hypothetical AI that matches human cognitive flexibility across all domains. Today's AI is narrow ‚Äî excellent at specific tasks, brittle outside them."
   },
   {
     id: "d3", question: "A 'neural network' in AI is inspired by:",
@@ -171,7 +173,7 @@ const PROMPT_EXERCISES: PromptExercise[] = [
   {
     id: "p3",
     title: "Brainstorming Business Names",
-    scenario: "You're starting a local bakery that specializes in sourdough bread and pastries. You want a name that feels warm, artisan, and slightly whimsical ó not corporate.",
+    scenario: "You're starting a local bakery that specializes in sourdough bread and pastries. You want a name that feels warm, artisan, and slightly whimsical ‚Äî not corporate.",
     vague: "Give me bakery names.",
     hint: "Specify: specialty, tone/mood, style (modern vs. vintage), and ask for a certain number with brief reasoning for each.",
     rubric: ["Describes the bakery's specialty (sourdough, pastries)", "Describes the desired tone or mood", "Specifies how many options (e.g., 10 names)", "Asks for a brief reason/explanation per name"],
@@ -183,23 +185,23 @@ const ETHICS_SCENARIOS: EthicsScenario[] = [
   {
     id: "e1",
     title: "The Hiring Algorithm",
-    setup: "A major employer uses an AI system to screen 50,000 job applications. The AI was trained on 10 years of hiring data. An audit reveals it consistently scores women 15% lower for engineering roles ó because historically, fewer women were hired for those roles.",
+    setup: "A major employer uses an AI system to screen 50,000 job applications. The AI was trained on 10 years of hiring data. An audit reveals it consistently scores women 15% lower for engineering roles ‚Äî because historically, fewer women were hired for those roles.",
     stakeholders: [
       { name: "Job Applicant (Female Engineer)", concern: "Qualified but unfairly filtered out before a human ever sees her application." },
       { name: "HR Manager", concern: "Trusts the system to be objective, didn't know about the bias, and is now liable." },
       { name: "AI Developer", concern: "Trained on available data; wasn't asked to audit for demographic parity." },
       { name: "Company CEO", concern: "Wants efficiency AND legal compliance. A lawsuit could cost millions." },
     ],
-    discussion: "Who is responsible? Should the system be halted immediately? Can 'debiasing' the training data solve the problem ó or does it require rethinking the data entirely? What oversight should exist before deploying AI in high-stakes decisions?"
+    discussion: "Who is responsible? Should the system be halted immediately? Can 'debiasing' the training data solve the problem ‚Äî or does it require rethinking the data entirely? What oversight should exist before deploying AI in high-stakes decisions?"
   },
   {
     id: "e2",
     title: "The Medical Chatbot",
-    setup: "A hospital deploys an AI chatbot that triages patients based on symptom descriptions. It routes people to the ER, urgent care, or home care. Studies show it performs well on average ó but has higher error rates for patients who describe symptoms in informal English or non-standard dialects.",
+    setup: "A hospital deploys an AI chatbot that triages patients based on symptom descriptions. It routes people to the ER, urgent care, or home care. Studies show it performs well on average ‚Äî but has higher error rates for patients who describe symptoms in informal English or non-standard dialects.",
     stakeholders: [
       { name: "Patient (Non-native English speaker)", concern: "Risk of being incorrectly triaged to home care when ER is needed." },
       { name: "ER Nurse", concern: "Overwhelmed if the AI sends everyone to ER; undertrained if it filters too aggressively." },
-      { name: "Hospital Administrator", concern: "Reduced wait times and cost ó but liability for AI errors." },
+      { name: "Hospital Administrator", concern: "Reduced wait times and cost ‚Äî but liability for AI errors." },
       { name: "Regulator (FDA)", concern: "AI medical devices need approval. What testing standard applies here?" },
     ],
     discussion: "Should language-unequal AI be deployed in healthcare at all? What minimum accuracy threshold across all demographic groups should be required? Who bears responsibility when an AI misdiagnosis leads to patient harm?"
@@ -209,12 +211,12 @@ const ETHICS_SCENARIOS: EthicsScenario[] = [
     title: "The AI Tutor at School",
     setup: "A school district deploys an AI writing tutor that gives feedback on student essays. It's personalized, available 24/7, and teachers report improved grades. But a parent discovers the system stores all student writing indefinitely and the company's privacy policy allows using this data to train future models.",
     stakeholders: [
-      { name: "Student (14 years old)", concern: "Their personal writing, opinions, and struggles are data ó forever." },
+      { name: "Student (14 years old)", concern: "Their personal writing, opinions, and struggles are data ‚Äî forever." },
       { name: "Teacher", concern: "Great tool, but didn't consent students to data collection as part of using it." },
       { name: "Parent", concern: "Their child's data is being used commercially without informed consent." },
       { name: "EdTech Company", concern: "Student data is core to improving the product. Anonymization is expensive." },
     ],
-    discussion: "Does 'better learning outcomes' justify data collection from minors? Should there be a legal right to be forgotten for student data? What's the difference between anonymized and de-identified data ó and does it matter?"
+    discussion: "Does 'better learning outcomes' justify data collection from minors? Should there be a legal right to be forgotten for student data? What's the difference between anonymized and de-identified data ‚Äî and does it matter?"
   },
 ];
 
@@ -363,7 +365,7 @@ function LessonShell({
       )}
       {completed && (
         <div className="mt-8 pt-6 border-t border-white/8 flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]">
-          <Award size={16} /> Lesson completed ó great work!
+          <Award size={16} /> Lesson completed ‚Äî great work!
         </div>
       )}
     </motion.div>
@@ -383,18 +385,18 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
   const segments = [
     {
       title: "The 60-Second Definition",
-      narration: "Artificial Intelligence is the ability of a computer system to perform tasks that typically require human intelligence ó things like understanding language, recognizing patterns, making decisions, and learning from experience.",
+      narration: "Artificial Intelligence is the ability of a computer system to perform tasks that typically require human intelligence ‚Äî things like understanding language, recognizing patterns, making decisions, and learning from experience.",
       content: (
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            <strong className="text-foreground">Artificial Intelligence</strong> is the ability of a computer system to perform tasks that typically require human intelligence ó understanding language, recognizing patterns, making decisions, and <em>learning from experience</em>.
+            <strong className="text-foreground">Artificial Intelligence</strong> is the ability of a computer system to perform tasks that typically require human intelligence ‚Äî understanding language, recognizing patterns, making decisions, and <em>learning from experience</em>.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             {[
-              { label: "Narrow AI", desc: "Excels at one specific task (e.g., chess, image recognition, language translation). All AI today is narrow.", icon: "??" },
-              { label: "Machine Learning", desc: "A subfield of AI where systems learn from data rather than explicit rules.", icon: "??" },
-              { label: "Deep Learning", desc: "ML using layered neural networks ó the engine behind LLMs, image AI, and voice recognition.", icon: "??" },
-              { label: "LLMs", desc: "Large Language Models like ChatGPT ó trained on vast text to generate and understand language.", icon: "??" },
+              { label: "Narrow AI", desc: "Excels at one specific task (e.g., chess, image recognition, language translation). All AI today is narrow.", icon: "\u{1F3AF}" },
+              { label: "Machine Learning", desc: "A subfield of AI where systems learn from data rather than explicit rules.", icon: "\u{1F4CA}" },
+              { label: "Deep Learning", desc: "ML using layered neural networks ‚Äî the engine behind LLMs, image AI, and voice recognition.", icon: "\u{1F9E0}" },
+              { label: "LLMs", desc: "Large Language Models like ChatGPT ‚Äî trained on vast text to generate and understand language.", icon: "\u{1F4AC}" },
             ].map(({ label, desc, icon }) => (
               <div key={label} className="glass rounded-xl p-4 border border-white/8">
                 <div className="text-2xl mb-2">{icon}</div>
@@ -416,13 +418,13 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
           </p>
           <div className="flex flex-col sm:flex-row items-stretch gap-2">
             {[
-              { step: "1", label: "Data In", desc: "Text, images, audio ó vast amounts", color: "oklch(0.75_0.18_55)" },
+              { step: "1", label: "Data In", desc: "Text, images, audio ‚Äî vast amounts", color: "oklch(0.75_0.18_55)" },
               { step: "?", label: "", desc: "", color: "transparent" },
               { step: "2", label: "Prediction", desc: "Model guesses the output", color: "oklch(0.65_0.22_200)" },
               { step: "?", label: "", desc: "", color: "transparent" },
               { step: "3", label: "Feedback", desc: "How wrong was it? (loss)", color: "oklch(0.72_0.2_290)" },
               { step: "?", label: "", desc: "", color: "transparent" },
-              { step: "4", label: "Adjustment", desc: "Update weights ? repeat", color: "oklch(0.72_0.18_150)" },
+              { step: "4", label: "Adjustment", desc: "Update weights \u2192 repeat", color: "oklch(0.72_0.18_150)" },
             ].map(({ step, label, desc, color }, i) => (
               step === "?"
                 ? <div key={i} className="hidden sm:flex items-center justify-center text-muted-foreground self-center"><ChevronRight size={16} /></div>
@@ -450,7 +452,7 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
       content: (
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            In 2024 alone, over <strong className="text-foreground">200 million people</strong> used AI writing tools. Hospitals use AI for diagnosis. Courts use it for bail recommendations. Teachers use it for grading feedback. AI literacy isn't just for technologists ó it's civic literacy.
+            In 2024 alone, over <strong className="text-foreground">200 million people</strong> used AI writing tools. Hospitals use AI for diagnosis. Courts use it for bail recommendations. Teachers use it for grading feedback. AI literacy isn't just for technologists ‚Äî it's civic literacy.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
@@ -594,13 +596,13 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
             <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
               className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.3)] text-center">
               <div className="text-4xl mb-3">
-                {score === DEFINITIONS_QUIZ.length ? "??" : score >= DEFINITIONS_QUIZ.length / 2 ? "?" : "??"}
+                {score === DEFINITIONS_QUIZ.length ? "\u{1F3C6}" : score >= DEFINITIONS_QUIZ.length / 2 ? "\u{1F44D}" : "\u{1F4D6}"}
               </div>
               <h3 className="text-xl font-bold text-foreground mb-1">
                 {score}/{DEFINITIONS_QUIZ.length} Correct
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                {score === DEFINITIONS_QUIZ.length ? "Perfect score ó you've got this!" : score >= DEFINITIONS_QUIZ.length / 2 ? "Solid foundation ó keep going!" : "Good effort ó the next lesson will reinforce these concepts."}
+                {score === DEFINITIONS_QUIZ.length ? "Perfect score ‚Äî you've got this!" : score >= DEFINITIONS_QUIZ.length / 2 ? "Solid foundation ‚Äî keep going!" : "Good effort ‚Äî the next lesson will reinforce these concepts."}
               </p>
             </motion.div>
           )}
@@ -648,15 +650,15 @@ function Lesson2({ onComplete, completed }: { onComplete: () => void; completed:
       <div className="space-y-6">
         {/* Intro */}
         <div className="glass rounded-2xl p-6 border border-white/8">
-          <Narrator text="This lesson debunks the most common AI myths through active testing. For each statement, decide whether it's fact or fiction. The explanation afterward will tell you why ó and that's where the real learning happens." />
+          <Narrator text="This lesson debunks the most common AI myths through active testing. For each statement, decide whether it's fact or fiction. The explanation afterward will tell you why ‚Äî and that's where the real learning happens." />
           <div className="mt-5 space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              Media coverage of AI swings between panic and hype. Both distort reality. To think clearly about AI ó as a worker, voter, parent, or citizen ó you need to separate what AI actually does from what people <em>imagine</em> it does.
+              Media coverage of AI swings between panic and hype. Both distort reality. To think clearly about AI ‚Äî as a worker, voter, parent, or citizen ‚Äî you need to separate what AI actually does from what people <em>imagine</em> it does.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { label: "Media Fear", text: "\"Robots will take over.\" \"AI is sentient.\" \"AI never makes mistakes.\"", color: "oklch(0.72_0.2_290)" },
-                { label: "Reality", text: "Narrow tools, statistical pattern-matching, useful but brittle, trained ó not conscious.", color: "oklch(0.72_0.18_150)" },
+                { label: "Reality", text: "Narrow tools, statistical pattern-matching, useful but brittle, trained ‚Äî not conscious.", color: "oklch(0.72_0.18_150)" },
                 { label: "Media Hype", text: "\"AI will solve cancer.\" \"AI reads minds.\" \"AI is 100% objective.\"", color: "oklch(0.78_0.16_30)" },
               ].map(({ label, text, color }) => (
                 <div key={label} className="glass rounded-xl p-4 border border-white/8">
@@ -745,13 +747,13 @@ function Lesson2({ onComplete, completed }: { onComplete: () => void; completed:
             <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
               className="glass rounded-2xl p-8 border border-[oklch(0.65_0.22_200_/_0.3)] text-center">
               <div className="text-5xl mb-4">
-                {score >= 5 ? "??" : score >= 3 ? "??" : "??"}
+                {score >= 5 ? "\u{1F3C6}" : score >= 3 ? "\u{1F44D}" : "\u{1F4D8}"}
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-2">{score}/{MYTH_QUIZ.length} correct</h3>
               <p className="text-muted-foreground mb-2">
-                {score >= 5 ? "Strong critical thinking ó you can identify AI hype and fear with precision." :
-                  score >= 3 ? "Good foundation. A few myths still slip through ó that's exactly what this lesson is for." :
-                    "The myths are convincing ó that's why they spread. Review the explanations and you'll catch them next time."}
+                {score >= 5 ? "Strong critical thinking ‚Äî you can identify AI hype and fear with precision." :
+                  score >= 3 ? "Good foundation. A few myths still slip through ‚Äî that's exactly what this lesson is for." :
+                    "The myths are convincing ‚Äî that's why they spread. Review the explanations and you'll catch them next time."}
               </p>
               <button onClick={reset}
                 className="mt-4 flex items-center gap-1.5 mx-auto px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -809,7 +811,7 @@ function Lesson3({ onComplete, completed }: { onComplete: () => void; completed:
     setAllScores(prev => ({ ...prev, [ex.id]: score }));
     if (score === 4) {
       addXP(15);
-      toast.success("+15 XP ó perfect prompt criteria!");
+      toast.success("+15 XP ‚Äî perfect prompt criteria!");
     }
   };
 
@@ -840,7 +842,7 @@ function Lesson3({ onComplete, completed }: { onComplete: () => void; completed:
           <Narrator text="Prompt engineering is the skill of communicating with AI clearly and effectively. The difference between a vague prompt and a precise one can mean the difference between a useless response and a genuinely helpful one. You'll practice this now." />
           <div className="mt-5">
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Prompt engineering is not magic ó it's <strong className="text-foreground">communication design</strong>. You're writing instructions for a very capable but literal assistant with no context about you, your goals, or your standards. Precision wins.
+              Prompt engineering is not magic ‚Äî it's <strong className="text-foreground">communication design</strong>. You're writing instructions for a very capable but literal assistant with no context about you, your goals, or your standards. Precision wins.
             </p>
             {/* PARE Framework */}
             <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
@@ -956,7 +958,7 @@ function Lesson3({ onComplete, completed }: { onComplete: () => void; completed:
                 {promptScore === 4 && (
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="mt-2 text-xs text-[oklch(0.72_0.18_150)] font-medium">
-                    ? Full marks ó your prompt hits all key principles!
+                    ? Full marks ‚Äî your prompt hits all key principles!
                   </motion.p>
                 )}
               </div>
@@ -982,16 +984,16 @@ function Lesson4({ onComplete, completed }: { onComplete: () => void; completed:
       <div className="space-y-6">
         {/* Intro */}
         <div className="glass rounded-2xl p-6 border border-white/8">
-          <Narrator text="AI ethics is not about being anti-technology. It's about asking the right questions: Who benefits? Who bears the risk? Who decides? These scenarios have no single correct answer ó the point is to reason carefully through competing values." />
+          <Narrator text="AI ethics is not about being anti-technology. It's about asking the right questions: Who benefits? Who bears the risk? Who decides? These scenarios have no single correct answer ‚Äî the point is to reason carefully through competing values." />
           <div className="mt-5">
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Every AI system encodes choices ó about what data to collect, what to optimize for, whose interests to prioritize. <strong className="text-foreground">AI literacy includes ethical reasoning</strong>: the capacity to identify those choices and ask who made them.
+              Every AI system encodes choices ‚Äî about what data to collect, what to optimize for, whose interests to prioritize. <strong className="text-foreground">AI literacy includes ethical reasoning</strong>: the capacity to identify those choices and ask who made them.
             </p>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "Fairness", desc: "Does the system treat all groups equitably?", icon: "??" },
-                { label: "Accountability", desc: "When AI causes harm, who is responsible?", icon: "??" },
-                { label: "Transparency", desc: "Can people understand how decisions are made?", icon: "??" },
+                { label: "Fairness", desc: "Does the system treat all groups equitably?", icon: "\u2696\uFE0F" },
+                { label: "Accountability", desc: "When AI causes harm, who is responsible?", icon: "\u{1F91D}" },
+                { label: "Transparency", desc: "Can people understand how decisions are made?", icon: "\u{1F50D}" },
               ].map(({ label, desc, icon }) => (
                 <div key={label} className="glass rounded-xl p-3 border border-white/8 text-center">
                   <div className="text-2xl mb-1.5">{icon}</div>
@@ -1063,7 +1065,7 @@ function Lesson4({ onComplete, completed }: { onComplete: () => void; completed:
                 <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-3">DISCUSSION QUESTIONS</div>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">{sc.discussion}</p>
                 <label className="text-xs font-medium text-foreground mb-2 block">
-                  Your perspective (write freely ó there's no single right answer):
+                  Your perspective (write freely ‚Äî there's no single right answer):
                 </label>
                 <textarea
                   value={userResponse[sc.id] ?? ""}
@@ -1077,7 +1079,7 @@ function Lesson4({ onComplete, completed }: { onComplete: () => void; completed:
                     onClick={() => {
                       if (!(userResponse[sc.id] ?? "").trim()) { toast.error("Write your perspective first."); return; }
                       setSubmitted(prev => ({ ...prev, [sc.id]: true }));
-                      toast.success("Reflection saved ó good critical thinking!");
+                      toast.success("Reflection saved ‚Äî good critical thinking!");
                     }}
                     whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                     className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)] hover:bg-[oklch(0.72_0.18_150_/_0.3)] transition-colors">
@@ -1095,7 +1097,7 @@ function Lesson4({ onComplete, completed }: { onComplete: () => void; completed:
                 <div className="flex items-start gap-2">
                   <Lightbulb size={14} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
                   <p className="text-sm text-muted-foreground">
-                    <strong className="text-foreground">The key insight:</strong> AI systems don't make ethical decisions ó <em>people</em> do, when they design, deploy, and regulate these systems. AI literacy means knowing how to ask: who made that choice, and why?
+                    <strong className="text-foreground">The key insight:</strong> AI systems don't make ethical decisions ‚Äî <em>people</em> do, when they design, deploy, and regulate these systems. AI literacy means knowing how to ask: who made that choice, and why?
                   </p>
                 </div>
               </div>
@@ -1127,13 +1129,13 @@ function Lesson5({ onComplete, completed, completedLessons }: {
     },
     {
       label: "Myth Identification",
-      question: "You see a news headline: \"AI Chatbot Passes Medical Board Exam ó Human Doctors Now Obsolete.\" Using what you learned in Lesson 2, break down what's misleading about this framing.",
-      placeholder: "e.g., Passing a multiple-choice exam tests pattern recognition on a static dataset, not clinical judgment in ambiguous real-world situations. 'Obsolete' overstates the case ó doctors do far more than answer exam questions..."
+      question: "You see a news headline: \"AI Chatbot Passes Medical Board Exam ‚Äî Human Doctors Now Obsolete.\" Using what you learned in Lesson 2, break down what's misleading about this framing.",
+      placeholder: "e.g., Passing a multiple-choice exam tests pattern recognition on a static dataset, not clinical judgment in ambiguous real-world situations. 'Obsolete' overstates the case ‚Äî doctors do far more than answer exam questions..."
     },
     {
       label: "Ethical Reasoning",
       question: "A city plans to use AI to predict which neighborhoods need more police patrols. Based on Lesson 4, identify at least two ethical concerns and one safeguard you would require before deployment.",
-      placeholder: "e.g., Concern 1: Predictive policing can amplify historical bias ó if past over-policing created more arrests in certain areas, that data creates a self-fulfilling feedback loop. Concern 2: Lack of transparency ó residents can't contest a decision made by an algorithm they can't see..."
+      placeholder: "e.g., Concern 1: Predictive policing can amplify historical bias ‚Äî if past over-policing created more arrests in certain areas, that data creates a self-fulfilling feedback loop. Concern 2: Lack of transparency ‚Äî residents can't contest a decision made by an algorithm they can't see..."
     },
   ];
 
@@ -1167,10 +1169,10 @@ function Lesson5({ onComplete, completed, completedLessons }: {
 
         {/* Capstone content is always visible */}
         <div className="glass rounded-2xl p-6 border border-white/8">
-          <Narrator text="This capstone brings everything together. You'll apply what you've learned about AI definitions, myth-busting, prompt engineering, and ethics to real-world scenarios. Write your answers thoughtfully ó this is your AI literacy demonstration." />
+          <Narrator text="This capstone brings everything together. You'll apply what you've learned about AI definitions, myth-busting, prompt engineering, and ethics to real-world scenarios. Write your answers thoughtfully ‚Äî this is your AI literacy demonstration." />
           <div className="mt-4">
             <p className="text-muted-foreground leading-relaxed">
-              AI literacy isn't a certification ó it's a lens. You now have the vocabulary to describe AI systems, the skepticism to evaluate AI claims, the skill to communicate with AI tools effectively, and the framework to reason about AI's social impacts.
+              AI literacy isn't a certification ‚Äî it's a lens. You now have the vocabulary to describe AI systems, the skepticism to evaluate AI claims, the skill to communicate with AI tools effectively, and the framework to reason about AI's social impacts.
             </p>
           </div>
         </div>
@@ -1193,7 +1195,7 @@ function Lesson5({ onComplete, completed, completedLessons }: {
           <motion.div key={capstoneStep} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
             className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.15)]">
             <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">
-              CAPSTONE ó PART {capstoneStep + 1}: {CAPSTONE_PROMPTS[capstoneStep].label.toUpperCase()}
+              CAPSTONE ‚Äî PART {capstoneStep + 1}: {CAPSTONE_PROMPTS[capstoneStep].label.toUpperCase()}
             </div>
             <p className="text-sm font-medium text-foreground mb-4 leading-snug">{CAPSTONE_PROMPTS[capstoneStep].question}</p>
             <textarea
@@ -1228,7 +1230,7 @@ function Lesson5({ onComplete, completed, completedLessons }: {
                         const filled = capstoneAnswers.filter(a => a.length > 20).length;
                         if (filled < 3) { toast.error(`Complete all 3 capstone questions (${filled}/3 done).`); return; }
                         setSubmitted(true);
-                        toast.success("Capstone submitted ó excellent reasoning!");
+                        toast.success("Capstone submitted ‚Äî excellent reasoning!");
                       }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       className="flex items-center gap-1 px-4 py-1.5 rounded-lg bg-gradient-to-r from-[oklch(0.78_0.16_30)] to-[oklch(0.75_0.18_55)] text-black text-xs font-semibold">
@@ -1247,7 +1249,7 @@ function Lesson5({ onComplete, completed, completedLessons }: {
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
               className="glass rounded-2xl p-6 border border-[oklch(0.72_0.18_150_/_0.3)] space-y-4">
               <div className="text-center mb-2">
-                <div className="text-4xl mb-2">??</div>
+                <div className="text-4xl mb-2">üéâ</div>
                 <h3 className="text-xl font-bold text-foreground mb-1">Capstone Complete</h3>
                 <p className="text-sm text-muted-foreground">Your AI Literacy Module 1 is complete. Build your personal action plan:</p>
               </div>
@@ -1255,7 +1257,7 @@ function Lesson5({ onComplete, completed, completedLessons }: {
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1.5 block">One AI tool I'll use intentionally this week:</label>
                   <input value={personalPlan.useCase} onChange={e => setPersonalPlan(p => ({ ...p, useCase: e.target.value }))}
-                    placeholder="e.g., Use ChatGPT to help draft emails ó but always review before sending"
+                    placeholder="e.g., Use ChatGPT to help draft emails ‚Äî but always review before sending"
                     className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] transition-colors" />
                 </div>
                 <div>
@@ -1279,15 +1281,15 @@ function Lesson5({ onComplete, completed, completedLessons }: {
         {completed && (
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
             className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.3)] text-center">
-            <div className="text-5xl mb-3">??</div>
+            <div className="text-5xl mb-3">üèÜ</div>
             <h3 className="text-2xl font-bold text-foreground mb-2">Module 1 Complete!</h3>
             <p className="text-muted-foreground mb-4 max-w-lg mx-auto">
-              You've earned your <strong className="text-foreground">AI Literacy Certificate ó Module 1</strong>. You can now define AI, identify myths, craft effective prompts, and reason through AI ethics.
+              You've earned your <strong className="text-foreground">AI Literacy Certificate ‚Äî Module 1</strong>. You can now define AI, identify myths, craft effective prompts, and reason through AI ethics.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {["AI Definitions", "Myth Buster", "Prompt Engineer", "Ethics Reasoning", "Capstone"].map(badge => (
-                <span key={badge} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
-                  ? {badge}
+                <span key={badge} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)] inline-flex items-center gap-1">
+                  <Check size={12} /> {badge}
                 </span>
               ))}
             </div>
@@ -1303,7 +1305,40 @@ export default function AILiteracy() {
   const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [totalXP, setTotalXP] = useState(0);
-  const { addXP } = usePersonalization();
+  const { addXP, cookieId } = usePersonalization();
+  const lessonStartRef = useRef<Record<number, number>>({});
+
+  const progressQuery = trpc.lesson.getUserProgress.useQuery(
+    { cookieId },
+    { enabled: !!cookieId, staleTime: 30_000 }
+  );
+  const startLessonMutation = trpc.lesson.startLessonProgress.useMutation();
+  const completeLessonMutation = trpc.lesson.completeLessonProgress.useMutation();
+
+  // Hydrate completed state from server on first load
+  useEffect(() => {
+    const rows = progressQuery.data?.lessons;
+    if (!rows || rows.length === 0) return;
+    const completed = new Set<number>();
+    let xp = 0;
+    for (const row of rows) {
+      if (row.completedAt && row.lessonId != null) {
+        completed.add(row.lessonId);
+        const meta = LESSONS.find(l => l.id === row.lessonId);
+        if (meta) xp += meta.xp;
+      }
+    }
+    setCompletedLessons(completed);
+    setTotalXP(xp);
+  }, [progressQuery.data]);
+
+  const handleOpenLesson = useCallback((lessonId: LessonId) => {
+    setActiveLesson(lessonId);
+    lessonStartRef.current[lessonId] = Date.now();
+    if (cookieId) {
+      startLessonMutation.mutate({ cookieId, lessonId });
+    }
+  }, [cookieId, startLessonMutation]);
 
   const handleComplete = (lessonId: LessonId) => {
     if (completedLessons.has(lessonId)) return;
@@ -1311,7 +1346,19 @@ export default function AILiteracy() {
     setCompletedLessons(prev => new Set(Array.from(prev).concat(lessonId)));
     setTotalXP(prev => prev + meta.xp);
     addXP(meta.xp);
-    toast.success(`+${meta.xp} XP ó Lesson ${lessonId} complete!`);
+    const startedAt = lessonStartRef.current[lessonId] ?? Date.now();
+    const timeSpentSeconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+    if (cookieId) {
+      completeLessonMutation.mutate(
+        { cookieId, lessonId, timeSpentSeconds },
+        {
+          onError: () => {
+            // Persistence failed ‚Äî local state still reflects completion; server will catch up next session
+          },
+        }
+      );
+    }
+    toast.success(`+${meta.xp} XP ‚Äî Lesson ${lessonId} complete!`);
   };
 
   const overallPct = Math.round((completedLessons.size / LESSONS.length) * 100);
@@ -1325,7 +1372,7 @@ export default function AILiteracy() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-[oklch(0.75_0.18_55_/_0.3)] text-sm text-[oklch(0.75_0.18_55)] mb-6">
               <Brain size={14} />
-              <span>Module 1 ∑ AI Literacy for Adults</span>
+              <span>Module 1 ¬∑ AI Literacy for Adults</span>
             </motion.div>
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
               className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
@@ -1333,9 +1380,15 @@ export default function AILiteracy() {
               <span className="text-gradient-gold">AI Literacy</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              className="text-lg text-muted-foreground max-w-2xl mb-6 leading-relaxed">
-              A complete, research-backed introduction to artificial intelligence for adult learners ó no coding required. Built on Mayer's 12 Multimedia Learning Principles.
+              className="text-lg text-muted-foreground max-w-2xl mb-4 leading-relaxed">
+              A complete, research-backed introduction to artificial intelligence for adult learners ‚Äî no coding required. Built on Mayer's 12 Multimedia Learning Principles.
             </motion.p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.18 }} className="mb-6">
+              <Link href="/learn/my-profile" className="inline-flex items-center gap-1.5 text-xs text-[oklch(0.65_0.22_200)] hover:text-[oklch(0.85_0.18_200)] transition-colors">
+                <Sparkles size={12} />
+                Lessons here adapt to your reading level, pace, and confidence ‚Äî see how ‚Üí
+              </Link>
+            </motion.div>
 
             {/* Stats */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
@@ -1387,7 +1440,7 @@ export default function AILiteracy() {
                         : "border-white/8 hover:border-white/15"
                         }`}>
                       <button
-                        onClick={() => setActiveLesson(lesson.id)}
+                        onClick={() => handleOpenLesson(lesson.id)}
                         className="w-full flex items-center gap-5 p-5 text-left hover:bg-white/3 transition-colors">
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
                           style={{
@@ -1431,7 +1484,7 @@ export default function AILiteracy() {
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Built on Mayer's Multimedia Learning Theory</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        This module applies Richard Mayer's 12 evidence-based principles for effective digital learning ó proven to improve retention and transfer.
+                        This module applies Richard Mayer's 12 evidence-based principles for effective digital learning ‚Äî proven to improve retention and transfer.
                       </p>
                     </div>
                   </div>
@@ -1460,26 +1513,16 @@ export default function AILiteracy() {
                   <ChevronLeft size={14} /> Back to all lessons
                 </button>
                 <AnimatePresence mode="wait">
-                  {activeLesson === 1 && (
-                    <Lesson1 key={1} onComplete={() => handleComplete(1)} completed={completedLessons.has(1)} />
-                  )}
-                  {activeLesson === 2 && (
-                    <Lesson2 key={2} onComplete={() => handleComplete(2)} completed={completedLessons.has(2)} />
-                  )}
-                  {activeLesson === 3 && (
-                    <Lesson3 key={3} onComplete={() => handleComplete(3)} completed={completedLessons.has(3)} />
-                  )}
-                  {activeLesson === 4 && (
-                    <Lesson4 key={4} onComplete={() => handleComplete(4)} completed={completedLessons.has(4)} />
-                  )}
-                  {activeLesson === 5 && (
-                    <Lesson5 key={5} onComplete={() => handleComplete(5)} completed={completedLessons.has(5)}
-                      completedLessons={completedLessons} />
-                  )}
+                  <AdaptiveLessonView
+                    key={activeLesson}
+                    lessonId={`lesson-${activeLesson}`}
+                    completed={completedLessons.has(activeLesson)}
+                    onComplete={() => handleComplete(activeLesson)}
+                  />
                 </AnimatePresence>
                 {activeLesson < 5 && (
                   <div className="mt-6 flex justify-end">
-                    <button onClick={() => setActiveLesson((activeLesson + 1) as LessonId)}
+                    <button onClick={() => handleOpenLesson((activeLesson + 1) as LessonId)}
                       className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       Next Lesson <ChevronRight size={14} />
                     </button>

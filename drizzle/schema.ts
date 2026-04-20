@@ -516,6 +516,47 @@ export const curriculumProgress = mysqlTable("curriculum_progress", {
 export type CurriculumProgress = typeof curriculumProgress.$inferSelect;
 export type InsertCurriculumProgress = typeof curriculumProgress.$inferInsert;
 
+// Per-item assessment responses (retrieval, span-select, etc.) — durable record
+// of every attempt, used for spaced retrieval and LearnerProfile recomputation.
+export const lessonAssessmentResponses = mysqlTable("lesson_assessment_responses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  lessonId: varchar("lessonId", { length: 64 }).notNull(),
+  itemId: varchar("itemId", { length: 128 }).notNull(),
+  itemKind: varchar("itemKind", { length: 32 }).notNull(),
+  correct: boolean("correct"),
+  confidence: int("confidence"),
+  responsePayload: json("responsePayload").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieLessonIdx: index("lesson_assessment_cookie_lesson_idx").on(t.cookieId, t.lessonId),
+  userLessonIdx: index("lesson_assessment_user_lesson_idx").on(t.userId, t.lessonId),
+}));
+export type LessonAssessmentResponse = typeof lessonAssessmentResponses.$inferSelect;
+export type InsertLessonAssessmentResponse = typeof lessonAssessmentResponses.$inferInsert;
+
+// Open-response reflections (and rubric-graded outputs).
+export const lessonReflections = mysqlTable("lesson_reflections", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  lessonId: varchar("lessonId", { length: 64 }).notNull(),
+  itemId: varchar("itemId", { length: 128 }).notNull(),
+  prompt: text("prompt").notNull(),
+  response: text("response").notNull(),
+  rubricFeedback: json("rubricFeedback").$type<{
+    overall: string;
+    perCriterion: Array<{ label: string; score: number; comment: string }>;
+  } | null>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieLessonIdx: index("lesson_reflections_cookie_lesson_idx").on(t.cookieId, t.lessonId),
+  userLessonIdx: index("lesson_reflections_user_lesson_idx").on(t.userId, t.lessonId),
+}));
+export type LessonReflection = typeof lessonReflections.$inferSelect;
+export type InsertLessonReflection = typeof lessonReflections.$inferInsert;
+
 // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Research Sources (scraped / discovered) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 export const researchSources = mysqlTable("research_sources", {
   id: int("id").autoincrement().primaryKey(),

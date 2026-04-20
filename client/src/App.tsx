@@ -5,6 +5,7 @@ import { Route, Switch, useLocation, Redirect } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { PersonalizationProvider } from "./contexts/PersonalizationContext";
+import { LearnerProfileProvider } from "./contexts/LearnerProfileContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { EditModeProvider } from "./contexts/EditModeContext";
 import { usePsychSignalTracker } from "./hooks/usePsychSignalTracker";
@@ -51,6 +52,7 @@ const AdminAI      = lazy(() => import("./pages/AdminAI"));
 const AdminAudit   = lazy(() => import("./pages/AdminAudit"));
 const AdminUsers   = lazy(() => import("./pages/AdminUsers"));
 const Studio       = lazy(() => import("./pages/Studio"));
+const MyLearnerProfile = lazy(() => import("./pages/MyLearnerProfile"));
 
 function PageSkeleton() {
   return (
@@ -140,6 +142,9 @@ function Router() {
           <Route path="/profile">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Profile /></Suspense></RequireAuth>
           </Route>
+          <Route path="/learn/my-profile">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><MyLearnerProfile /></Suspense></RequireAuth>
+          </Route>
           <Route path="/reading-list">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><ReadingList /></Suspense></RequireAuth>
           </Route>
@@ -200,9 +205,11 @@ function App() {
       <ThemeProvider defaultTheme="dark" switchable>
         <PersonalizationProvider>
           <AuthProvider>
-            <EditModeProvider>
-              <AppShell />
-            </EditModeProvider>
+            <LearnerProfileProvider>
+              <EditModeProvider>
+                <AppShell />
+              </EditModeProvider>
+            </LearnerProfileProvider>
           </AuthProvider>
         </PersonalizationProvider>
       </ThemeProvider>

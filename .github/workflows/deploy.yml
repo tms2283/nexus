@@ -34,6 +34,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: UTF-8 encoding guard
+        run: |
+          set -e
+          mapfile -t files < <(git ls-files '*.ts' '*.tsx' '*.md' '*.json')
+          fail=0
+          for f in "${files[@]}"; do
+            if ! iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2>&1; then
+              echo "::error file=$f::File is not valid UTF-8"
+              fail=1
+            fi
+          done
+          exit $fail
+
       - name: TypeScript check
         run: pnpm check
 
