@@ -1,5 +1,5 @@
 import React from 'react';
-import { trpc } from '../lib/trpc';
+import { trpc } from '../../lib/trpc';
 import { Clock, Zap } from 'lucide-react';
 
 export function OptimalTimes() {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { trpc } from '../lib/trpc'; // Assuming standard trpc location in Nexus
+import { trpc } from '../../lib/trpc';
 
 export function BehavioralTracker() {
   const trackEvent = trpc.behavioral.trackEvent.useMutation();

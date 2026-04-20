@@ -37,9 +37,18 @@ jobs:
       - name: UTF-8 encoding guard
         run: |
           set -e
-          mapfile -t files < <(git ls-files '*.ts' '*.tsx' '*.md' '*.json')
+          # Check only files changed vs. the base branch (fast on large repos).
+          # Fall back to all tracked files on the initial commit or when the base
+          # ref is unavailable (e.g. workflow_dispatch without a base).
+          base="${{ github.event.before }}"
+          if git rev-parse --quiet --verify "$base" >/dev/null 2>&1; then
+            mapfile -t files < <(git diff --name-only "$base" HEAD -- '*.ts' '*.tsx' '*.md' '*.json')
+          else
+            mapfile -t files < <(git ls-files '*.ts' '*.tsx' '*.md' '*.json')
+          fi
           fail=0
           for f in "${files[@]}"; do
+            [ -f "$f" ] || continue
             if ! iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2>&1; then
               echo "::error file=$f::File is not valid UTF-8"
               fail=1

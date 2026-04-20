@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { BehavioralTracker } from '../components/BehavioralTracker';
+import { BehavioralTracker } from '../components/behavioral/BehavioralTracker';
 
 interface LiveInsight {
   type: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { trpc } from '../lib/trpc';
+import { trpc } from '../../lib/trpc';
 import { Brain, Focus, Compass, ShieldAlert, HeartPulse } from 'lucide-react';
 
 export function LearningProfile() {

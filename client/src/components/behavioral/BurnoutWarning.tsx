@@ -1,10 +1,10 @@
 import React from 'react';
-import { useBehavioralContext } from '../contexts/BehavioralProvider';
-import { trpc } from '../lib/trpc';
+import { useBehavioralContext } from '../../contexts/BehavioralProvider';
+import { trpc } from '../../lib/trpc';
 import { AlertTriangle, Coffee } from 'lucide-react';
 
 export function BurnoutWarning() {
-  const { data: profile } = trpc.behavioral.getProfile.useQuery();
+  const { data: profile } = trpc.behavioral.getProfile.useQuery({});
   const { liveInsights } = useBehavioralContext();
 
   // Determine burnout risk based on profile and recent live insights
