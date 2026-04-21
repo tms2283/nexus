@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, BookOpen, Lightbulb, Shield, Trophy, ChevronRight,
@@ -14,6 +15,7 @@ import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { AdaptiveLessonView } from "@/components/lesson/AdaptiveLessonView";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1518,7 +1520,40 @@ export default function AILiteracy() {
   const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [totalXP, setTotalXP] = useState(0);
-  const { addXP } = usePersonalization();
+  const { addXP, cookieId } = usePersonalization();
+  const lessonStartRef = useRef<Record<number, number>>({});
+
+  const progressQuery = trpc.lesson.getUserProgress.useQuery(
+    { cookieId },
+    { enabled: !!cookieId, staleTime: 30_000 }
+  );
+  const startLessonMutation = trpc.lesson.startLessonProgress.useMutation();
+  const completeLessonMutation = trpc.lesson.completeLessonProgress.useMutation();
+
+  // Hydrate completed state from server on first load
+  useEffect(() => {
+    const rows = progressQuery.data?.lessons;
+    if (!rows || rows.length === 0) return;
+    const completed = new Set<number>();
+    let xp = 0;
+    for (const row of rows) {
+      if (row.completedAt && row.lessonId != null) {
+        completed.add(row.lessonId);
+        const meta = LESSONS.find(l => l.id === row.lessonId);
+        if (meta) xp += meta.xp;
+      }
+    }
+    setCompletedLessons(completed);
+    setTotalXP(xp);
+  }, [progressQuery.data]);
+
+  const handleOpenLesson = useCallback((lessonId: LessonId) => {
+    setActiveLesson(lessonId);
+    lessonStartRef.current[lessonId] = Date.now();
+    if (cookieId) {
+      startLessonMutation.mutate({ cookieId, lessonId });
+    }
+  }, [cookieId, startLessonMutation]);
 
   const handleComplete = (lessonId: LessonId) => {
     if (completedLessons.has(lessonId)) return;
@@ -1548,6 +1583,12 @@ export default function AILiteracy() {
               className="text-lg text-muted-foreground max-w-2xl mb-6 leading-relaxed">
               Not just what AI is — but <em>why</em> it behaves the way it does. Five lessons that build a mental model you can reason with, not just vocabulary you can recite.
             </motion.p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.18 }} className="mb-6">
+              <Link href="/learn/my-profile" className="inline-flex items-center gap-1.5 text-xs text-[oklch(0.65_0.22_200)] hover:text-[oklch(0.85_0.18_200)] transition-colors">
+                <Sparkles size={12} />
+                Lessons here adapt to your reading level, pace, and confidence — see how →
+              </Link>
+            </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
               className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -1662,7 +1703,7 @@ export default function AILiteracy() {
                 </AnimatePresence>
                 {activeLesson < 5 && (
                   <div className="mt-6 flex justify-end">
-                    <button onClick={() => setActiveLesson((activeLesson + 1) as LessonId)}
+                    <button onClick={() => handleOpenLesson((activeLesson + 1) as LessonId)}
                       className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       Next Lesson <ChevronRight size={14} />
                     </button>
