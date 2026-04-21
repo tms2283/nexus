@@ -92,11 +92,7 @@ function Router() {
             <RequireAuth><Home /></RequireAuth>
           </Route>
           <Route path="/learn">
-            {/* The /learn route renders the rich cognitive-science AI Literacy
-                course. The legacy hardcoded Learn.tsx is no longer routed — it
-                contained thin one-sentence segments that did not consume the
-                foundationSeeds curriculum. */}
-            <RequireAuth><Suspense fallback={<PageSkeleton />}><AILiteracy /></Suspense></RequireAuth>
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><Learn /></Suspense></RequireAuth>
           </Route>
           <Route path="/research">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Research /></Suspense></RequireAuth>
