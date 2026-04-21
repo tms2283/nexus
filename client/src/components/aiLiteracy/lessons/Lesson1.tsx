@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 
 import {
+  AdaptiveProse,
   CalibrationChart,
   ConfidenceQuizItem,
   LLMGradedResponse,
@@ -391,13 +392,18 @@ export default function Lesson1({ onComplete }: Lesson1Props) {
         <h1 className="text-3xl font-semibold text-foreground tracking-tight mb-2">
           What Is AI? From Patterns to Predictions
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          "AI" is a fuzzy word used for everything from spam filters to chatbots
-          to self-driving cars. By the end of this lesson, you will have a
-          concrete mental model of what a large language model actually does at
-          each step, how it learned to do that, and where the word "AI" stops
-          being useful and starts being marketing.
-        </p>
+        <AdaptiveProse
+          topic="What this lesson covers"
+          seed="AI is a fuzzy marketing word; this lesson builds a concrete mental model of what LLMs actually do."
+        >
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+            "AI" is a fuzzy word used for everything from spam filters to chatbots
+            to self-driving cars. By the end of this lesson, you will have a
+            concrete mental model of what a large language model actually does at
+            each step, how it learned to do that, and where the word "AI" stops
+            being useful and starts being marketing.
+          </p>
+        </AdaptiveProse>
       </div>
 
       {/* 1. Productive-failure opener — NO retrieval warmup on lesson 1 */}
@@ -448,101 +454,106 @@ export default function Lesson1({ onComplete }: Lesson1Props) {
             move.
           </SectionHeading>
 
-          <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
-            <p>
-              The raw ingredient is text — a lot of it. A frontier model today
-              is trained on something like ten to fifteen trillion tokens,
-              where a token is roughly three-quarters of a word. That pile
-              includes most of the public web that anyone would bother
-              scraping: Wikipedia, books scanned into digital form, Stack
-              Overflow, news archives, code repositories, forums, transcripts,
-              and more. No single human could read even a thousandth of it in
-              a lifetime. The model, crudely, reads all of it — many times.
-            </p>
+          <AdaptiveProse
+            topic="How LLMs learn from data"
+            seed="LLMs are trained on trillions of tokens via next-token prediction, compressing world knowledge into billions of numerical parameters."
+          >
+            <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                The raw ingredient is text — a lot of it. A frontier model today
+                is trained on something like ten to fifteen trillion tokens,
+                where a token is roughly three-quarters of a word. That pile
+                includes most of the public web that anyone would bother
+                scraping: Wikipedia, books scanned into digital form, Stack
+                Overflow, news archives, code repositories, forums, transcripts,
+                and more. No single human could read even a thousandth of it in
+                a lifetime. The model, crudely, reads all of it — many times.
+              </p>
 
-            <p>
-              Inside the model is a network of interconnected numerical
-              weights called <strong className="text-foreground">parameters</strong>.
-              Think of each parameter as a dial on a massive mixing board.
-              A small model might have a billion dials; a frontier model has
-              hundreds of billions or more. At the start of training every
-              dial is set to a random value and the network is useless — ask
-              it the capital of France and it will produce gibberish.
-            </p>
+              <p>
+                Inside the model is a network of interconnected numerical
+                weights called <strong className="text-foreground">parameters</strong>.
+                Think of each parameter as a dial on a massive mixing board.
+                A small model might have a billion dials; a frontier model has
+                hundreds of billions or more. At the start of training every
+                dial is set to a random value and the network is useless — ask
+                it the capital of France and it will produce gibberish.
+              </p>
 
-            <TrainVsInference />
+              <TrainVsInference />
 
-            <p>
-              Training is the slow process of nudging every dial toward
-              settings that make the network better at one specific game:
-              given a chunk of text with the last word hidden, predict that
-              word. This is called <strong className="text-foreground">next-token prediction</strong>,
-              and it is the single objective used to build the foundation
-              model. Show the network "The capital of France is ___" and
-              whatever it guesses, compare that to the real continuation
-              ("Paris"), and use the error to push every dial a tiny bit in
-              the direction that would have produced a better guess. This
-              nudge is called <strong className="text-foreground">gradient descent</strong>.
-              Run it trillions of times. The dials slowly settle into
-              configurations where the network gets good at the game.
-            </p>
+              <p>
+                Training is the slow process of nudging every dial toward
+                settings that make the network better at one specific game:
+                given a chunk of text with the last word hidden, predict that
+                word. This is called <strong className="text-foreground">next-token prediction</strong>,
+                and it is the single objective used to build the foundation
+                model. Show the network "The capital of France is ___" and
+                whatever it guesses, compare that to the real continuation
+                ("Paris"), and use the error to push every dial a tiny bit in
+                the direction that would have produced a better guess. This
+                nudge is called <strong className="text-foreground">gradient descent</strong>.
+                Run it trillions of times. The dials slowly settle into
+                configurations where the network gets good at the game.
+              </p>
 
-            <p>
-              The strange, beautiful result is that to get good at guessing
-              the next word in almost any text, the network is forced to
-              absorb an enormous amount of structure about the world. Grammar,
-              of course — but also who the President of the United States was
-              in 1992, how to balance a chemical equation, what Python syntax
-              looks like, how a Shakespearean sonnet scans, what legal
-              citations tend to look like, how doctors phrase a diagnosis.
-              None of this is stored as a fact in a database the model can
-              look up. It is compressed and smeared across the billions of
-              parameters as patterns. When we say a model "knows" something,
-              we mean the weights have been shaped so that the right tokens
-              come out when the right prompt goes in.
-            </p>
+              <p>
+                The strange, beautiful result is that to get good at guessing
+                the next word in almost any text, the network is forced to
+                absorb an enormous amount of structure about the world. Grammar,
+                of course — but also who the President of the United States was
+                in 1992, how to balance a chemical equation, what Python syntax
+                looks like, how a Shakespearean sonnet scans, what legal
+                citations tend to look like, how doctors phrase a diagnosis.
+                None of this is stored as a fact in a database the model can
+                look up. It is compressed and smeared across the billions of
+                parameters as patterns. When we say a model "knows" something,
+                we mean the weights have been shaped so that the right tokens
+                come out when the right prompt goes in.
+              </p>
 
-            <p>
-              After the foundation training comes a second stage, usually
-              called <strong className="text-foreground">post-training</strong>.
-              The raw model can predict text, but it will happily continue
-              any prompt — including a request like "tell me how to build a
-              bomb." Post-training uses a much smaller but much more curated
-              dataset of human preferences to shape the model's behavior:
-              how to follow instructions, when to refuse, how to be helpful,
-              how to stay on topic. Techniques like <strong className="text-foreground">
-              RLHF</strong> (reinforcement learning from human feedback) and
-              instruction tuning live in this stage. The base model is the
-              raw brain; post-training is the training that turns it into an
-              assistant you can actually talk to.
-            </p>
+              <p>
+                After the foundation training comes a second stage, usually
+                called <strong className="text-foreground">post-training</strong>.
+                The raw model can predict text, but it will happily continue
+                any prompt — including a request like "tell me how to build a
+                bomb." Post-training uses a much smaller but much more curated
+                dataset of human preferences to shape the model's behavior:
+                how to follow instructions, when to refuse, how to be helpful,
+                how to stay on topic. Techniques like <strong className="text-foreground">
+                RLHF</strong> (reinforcement learning from human feedback) and
+                instruction tuning live in this stage. The base model is the
+                raw brain; post-training is the training that turns it into an
+                assistant you can actually talk to.
+              </p>
 
-            <p>
-              When you chat with a model, none of this training is happening
-              any more. That phase is called <strong className="text-foreground">inference</strong>,
-              and the weights are frozen. Your prompt is chopped into tokens,
-              the model runs forward once per token of its reply, produces a
-              probability distribution over all possible next tokens, and
-              samples one. That token becomes part of the context for the
-              next step, and the loop repeats until the model decides to
-              stop. There is no lookup into a knowledge base. There is no
-              hidden reasoning monologue. There is no fact-checker. There is
-              just a very large amount of math compressing patterns into
-              next-token odds.
-            </p>
+              <p>
+                When you chat with a model, none of this training is happening
+                any more. That phase is called <strong className="text-foreground">inference</strong>,
+                and the weights are frozen. Your prompt is chopped into tokens,
+                the model runs forward once per token of its reply, produces a
+                probability distribution over all possible next tokens, and
+                samples one. That token becomes part of the context for the
+                next step, and the loop repeats until the model decides to
+                stop. There is no lookup into a knowledge base. There is no
+                hidden reasoning monologue. There is no fact-checker. There is
+                just a very large amount of math compressing patterns into
+                next-token odds.
+              </p>
 
-            <p>
-              One honest consequence: we can build these systems without
-              fully understanding them. Nobody can point to a single
-              parameter and say "this is where the model stores the boiling
-              point of water." The knowledge is distributed across billions
-              of dials that all fire together. The field trying to crack
-              this open is called <strong className="text-foreground">interpretability</strong>,
-              and it is making real progress — but for now, a modern LLM is
-              largely a black box. We know how to train it. We are still
-              learning how to explain what it does.
-            </p>
-          </div>
+              <p>
+                One honest consequence: we can build these systems without
+                fully understanding them. Nobody can point to a single
+                parameter and say "this is where the model stores the boiling
+                point of water." The knowledge is distributed across billions
+                of dials that all fire together. The field trying to crack
+                this open is called <strong className="text-foreground">interpretability</strong>,
+                and it is making real progress — but for now, a modern LLM is
+                largely a black box. We know how to train it. We are still
+                learning how to explain what it does.
+              </p>
+            </div>
+          </AdaptiveProse>
 
           <button
             onClick={advance("misconceptions")}
@@ -615,43 +626,48 @@ export default function Lesson1({ onComplete }: Lesson1Props) {
 
           <NextTokenPredictor />
 
-          <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
-            <p>
-              A few things are worth noticing. First, the words above are
-              spelled the way a human would spell them, but that is only
-              because the example is nice. Under the hood, a token is not
-              always a word. Common words like <em>the</em> are their own
-              token. Rare words get split — "unbelievable" might become
-              <em> un</em>, <em>believ</em>, <em>able</em>. Names, code,
-              emojis, and non-English scripts often split differently. The
-              model does not see letters; it sees token IDs, which are just
-              integers pointing into its vocabulary of maybe 50,000 to
-              200,000 possibilities.
-            </p>
-            <p>
-              Second, the percentages are not confidence in <em>truth</em>.
-              They are confidence in <em>what comes next in text of this
-              shape</em>. "The cat sat on the ___" has a statistical answer
-              because the sentence is a cliche. The model is not telling you
-              "I am 41% sure a real cat exists and is currently on a real
-              mat." It is telling you "41% of the training data's
-              continuations of this exact phrase were the word 'mat'." That
-              is a very different claim, and the slippage between them is
-              where a lot of AI misuse lives.
-            </p>
-            <p>
-              Third, the model almost never picks the top option every time.
-              A setting called <strong className="text-foreground">temperature</strong>{" "}
-              controls how much randomness is injected into the sampling.
-              At temperature zero, the model always picks the highest-probability
-              token and two runs of the same prompt produce identical output.
-              At a more typical temperature (around 0.7), the model samples
-              from the distribution, so less-likely words sometimes win.
-              That is why the same prompt gives different answers on Monday
-              and Tuesday — not a glitch, but a deliberate dial the product
-              team tuned to make replies feel creative instead of robotic.
-            </p>
-          </div>
+          <AdaptiveProse
+            topic="Tokens, probabilities, and temperature"
+            seed="Next-token percentages express statistical likelihood from training data, not factual confidence, and temperature controls how much randomness is injected."
+          >
+            <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+              <p>
+                A few things are worth noticing. First, the words above are
+                spelled the way a human would spell them, but that is only
+                because the example is nice. Under the hood, a token is not
+                always a word. Common words like <em>the</em> are their own
+                token. Rare words get split — "unbelievable" might become
+                <em> un</em>, <em>believ</em>, <em>able</em>. Names, code,
+                emojis, and non-English scripts often split differently. The
+                model does not see letters; it sees token IDs, which are just
+                integers pointing into its vocabulary of maybe 50,000 to
+                200,000 possibilities.
+              </p>
+              <p>
+                Second, the percentages are not confidence in <em>truth</em>.
+                They are confidence in <em>what comes next in text of this
+                shape</em>. "The cat sat on the ___" has a statistical answer
+                because the sentence is a cliche. The model is not telling you
+                "I am 41% sure a real cat exists and is currently on a real
+                mat." It is telling you "41% of the training data's
+                continuations of this exact phrase were the word 'mat'." That
+                is a very different claim, and the slippage between them is
+                where a lot of AI misuse lives.
+              </p>
+              <p>
+                Third, the model almost never picks the top option every time.
+                A setting called <strong className="text-foreground">temperature</strong>{" "}
+                controls how much randomness is injected into the sampling.
+                At temperature zero, the model always picks the highest-probability
+                token and two runs of the same prompt produce identical output.
+                At a more typical temperature (around 0.7), the model samples
+                from the distribution, so less-likely words sometimes win.
+                That is why the same prompt gives different answers on Monday
+                and Tuesday — not a glitch, but a deliberate dial the product
+                team tuned to make replies feel creative instead of robotic.
+              </p>
+            </div>
+          </AdaptiveProse>
 
           <button
             onClick={advance("ladder")}

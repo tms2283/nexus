@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 import {
+  AdaptiveProse,
   CalibrationChart,
   ConfidenceQuizItem,
   LLMGradedResponse,
@@ -790,110 +791,115 @@ export default function Lesson3({ onComplete }: Lesson3Props) {
             world. Your job is to give them enough to work with.
           </SectionHeading>
 
-          <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
-            <p>
-              The mnemonic is{" "}
-              <strong className="text-foreground">RACE-F</strong>:{" "}
-              <strong className="text-foreground">R</strong>ole,{" "}
-              <strong className="text-foreground">A</strong>udience,{" "}
-              <strong className="text-foreground">C</strong>ontext,{" "}
-              <strong className="text-foreground">E</strong>xamples,{" "}
-              <strong className="text-foreground">F</strong>ormat. You don't
-              need all five every time — a quick tweet doesn't need a role
-              declaration — but knowing the five axes lets you fix a weak
-              output by diagnosing which axis is missing. When a first draft
-              comes back wrong, it's almost always because one of these
-              five was vague.
-            </p>
+          <AdaptiveProse
+            topic="RACE-F prompt anatomy overview"
+            seed="RACE-F names the five axes — Role, Audience, Context, Examples, Format — that let you diagnose and fix any weak prompt."
+          >
+            <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                The mnemonic is{" "}
+                <strong className="text-foreground">RACE-F</strong>:{" "}
+                <strong className="text-foreground">R</strong>ole,{" "}
+                <strong className="text-foreground">A</strong>udience,{" "}
+                <strong className="text-foreground">C</strong>ontext,{" "}
+                <strong className="text-foreground">E</strong>xamples,{" "}
+                <strong className="text-foreground">F</strong>ormat. You don't
+                need all five every time — a quick tweet doesn't need a role
+                declaration — but knowing the five axes lets you fix a weak
+                output by diagnosing which axis is missing. When a first draft
+                comes back wrong, it's almost always because one of these
+                five was vague.
+              </p>
 
-            <RaceFLegend />
+              <RaceFLegend />
 
-            <p>
-              <strong className="text-foreground">Role</strong> is the first
-              lever because it's the cheapest. One sentence — "act as a
-              skeptical journalist reading this for the first time" — shifts
-              the whole register. The model carries a huge library of voices
-              and styles; Role picks which one to pull from the shelf.
-              Without a Role, the model picks a bland middle-manager voice by
-              default, because that's the average of its training data.
-              Almost anything beats the default.
-            </p>
+              <p>
+                <strong className="text-foreground">Role</strong> is the first
+                lever because it's the cheapest. One sentence — "act as a
+                skeptical journalist reading this for the first time" — shifts
+                the whole register. The model carries a huge library of voices
+                and styles; Role picks which one to pull from the shelf.
+                Without a Role, the model picks a bland middle-manager voice by
+                default, because that's the average of its training data.
+                Almost anything beats the default.
+              </p>
 
-            <p>
-              <strong className="text-foreground">Audience</strong> is the
-              lever most people skip, and it's usually the reason an output
-              is "technically correct, completely useless." A cover letter
-              for a hiring manager at a ten-person startup reads nothing like
-              a cover letter for an HR screener at a Fortune 500. A
-              five-year-old explanation reads nothing like a PhD one. Telling
-              the model who the output is for changes vocabulary, length,
-              what to assume, and what to re-explain.
-            </p>
+              <p>
+                <strong className="text-foreground">Audience</strong> is the
+                lever most people skip, and it's usually the reason an output
+                is "technically correct, completely useless." A cover letter
+                for a hiring manager at a ten-person startup reads nothing like
+                a cover letter for an HR screener at a Fortune 500. A
+                five-year-old explanation reads nothing like a PhD one. Telling
+                the model who the output is for changes vocabulary, length,
+                what to assume, and what to re-explain.
+              </p>
 
-            <AnnotatedPrompt />
+              <AnnotatedPrompt />
 
-            <p>
-              <strong className="text-foreground">Context</strong> is the
-              stuff the model has no way to know unless you tell it: what
-              happened, what's at stake, what the constraints are, what the
-              source material actually says. The single biggest upgrade most
-              prompts can receive is this: instead of describing your
-              situation in four adjectives, paste the raw material. Paste
-              the email chain. Paste the job description. Paste the draft
-              paragraph. The model is dramatically better at reading text
-              than at guessing text.
-            </p>
+              <p>
+                <strong className="text-foreground">Context</strong> is the
+                stuff the model has no way to know unless you tell it: what
+                happened, what's at stake, what the constraints are, what the
+                source material actually says. The single biggest upgrade most
+                prompts can receive is this: instead of describing your
+                situation in four adjectives, paste the raw material. Paste
+                the email chain. Paste the job description. Paste the draft
+                paragraph. The model is dramatically better at reading text
+                than at guessing text.
+              </p>
 
-            <p>
-              <strong className="text-foreground">Examples</strong> —
-              sometimes called few-shot prompting — are the closest thing to
-              a cheat code that prompting has. One or two concrete examples
-              of "what I want" teach the model style and structure faster
-              than any adjective. "Write in a casual tone" is vague. Showing
-              a two-sentence sample of casual tone you actually like is
-              pinpoint. Examples work because the model is, at its core, a
-              pattern-matcher; give it the pattern.
-            </p>
+              <p>
+                <strong className="text-foreground">Examples</strong> —
+                sometimes called few-shot prompting — are the closest thing to
+                a cheat code that prompting has. One or two concrete examples
+                of "what I want" teach the model style and structure faster
+                than any adjective. "Write in a casual tone" is vague. Showing
+                a two-sentence sample of casual tone you actually like is
+                pinpoint. Examples work because the model is, at its core, a
+                pattern-matcher; give it the pattern.
+              </p>
 
-            <p>
-              <strong className="text-foreground">Format</strong> is the axis
-              that makes the output useable without you editing it. "Short"
-              is fuzzy; "a 120-word email with a one-line subject, three
-              paragraphs, and a bold ask at the end" is a spec. Ask for
-              tables, bullet counts, Markdown headings, word limits, or
-              JSON schemas. The model is happier with constraints than
-              without them. Vague format is how you end up with a
-              five-paragraph answer when you wanted a tweet.
-            </p>
+              <p>
+                <strong className="text-foreground">Format</strong> is the axis
+                that makes the output useable without you editing it. "Short"
+                is fuzzy; "a 120-word email with a one-line subject, three
+                paragraphs, and a bold ask at the end" is a spec. Ask for
+                tables, bullet counts, Markdown headings, word limits, or
+                JSON schemas. The model is happier with constraints than
+                without them. Vague format is how you end up with a
+                five-paragraph answer when you wanted a tweet.
+              </p>
 
-            <p>
-              Beyond RACE-F, two habits separate people who get great output
-              from people who don't.{" "}
-              <strong className="text-foreground">Iterate, don't re-roll.</strong>{" "}
-              If the first draft is 80% there, don't start over — tell the
-              model what to fix. "Cut the second paragraph. Make the tone
-              drier. Keep the last sentence." Each pass is cheap and moves
-              you closer.{" "}
-              <strong className="text-foreground">Re-state what matters.</strong>{" "}
-              In a long chat, the model is only looking at the current
-              context window. If a constraint you set in turn one matters
-              in turn twenty, repeat it. The model has no feelings you'll
-              hurt by being redundant.
-            </p>
+              <p>
+                Beyond RACE-F, two habits separate people who get great output
+                from people who don't.{" "}
+                <strong className="text-foreground">Iterate, don't re-roll.</strong>{" "}
+                If the first draft is 80% there, don't start over — tell the
+                model what to fix. "Cut the second paragraph. Make the tone
+                drier. Keep the last sentence." Each pass is cheap and moves
+                you closer.{" "}
+                <strong className="text-foreground">Re-state what matters.</strong>{" "}
+                In a long chat, the model is only looking at the current
+                context window. If a constraint you set in turn one matters
+                in turn twenty, repeat it. The model has no feelings you'll
+                hurt by being redundant.
+              </p>
 
-            <p>
-              Finally, the frontier: <strong className="text-foreground">tool use</strong> and{" "}
-              <strong className="text-foreground">agentic patterns</strong>.
-              Modern assistants can call a calculator, run code, search the
-              web, or open a document — and they produce dramatically better
-              answers when they do. A prompt like "calculate this exactly
-              using Python and show me the code" will beat "what's
-              48,173 × 2,907" every time, because the former routes the
-              hard part to something that's actually built for arithmetic.
-              When you can, nudge the model to pick up a tool rather than
-              pretend it doesn't need one.
-            </p>
-          </div>
+              <p>
+                Finally, the frontier: <strong className="text-foreground">tool use</strong> and{" "}
+                <strong className="text-foreground">agentic patterns</strong>.
+                Modern assistants can call a calculator, run code, search the
+                web, or open a document — and they produce dramatically better
+                answers when they do. A prompt like "calculate this exactly
+                using Python and show me the code" will beat "what's
+                48,173 × 2,907" every time, because the former routes the
+                hard part to something that's actually built for arithmetic.
+                When you can, nudge the model to pick up a tool rather than
+                pretend it doesn't need one.
+              </p>
+            </div>
+          </AdaptiveProse>
 
           <button
             onClick={advance("misconceptions")}
@@ -1161,48 +1167,53 @@ export default function Lesson3({ onComplete }: Lesson3Props) {
             </div>
           </div>
 
-          <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
-            <p>
-              Start with <strong className="text-foreground">accuracy risk</strong>.
-              The model is a probability engine, not a calculator. Asking it
-              to multiply large numbers without a tool, recite a statute
-              verbatim, or cite a specific court case is using a hammer as
-              a screwdriver — it can technically do the job, but you'd be a
-              fool to trust the result. The fix is either a tool call
-              (calculator, code, retrieval against a real database) or
-              handing the task to software that was actually built for it.
-            </p>
-            <p>
-              Next, <strong className="text-foreground">opportunity cost</strong>.
-              The skills you don't practice are the skills you don't build.
-              If the task is how you learn — a homework problem you're
-              assigned to work through, a first draft where you're still
-              finding your argument, a piece of code you're trying to
-              understand — delegating the whole thing saves an hour and
-              costs a year. The right move is to use the AI as a tutor
-              (Socratic questions, feedback on your draft) instead of a
-              substitute. Keep your hands on the wheel.
-            </p>
-            <p>
-              Finally, <strong className="text-foreground">authenticity</strong>.
-              Some messages are doing relational work, not informational
-              work. A three-line text to a grieving friend carries the
-              weight it does because you wrote it. A generated condolence
-              is worse than a worse human one. The same goes for apologies,
-              personal creative work, artist statements, and the
-              voice-in-your-own-head writing that is part of thinking.
-              Polish is sometimes the wrong variable to optimize.
-            </p>
-            <p>
-              One more filter that wraps around all three:{" "}
-              <strong className="text-foreground">private data</strong>.
-              Don't paste confidential information — client records, trade
-              secrets, medical details, passwords — into a general-purpose
-              chatbot unless you know exactly where that data goes and
-              have permission for it. The prompt is not a private box;
-              treat it like a public comment thread with extra steps.
-            </p>
-          </div>
+          <AdaptiveProse
+            topic="When not to use AI — three filters"
+            seed="Accuracy risk, opportunity cost, and authenticity are the three filters that tell you when to keep a task to yourself."
+          >
+            <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+              <p>
+                Start with <strong className="text-foreground">accuracy risk</strong>.
+                The model is a probability engine, not a calculator. Asking it
+                to multiply large numbers without a tool, recite a statute
+                verbatim, or cite a specific court case is using a hammer as
+                a screwdriver — it can technically do the job, but you'd be a
+                fool to trust the result. The fix is either a tool call
+                (calculator, code, retrieval against a real database) or
+                handing the task to software that was actually built for it.
+              </p>
+              <p>
+                Next, <strong className="text-foreground">opportunity cost</strong>.
+                The skills you don't practice are the skills you don't build.
+                If the task is how you learn — a homework problem you're
+                assigned to work through, a first draft where you're still
+                finding your argument, a piece of code you're trying to
+                understand — delegating the whole thing saves an hour and
+                costs a year. The right move is to use the AI as a tutor
+                (Socratic questions, feedback on your draft) instead of a
+                substitute. Keep your hands on the wheel.
+              </p>
+              <p>
+                Finally, <strong className="text-foreground">authenticity</strong>.
+                Some messages are doing relational work, not informational
+                work. A three-line text to a grieving friend carries the
+                weight it does because you wrote it. A generated condolence
+                is worse than a worse human one. The same goes for apologies,
+                personal creative work, artist statements, and the
+                voice-in-your-own-head writing that is part of thinking.
+                Polish is sometimes the wrong variable to optimize.
+              </p>
+              <p>
+                One more filter that wraps around all three:{" "}
+                <strong className="text-foreground">private data</strong>.
+                Don't paste confidential information — client records, trade
+                secrets, medical details, passwords — into a general-purpose
+                chatbot unless you know exactly where that data goes and
+                have permission for it. The prompt is not a private box;
+                treat it like a public comment thread with extra steps.
+              </p>
+            </div>
+          </AdaptiveProse>
 
           <div className="mt-5 p-4 rounded-xl bg-[oklch(0.72_0.18_150_/_0.06)] border border-[oklch(0.72_0.18_150_/_0.2)]">
             <div className="flex items-center gap-2 mb-2">

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import {
+  AdaptiveProse,
   CalibrationChart,
   ConfidenceQuizItem,
   LLMGradedResponse,
@@ -377,12 +378,14 @@ export default function Lesson2({ onComplete }: Lesson2Props) {
         <h1 className="text-3xl font-semibold text-foreground tracking-tight mb-2">
           Myths, Hallucinations & Verification
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          Language models don't lie on purpose — they fill in the blanks.
-          By the end of this lesson, you'll know why that happens, how to spot
-          it, and a five-step habit (TRACE) that turns any AI answer into
-          something you can actually stand behind.
-        </p>
+        <AdaptiveProse topic="Lesson 2 overview: hallucination and verification" seed="LLMs fill in blanks rather than lie; this lesson explains why and teaches the TRACE habit.">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+            Language models don't lie on purpose — they fill in the blanks.
+            By the end of this lesson, you'll know why that happens, how to spot
+            it, and a five-step habit (TRACE) that turns any AI answer into
+            something you can actually stand behind.
+          </p>
+        </AdaptiveProse>
       </div>
 
       {/* 1. Retrieval warmup */}
@@ -453,86 +456,88 @@ export default function Lesson2({ onComplete }: Lesson2Props) {
             It's how the machine works when it works normally.
           </SectionHeading>
 
-          <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
-            <p>
-              A language model generates one token (roughly, one piece of a
-              word) at a time. For every token, it produces a probability
-              distribution over tens of thousands of options and samples one.
-              Then it repeats. That's the entire mechanism. There is no
-              separate step where the model asks, "Wait — is this actually
-              true?" There is no pause to check a database. Every token that
-              comes out is the token the math said was most plausible to
-              come next, given everything that came before.
-            </p>
+          <AdaptiveProse topic="Why LLMs hallucinate: the token prediction mechanism" seed="LLMs generate text token by token from a probability distribution with no built-in truth check, making confident fabrication a normal output.">
+            <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                A language model generates one token (roughly, one piece of a
+                word) at a time. For every token, it produces a probability
+                distribution over tens of thousands of options and samples one.
+                Then it repeats. That's the entire mechanism. There is no
+                separate step where the model asks, "Wait — is this actually
+                true?" There is no pause to check a database. Every token that
+                comes out is the token the math said was most plausible to
+                come next, given everything that came before.
+              </p>
 
-            <TokenProbabilityBar />
+              <TokenProbabilityBar />
 
-            <p>
-              When the prompt has a clear, well-represented answer in the
-              training data — "The capital of France is ___" — the
-              distribution is sharp and the right token wins by a landslide.
-              When the prompt is ambiguous, obscure, or loaded, the
-              distribution flattens out. The model still has to pick. Whatever
-              it picks, it will then commit to and build on, because that
-              word is now part of the context for the <em>next</em> word.
-              A small slip at token 12 becomes a wrong citation by token 40
-              and a completely fictional conclusion by token 100.
-            </p>
+              <p>
+                When the prompt has a clear, well-represented answer in the
+                training data — "The capital of France is ___" — the
+                distribution is sharp and the right token wins by a landslide.
+                When the prompt is ambiguous, obscure, or loaded, the
+                distribution flattens out. The model still has to pick. Whatever
+                it picks, it will then commit to and build on, because that
+                word is now part of the context for the <em>next</em> word.
+                A small slip at token 12 becomes a wrong citation by token 40
+                and a completely fictional conclusion by token 100.
+              </p>
 
-            <p>
-              There is usually no internal "I don't know" signal. The model
-              was trained on an enormous pile of text — Wikipedia, books,
-              forums, fan fiction, satire sites, outdated pages, contradictory
-              sources — and was rewarded for producing text that sounds right.
-              It was not rewarded for saying <em>I'm not sure</em>, because
-              its training data rarely contained that response and because
-              fluent answers score better on the human-preference benchmarks
-              the builders use. So the model learned to fill the space.
-              Silence, in a language model's world, is failure.
-            </p>
+              <p>
+                There is usually no internal "I don't know" signal. The model
+                was trained on an enormous pile of text — Wikipedia, books,
+                forums, fan fiction, satire sites, outdated pages, contradictory
+                sources — and was rewarded for producing text that sounds right.
+                It was not rewarded for saying <em>I'm not sure</em>, because
+                its training data rarely contained that response and because
+                fluent answers score better on the human-preference benchmarks
+                the builders use. So the model learned to fill the space.
+                Silence, in a language model's world, is failure.
+              </p>
 
-            <p>
-              This is sometimes called the <strong className="text-foreground">plausibility gradient</strong>:
-              the model optimizes toward text that looks like what a correct
-              answer would look like. A correct legal answer has a case name
-              and a reporter number, so the model produces a case name and a
-              reporter number. Whether that case actually exists is a
-              separate question the model was never trained to answer. A
-              correct medical answer cites a study, so the model cites a
-              study — real or not. The <em>shape</em> of truth is what the
-              training pressure rewards. The truth itself is a happy
-              coincidence, most of the time.
-            </p>
+              <p>
+                This is sometimes called the <strong className="text-foreground">plausibility gradient</strong>:
+                the model optimizes toward text that looks like what a correct
+                answer would look like. A correct legal answer has a case name
+                and a reporter number, so the model produces a case name and a
+                reporter number. Whether that case actually exists is a
+                separate question the model was never trained to answer. A
+                correct medical answer cites a study, so the model cites a
+                study — real or not. The <em>shape</em> of truth is what the
+                training pressure rewards. The truth itself is a happy
+                coincidence, most of the time.
+              </p>
 
-            <RetrievalVsGeneration />
+              <RetrievalVsGeneration />
 
-            <p>
-              Newer systems try to fight this with <strong className="text-foreground">
-              retrieval-augmented generation (RAG)</strong> — they search a
-              real database first, then feed the results into the prompt so
-              the model has actual source text to lean on. Others use
-              <strong className="text-foreground"> tool use</strong> (the
-              model calls a calculator, a code runner, or a live search) or
-              <strong className="text-foreground"> grounding</strong> (the
-              model is forced to quote from an attached document). These
-              help a lot. They don't cure the problem. The model can still
-              misread the retrieved text, cite a passage that isn't there,
-              or confidently summarize a page it didn't actually open.
-              Verification stays your job.
-            </p>
+              <p>
+                Newer systems try to fight this with <strong className="text-foreground">
+                retrieval-augmented generation (RAG)</strong> — they search a
+                real database first, then feed the results into the prompt so
+                the model has actual source text to lean on. Others use
+                <strong className="text-foreground"> tool use</strong> (the
+                model calls a calculator, a code runner, or a live search) or
+                <strong className="text-foreground"> grounding</strong> (the
+                model is forced to quote from an attached document). These
+                help a lot. They don't cure the problem. The model can still
+                misread the retrieved text, cite a passage that isn't there,
+                or confidently summarize a page it didn't actually open.
+                Verification stays your job.
+              </p>
 
-            <p>
-              The takeaway isn't that AI is useless. It's that{" "}
-              <strong className="text-foreground">
-                every specific factual claim — a number, a date, a case
-                citation, a book title, a person's credential — is
-                unverified until you verify it
-              </strong>
-              . Treat a chatbot's answer the way a good editor treats a
-              first-draft pitch: promising, probably directionally right,
-              and absolutely not publishable as is.
-            </p>
-          </div>
+              <p>
+                The takeaway isn't that AI is useless. It's that{" "}
+                <strong className="text-foreground">
+                  every specific factual claim — a number, a date, a case
+                  citation, a book title, a person's credential — is
+                  unverified until you verify it
+                </strong>
+                . Treat a chatbot's answer the way a good editor treats a
+                first-draft pitch: promising, probably directionally right,
+                and absolutely not publishable as is.
+              </p>
+            </div>
+          </AdaptiveProse>
 
           <button
             onClick={advance("misconceptions")}
@@ -672,46 +677,48 @@ export default function Lesson2({ onComplete }: Lesson2Props) {
 
           <TraceMnemonic />
 
-          <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
-            <p>
-              TRACE works because each letter blocks a different failure mode.{" "}
-              <strong className="text-foreground">Trace</strong> catches the
-              fake-source problem: if the AI invented the paper, you'll find
-              out the moment you search for it and nothing comes up.{" "}
-              <strong className="text-foreground">Reproduce</strong> catches
-              the echo-chamber problem: three blog posts that all quote the
-              same mystery statistic are one source, not three. Find the
-              original.
-            </p>
-            <p>
-              <strong className="text-foreground">Ask an expert source</strong>{" "}
-              catches the confident-but-shallow problem. A textbook, a
-              government data portal, a peer-reviewed paper, or a human who
-              does this work for a living sees things a generalist model
-              can't.{" "}
-              <strong className="text-foreground">Check incentives</strong>{" "}
-              doesn't mean dismissing motivated sources — it means reading
-              them with the right level of care. A pharmaceutical company's
-              safety study isn't worthless, but it isn't neutral either.
-            </p>
-            <p>
-              <strong className="text-foreground">Edit before sharing</strong>{" "}
-              is the step most people skip. If you can't restate the claim in
-              your own words with the verified specifics, you don't actually
-              understand it. Copy-pasting an AI answer into an email, a
-              memo, or a social post is how fabrications enter the record as
-              if they were facts. Rewriting forces you to slow down enough
-              to notice the gaps.
-            </p>
-            <p>
-              You won't run all five steps for every trivial question —
-              nobody needs a peer-reviewed source for "what's a synonym for
-              delighted." Use TRACE when the claim has a specific shape:
-              a number, a date, a name, a citation, a quote, a rule, a
-              credential. Anything that would be embarrassing or harmful
-              if it turned out to be invented.
-            </p>
-          </div>
+          <AdaptiveProse topic="TRACE verification framework explained" seed="Each letter of TRACE blocks a distinct hallucination failure mode, from fake sources to unchecked incentives to unrewritten claims.">
+            <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+              <p>
+                TRACE works because each letter blocks a different failure mode.{" "}
+                <strong className="text-foreground">Trace</strong> catches the
+                fake-source problem: if the AI invented the paper, you'll find
+                out the moment you search for it and nothing comes up.{" "}
+                <strong className="text-foreground">Reproduce</strong> catches
+                the echo-chamber problem: three blog posts that all quote the
+                same mystery statistic are one source, not three. Find the
+                original.
+              </p>
+              <p>
+                <strong className="text-foreground">Ask an expert source</strong>{" "}
+                catches the confident-but-shallow problem. A textbook, a
+                government data portal, a peer-reviewed paper, or a human who
+                does this work for a living sees things a generalist model
+                can't.{" "}
+                <strong className="text-foreground">Check incentives</strong>{" "}
+                doesn't mean dismissing motivated sources — it means reading
+                them with the right level of care. A pharmaceutical company's
+                safety study isn't worthless, but it isn't neutral either.
+              </p>
+              <p>
+                <strong className="text-foreground">Edit before sharing</strong>{" "}
+                is the step most people skip. If you can't restate the claim in
+                your own words with the verified specifics, you don't actually
+                understand it. Copy-pasting an AI answer into an email, a
+                memo, or a social post is how fabrications enter the record as
+                if they were facts. Rewriting forces you to slow down enough
+                to notice the gaps.
+              </p>
+              <p>
+                You won't run all five steps for every trivial question —
+                nobody needs a peer-reviewed source for "what's a synonym for
+                delighted." Use TRACE when the claim has a specific shape:
+                a number, a date, a name, a citation, a quote, a rule, a
+                credential. Anything that would be embarrassing or harmful
+                if it turned out to be invented.
+              </p>
+            </div>
+          </AdaptiveProse>
 
           <button
             onClick={advance("ladder")}

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 
 import {
+  AdaptiveProse,
   CalibrationChart,
   ConfidenceQuizItem,
   LLMGradedResponse,
@@ -668,12 +669,14 @@ export default function Lesson5({ onComplete }: Lesson5Props) {
         <h1 className="text-3xl font-semibold text-foreground tracking-tight mb-2">
           The AI Literacy Compact
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          Four lessons gave you tools. This one ties them into a single
-          framework you can use the rest of your life: when to trust, when to
-          verify, when to refuse, and when to advocate. No single rule covers
-          every case. A small compact does.
-        </p>
+        <AdaptiveProse topic="AI Literacy Compact overview" seed="Synthesizes four lessons into a personal framework for when to trust, verify, refuse, or advocate.">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+            Four lessons gave you tools. This one ties them into a single
+            framework you can use the rest of your life: when to trust, when to
+            verify, when to refuse, and when to advocate. No single rule covers
+            every case. A small compact does.
+          </p>
+        </AdaptiveProse>
       </div>
 
       {/* 1. Retrieval warmup — pulls from L1, L2, L3/L4 */}
@@ -760,46 +763,52 @@ export default function Lesson5({ onComplete }: Lesson5Props) {
           </SectionHeading>
 
           <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
-            <p>
-              The last four lessons looked like four separate topics — how
-              the machine works, why it makes things up, how to prompt it
-              well, and who gets to govern it. They're not really separate.
-              They're five habits that together let you meet AI on your own
-              terms instead of on the tool's terms. We'll call it the{" "}
-              <strong className="text-foreground">AI Literacy Compact</strong>:
-              a short agreement you make with yourself before you open a
-              chatbot, sign up for an AI feature, or hear a news story about
-              a new model. Five axes: <strong className="text-foreground">Understand,
-              Verify, Collaborate, Govern, Reflect.</strong>
-            </p>
+            <AdaptiveProse topic="Five habits of AI literacy" seed="Four lessons are really five interconnected habits forming the AI Literacy Compact: Understand, Verify, Collaborate, Govern, Reflect.">
+              <p>
+                The last four lessons looked like four separate topics — how
+                the machine works, why it makes things up, how to prompt it
+                well, and who gets to govern it. They're not really separate.
+                They're five habits that together let you meet AI on your own
+                terms instead of on the tool's terms. We'll call it the{" "}
+                <strong className="text-foreground">AI Literacy Compact</strong>:
+                a short agreement you make with yourself before you open a
+                chatbot, sign up for an AI feature, or hear a news story about
+                a new model. Five axes: <strong className="text-foreground">Understand,
+                Verify, Collaborate, Govern, Reflect.</strong>
+              </p>
+            </AdaptiveProse>
 
             <CompactPentagon />
 
-            <p>
-              <strong className="text-foreground">Understand</strong> is the
-              L1 axis. Before you decide how much weight to give an AI answer,
-              know what you're looking at. A generative chatbot picks likely
-              next tokens — it doesn't look facts up. A recommender ranks
-              content you're likely to click. A classifier assigns labels
-              based on training examples. A self-driving system fuses sensors
-              and rules. These are different kinds of AI, with different
-              failure modes. When you read a headline that says "AI did X",
-              your first move is to ask which kind, and what it was actually
-              optimizing for. That question alone filters out most hype.
-            </p>
+            <AdaptiveProse topic="Understand axis — knowing what AI optimizes" seed="Different AI types have different failure modes; asking what a system optimizes for filters most hype.">
+              <p>
+                <strong className="text-foreground">Understand</strong> is the
+                L1 axis. Before you decide how much weight to give an AI answer,
+                know what you're looking at. A generative chatbot picks likely
+                next tokens — it doesn't look facts up. A recommender ranks
+                content you're likely to click. A classifier assigns labels
+                based on training examples. A self-driving system fuses sensors
+                and rules. These are different kinds of AI, with different
+                failure modes. When you read a headline that says "AI did X",
+                your first move is to ask which kind, and what it was actually
+                optimizing for. That question alone filters out most hype.
+              </p>
+            </AdaptiveProse>
 
-            <p>
-              <strong className="text-foreground">Verify</strong> is the L2
-              axis. Once you know what the tool is optimizing, you know where
-              it will lie to you: any specific claim — a number, a date, a
-              citation, a rule, a name, a quote. TRACE is the cheap insurance
-              policy: Trace the source, Reproduce independently, Ask a real
-              expert source, Check incentives, Edit before sharing. You won't
-              run it for "what rhymes with orange." You will run it before
-              you send the email, cite the stat in the meeting, or tell
-              someone their medication is fine. Verification is not pessimism.
-              It's what lets you use AI confidently without getting burned.
-            </p>
+            <AdaptiveProse topic="Verify axis — TRACE method for AI claims" seed="TRACE is cheap insurance against fabricated specifics: numbers, dates, citations, rules, names, and quotes.">
+              <p>
+                <strong className="text-foreground">Verify</strong> is the L2
+                axis. Once you know what the tool is optimizing, you know where
+                it will lie to you: any specific claim — a number, a date, a
+                citation, a rule, a name, a quote. TRACE is the cheap insurance
+                policy: Trace the source, Reproduce independently, Ask a real
+                expert source, Check incentives, Edit before sharing. You won't
+                run it for "what rhymes with orange." You will run it before
+                you send the email, cite the stat in the meeting, or tell
+                someone their medication is fine. Verification is not pessimism.
+                It's what lets you use AI confidently without getting burned.
+              </p>
+            </AdaptiveProse>
 
             <p>
               <strong className="text-foreground">Collaborate</strong> is the

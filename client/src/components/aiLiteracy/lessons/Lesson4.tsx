@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import {
+  AdaptiveProse,
   CalibrationChart,
   ConfidenceQuizItem,
   LLMGradedResponse,
@@ -598,13 +599,15 @@ export default function Lesson4({ onComplete }: Lesson4Props) {
         <h1 className="text-3xl font-semibold text-foreground tracking-tight mb-2">
           Ethics, Governance & Society
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          AI systems already decide who gets a loan, whose resume is read, and
-          whose face is scanned on the sidewalk. This lesson covers how bias
-          gets in, how synthetic media works, what the EU AI Act actually
-          regulates, and what civic responsibility looks like when you're the
-          user, the worker, or the voter on the receiving end.
-        </p>
+        <AdaptiveProse topic="Ethics, Governance & Society lesson overview" seed="AI systems already decide who gets a loan, whose resume is read, and whose face is scanned on the sidewalk.">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+            AI systems already decide who gets a loan, whose resume is read, and
+            whose face is scanned on the sidewalk. This lesson covers how bias
+            gets in, how synthetic media works, what the EU AI Act actually
+            regulates, and what civic responsibility looks like when you're the
+            user, the worker, or the voter on the receiving end.
+          </p>
+        </AdaptiveProse>
       </div>
 
       {/* 1. Retrieval warmup (from Lesson 3) */}
@@ -690,107 +693,121 @@ export default function Lesson4({ onComplete }: Lesson4Props) {
           </SectionHeading>
 
           <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed space-y-4">
-            <p>
-              The first leak is the <strong className="text-foreground">
-              training data</strong>. A model learns patterns from the records
-              it is shown. If those records are a picture of the past, the
-              model learns the past. Amazon built an experimental resume
-              screener trained on a decade of its own hiring decisions. The
-              model learned that resumes mentioning "women's chess club" or
-              graduates of certain all-women's colleges had historically been
-              rejected more often. It then reproduced that penalty on new
-              applicants. Nobody coded "penalize women". The system just
-              predicted what its own past behavior had been — which is what
-              it was asked to do.
-            </p>
+            <AdaptiveProse topic="Training data as a source of algorithmic bias" seed="A model trained on past hiring decisions learns to reproduce the patterns of the past, including its biases.">
+              <p>
+                The first leak is the <strong className="text-foreground">
+                training data</strong>. A model learns patterns from the records
+                it is shown. If those records are a picture of the past, the
+                model learns the past. Amazon built an experimental resume
+                screener trained on a decade of its own hiring decisions. The
+                model learned that resumes mentioning "women's chess club" or
+                graduates of certain all-women's colleges had historically been
+                rejected more often. It then reproduced that penalty on new
+                applicants. Nobody coded "penalize women". The system just
+                predicted what its own past behavior had been — which is what
+                it was asked to do.
+              </p>
+            </AdaptiveProse>
 
-            <p>
-              The second leak is <strong className="text-foreground">
-              labeling</strong>. Most modern AI learns from examples humans
-              have labeled: this image is "professional", that comment is
-              "toxic", this face is "attractive". Annotators bring their own
-              demographics, cultural backgrounds, and blind spots to those
-              judgments. When a toxicity classifier is trained mostly on
-              labels from one linguistic community, slang and dialect from
-              other communities get flagged more often — not because the
-              language is actually harmful, but because it looked unfamiliar
-              to the labelers. The label <em>is</em> the ground truth the
-              model chases. Whoever sets the labels sets the horizon.
-            </p>
+            <AdaptiveProse topic="Human labeling as a source of algorithmic bias" seed="Annotators bring their own demographics and blind spots to labeling decisions, which become the ground truth the model chases.">
+              <p>
+                The second leak is <strong className="text-foreground">
+                labeling</strong>. Most modern AI learns from examples humans
+                have labeled: this image is "professional", that comment is
+                "toxic", this face is "attractive". Annotators bring their own
+                demographics, cultural backgrounds, and blind spots to those
+                judgments. When a toxicity classifier is trained mostly on
+                labels from one linguistic community, slang and dialect from
+                other communities get flagged more often — not because the
+                language is actually harmful, but because it looked unfamiliar
+                to the labelers. The label <em>is</em> the ground truth the
+                model chases. Whoever sets the labels sets the horizon.
+              </p>
+            </AdaptiveProse>
 
             <BiasFunnel />
 
-            <p>
-              The third leak is <strong className="text-foreground">
-              deployment</strong>. A model trained on one population is used
-              on another. A classic 2019 study by Obermeyer and colleagues
-              looked at a widely deployed U.S. healthcare risk-prediction
-              algorithm used on roughly 200 million people. It predicted
-              "future healthcare need" by using past healthcare spending as a
-              proxy. Black patients historically received less care for the
-              same conditions, so they had lower past spending. The algorithm
-              concluded they were healthier. The result: Black patients had
-              to be significantly sicker than white patients before the
-              system flagged them for extra help. The math worked exactly as
-              designed. The design was the bias.
-            </p>
+            <AdaptiveProse topic="Deployment mismatch as a source of algorithmic bias" seed="A model trained on one population and deployed on another can systematically under-serve the new population, as seen in U.S. healthcare risk-prediction algorithms.">
+              <p>
+                The third leak is <strong className="text-foreground">
+                deployment</strong>. A model trained on one population is used
+                on another. A classic 2019 study by Obermeyer and colleagues
+                looked at a widely deployed U.S. healthcare risk-prediction
+                algorithm used on roughly 200 million people. It predicted
+                "future healthcare need" by using past healthcare spending as a
+                proxy. Black patients historically received less care for the
+                same conditions, so they had lower past spending. The algorithm
+                concluded they were healthier. The result: Black patients had
+                to be significantly sicker than white patients before the
+                system flagged them for extra help. The math worked exactly as
+                designed. The design was the bias.
+              </p>
+            </AdaptiveProse>
 
-            <p>
-              The fourth leak is the <strong className="text-foreground">
-              feedback loop</strong>. A biased output shapes the next round
-              of data. Predictive-policing systems send more patrols to
-              neighborhoods the model flags as high-risk. More patrols find
-              more minor offenses, which get logged, which feed the next
-              training run, which flags the same neighborhoods harder. The
-              model's original guess becomes a self-fulfilling prophecy, and
-              the disparity widens every cycle. Social-media recommender
-              systems work the same way: the more a user clicks on a kind of
-              content, the more the system feeds it, which shapes what they
-              click on next. The loop is the product.
-            </p>
+            <AdaptiveProse topic="Feedback loops compounding algorithmic bias" seed="Biased outputs shape the next round of data, causing predictive-policing and recommender systems to amplify their own distortions over time.">
+              <p>
+                The fourth leak is the <strong className="text-foreground">
+                feedback loop</strong>. A biased output shapes the next round
+                of data. Predictive-policing systems send more patrols to
+                neighborhoods the model flags as high-risk. More patrols find
+                more minor offenses, which get logged, which feed the next
+                training run, which flags the same neighborhoods harder. The
+                model's original guess becomes a self-fulfilling prophecy, and
+                the disparity widens every cycle. Social-media recommender
+                systems work the same way: the more a user clicks on a kind of
+                content, the more the system feeds it, which shapes what they
+                click on next. The loop is the product.
+              </p>
+            </AdaptiveProse>
 
-            <p>
-              The fifth leak is <strong className="text-foreground">
-              intersectional failure</strong>. A model can look fair on
-              average and still fail catastrophically for specific subgroups.
-              Joy Buolamwini and Timnit Gebru's "Gender Shades" research
-              tested commercial facial-analysis systems from IBM, Microsoft,
-              and Face++. Overall accuracy looked strong. Broken out by
-              gender, a small gap appeared. Broken out by skin tone, a bigger
-              gap appeared. Broken out by both at once — dark-skinned women —
-              error rates rose above 34% for some systems, while light-skinned
-              men came in under 1%. The aggregate metric had hidden a
-              specific, severe harm. If you only report overall accuracy, you
-              cannot see the people the system is failing.
-            </p>
+            <AdaptiveProse topic="Intersectional failure hiding subgroup harms" seed="Aggregate accuracy metrics can look strong while catastrophic failures are hidden for specific subgroups, as Gender Shades research demonstrated.">
+              <p>
+                The fifth leak is <strong className="text-foreground">
+                intersectional failure</strong>. A model can look fair on
+                average and still fail catastrophically for specific subgroups.
+                Joy Buolamwini and Timnit Gebru's "Gender Shades" research
+                tested commercial facial-analysis systems from IBM, Microsoft,
+                and Face++. Overall accuracy looked strong. Broken out by
+                gender, a small gap appeared. Broken out by skin tone, a bigger
+                gap appeared. Broken out by both at once — dark-skinned women —
+                error rates rose above 34% for some systems, while light-skinned
+                men came in under 1%. The aggregate metric had hidden a
+                specific, severe harm. If you only report overall accuracy, you
+                cannot see the people the system is failing.
+              </p>
+            </AdaptiveProse>
 
-            <p>
-              None of these leaks is fixed by "more data" alone. Balanced
-              data doesn't help if the labels encode biased judgments.
-              Perfect labels don't help if the objective function chases an
-              unfair proxy (spending for healthcare need, past hires for
-              future ones). A great objective doesn't help if the deployment
-              context doesn't match training. Fairness is a <strong
-              className="text-foreground">system property</strong> —
-              data, labels, objective, evaluation, deployment, monitoring —
-              not a single knob. That's why the EU AI Act doesn't require
-              "unbiased AI"; it requires documented processes, risk
-              assessments, human oversight, and appeal paths, because those
-              are the levers that actually catch the leaks.
-            </p>
+            <AdaptiveProse topic="Fairness as a system property requiring multiple interventions" seed="No single fix — more data, better labels, a fairer objective — resolves all the bias leaks; fairness requires watching data, labels, objective, evaluation, deployment, and monitoring together.">
+              <p>
+                None of these leaks is fixed by "more data" alone. Balanced
+                data doesn't help if the labels encode biased judgments.
+                Perfect labels don't help if the objective function chases an
+                unfair proxy (spending for healthcare need, past hires for
+                future ones). A great objective doesn't help if the deployment
+                context doesn't match training. Fairness is a <strong
+                className="text-foreground">system property</strong> —
+                data, labels, objective, evaluation, deployment, monitoring —
+                not a single knob. That's why the EU AI Act doesn't require
+                "unbiased AI"; it requires documented processes, risk
+                assessments, human oversight, and appeal paths, because those
+                are the levers that actually catch the leaks.
+              </p>
+            </AdaptiveProse>
 
-            <p>
-              This matters beyond fairness. Training a frontier model burns
-              enormous electricity — a single large run can use as much power
-              as hundreds of households use in a year. But a trained model is
-              then queried billions of times a day, and over its lifetime
-              the inference footprint typically exceeds the training
-              footprint. Behind the models sit low-paid labeling workers,
-              often in the Global South, who screen traumatic content for
-              pennies per item. The shiny output in your browser has a
-              supply chain. Civic literacy means knowing the shape of that
-              chain, not just the capabilities of the demo.
-            </p>
+            <AdaptiveProse topic="Environmental and labor costs of AI systems" seed="AI has a supply chain of energy and low-paid labeling labor; inference electricity over a model's lifetime typically exceeds the training footprint.">
+              <p>
+                This matters beyond fairness. Training a frontier model burns
+                enormous electricity — a single large run can use as much power
+                as hundreds of households use in a year. But a trained model is
+                then queried billions of times a day, and over its lifetime
+                the inference footprint typically exceeds the training
+                footprint. Behind the models sit low-paid labeling workers,
+                often in the Global South, who screen traumatic content for
+                pennies per item. The shiny output in your browser has a
+                supply chain. Civic literacy means knowing the shape of that
+                chain, not just the capabilities of the demo.
+              </p>
+            </AdaptiveProse>
           </div>
 
           <button
