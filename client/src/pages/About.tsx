@@ -1,21 +1,93 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Code2, Brain, Layers, Zap, MapPin, Github, Linkedin, Mail } from "lucide-react";
+import {
+  ArrowRight,
+  Brain,
+  BookOpen,
+  Compass,
+  FlaskConical,
+  GraduationCap,
+  Layers,
+  LineChart,
+  MessageSquare,
+  Network,
+  Shield,
+  Sparkles,
+  Target,
+  Telescope,
+  Zap,
+} from "lucide-react";
 import { Link } from "wouter";
 import PageWrapper from "@/components/PageWrapper";
 
-const timeline = [
-  { year: "2018", title: "First Line of Code", desc: "Wrote a Python script to automate a tedious data task. The feedback loop was immediate and addictive.", tag: "Origin" },
-  { year: "2019", title: "Web Development", desc: "Built first production web app — a real-time dashboard. Discovered the power of full-stack architecture.", tag: "Growth" },
-  { year: "2021", title: "Systems at Scale", desc: "Designed distributed systems handling millions of daily events. Learned that elegance under pressure is a discipline.", tag: "Scale" },
-  { year: "2022", title: "AI Integration", desc: "Deep dive into machine learning and LLM integration. Built first production AI system — a document intelligence platform.", tag: "AI" },
-  { year: "2024", title: "Building Nexus", desc: "Created Nexus — an AI-powered learning and research platform designed to fill real gaps in how people learn and do research.", tag: "Now" },
+const features = [
+  {
+    icon: GraduationCap,
+    title: "Adaptive Courses",
+    desc: "Structured curricula — AI Literacy, Clear Thinking, Foundations — that reshape themselves around your prior knowledge, reading level, and learning goals. Every lesson is composed on the fly from a content bank so the same module looks different to a novice and a specialist.",
+    color: "oklch(0.75 0.18 55)",
+  },
+  {
+    icon: Telescope,
+    title: "Research Workbench",
+    desc: "Ask a question and watch the platform build a live concept graph around it, pulling from a growing knowledge base. Follow threads, expand nodes, and get explanations at whatever depth you need — from plain-English to technical.",
+    color: "oklch(0.65 0.22 200)",
+  },
+  {
+    icon: MessageSquare,
+    title: "Socratic Dialogue",
+    desc: "Every concept has a tutor attached to it. Not a chatbot that pastes definitions — a real Socratic partner that asks follow-up questions, catches misconceptions, and pushes you toward understanding rather than memorization.",
+    color: "oklch(0.72 0.2 290)",
+  },
+  {
+    icon: Network,
+    title: "Mindmaps & Flashcards",
+    desc: "Generate study tools from any lesson, article, or topic with one click. Flashcards use spaced repetition calibrated to your confidence ratings. Mindmaps show how concepts connect — because isolated facts are harder to remember and less useful to apply.",
+    color: "oklch(0.72 0.18 150)",
+  },
+  {
+    icon: FlaskConical,
+    title: "The Lab",
+    desc: "A hands-on sandbox for experimenting with AI primitives — prompting, retrieval, evaluation. Learn how these systems actually behave by driving them yourself, with guardrails and worked examples when you get stuck.",
+    color: "oklch(0.78 0.16 30)",
+  },
+  {
+    icon: LineChart,
+    title: "Progress That Means Something",
+    desc: "Your dashboard tracks retention curves, not just completion checkboxes. It knows which concepts you've mastered, which are decaying, and which you're avoiding — and schedules review before you forget.",
+    color: "oklch(0.68 0.22 20)",
+  },
 ];
 
 const principles = [
-  { icon: Code2, title: "Precision over complexity", desc: "The best code is the code that doesn't need to exist. Every abstraction should earn its place." },
-  { icon: Brain, title: "Intelligence as infrastructure", desc: "AI isn't a feature — it's a layer of the stack. Systems should learn, adapt, and improve by design." },
-  { icon: Layers, title: "Design is engineering", desc: "The separation between design and engineering is a fiction. Great products require both disciplines to be inseparable." },
-  { icon: Zap, title: "Speed with intention", desc: "Move fast, but never carelessly. Velocity without clarity creates technical debt that compounds like interest." },
+  {
+    icon: Brain,
+    title: "Personalized by design",
+    desc: "No two learners get the same lesson. Content, examples, difficulty, and pace all adapt to your profile — built on established learner-modeling research rather than arbitrary difficulty sliders.",
+  },
+  {
+    icon: Shield,
+    title: "Honest about AI",
+    desc: "This platform uses AI heavily, and it tells you where and why. It also teaches you to evaluate AI output critically — because the goal is literacy, not dependence.",
+  },
+  {
+    icon: Layers,
+    title: "Depth over completion",
+    desc: "Traditional courses optimize for finishing. Nexus optimizes for understanding. Productive failure, retrieval practice, and spaced review are baked into the lesson format — not bolted on as optional extras.",
+  },
+  {
+    icon: Zap,
+    title: "Built for lifelong learners",
+    desc: "Courses are entry points, not destinations. The platform grows with you: start with AI Literacy at 40, move into Clear Thinking, then use the Research Workbench to explore whatever comes next. Your knowledge compounds instead of resetting.",
+  },
+];
+
+const research = [
+  { label: "Mayer's Multimedia Principles", desc: "Coherence, segmenting, signaling, and personalization baked into every lesson format." },
+  { label: "Spaced Retrieval", desc: "Review scheduling follows the forgetting curve, not a fixed calendar." },
+  { label: "Productive Failure", desc: "Learners work through deliberate struggle before being shown the answer — the format with the strongest transfer evidence." },
+  { label: "Self-Determination Theory", desc: "Autonomy, competence, and relatedness cues built into the motivational layer." },
+  { label: "Cognitive Load Theory", desc: "Content depth tiers calibrated so working memory isn't overloaded at any tier." },
+  { label: "Metacognition", desc: "Confidence ratings on every retrieval question — so you learn what you actually know vs. what feels familiar." },
 ];
 
 export default function About() {
@@ -25,30 +97,49 @@ export default function About() {
       <section className="py-32 border-b border-white/5">
         <div className="container">
           <div className="max-w-3xl">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex items-center gap-3 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="flex items-center gap-3 mb-8"
+            >
               <div className="h-px w-12 bg-gradient-to-r from-transparent to-[oklch(0.75_0.18_55)]" />
-              <span className="text-[oklch(0.75_0.18_55)] text-sm font-medium tracking-widest uppercase">About</span>
+              <span className="text-[oklch(0.75_0.18_55)] text-sm font-medium tracking-widest uppercase">About Nexus</span>
             </motion.div>
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-              Tim Schmoyer
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight"
+            >
+              Learning that
+              <br />
+              <span className="text-gradient-gold">actually adapts.</span>
             </motion.h1>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="flex items-center gap-2 text-muted-foreground mb-6">
-              <MapPin size={15} />
-              <span className="text-sm">Fredericksburg, Virginia</span>
-            </motion.div>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-lg text-muted-foreground leading-relaxed max-w-2xl mb-8">
-              Software engineer and AI systems builder. I work at the intersection of technical rigor and human experience — building systems that are not just functional, but intelligent, adaptive, and genuinely useful. Nexus is my attempt to create the learning platform I wish had existed when I was teaching myself to code.
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-xl text-muted-foreground leading-relaxed max-w-2xl mb-8"
+            >
+              Nexus is an AI-powered learning and research platform built around a simple idea: the future of
+              education is not better videos or fancier quizzes — it is a tutor, a research assistant, and a
+              study partner that shape themselves around the person using them.
             </motion.p>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} className="flex flex-wrap gap-3">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl glass border border-white/10 text-sm text-muted-foreground hover:text-foreground hover:border-white/20 transition-all">
-                <Github size={15} /> GitHub
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl glass border border-white/10 text-sm text-muted-foreground hover:text-foreground hover:border-white/20 transition-all">
-                <Linkedin size={15} /> LinkedIn
-              </a>
-              <Link href="/contact">
-                <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)] text-sm text-[oklch(0.85_0.18_55)] hover:bg-[oklch(0.75_0.18_55_/_0.18)] transition-all cursor-pointer">
-                  <Mail size={15} /> Get in Touch
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-wrap gap-3"
+            >
+              <Link href="/learn">
+                <span className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[oklch(0.75_0.18_55)] text-[oklch(0.08_0.015_260)] text-sm font-semibold hover:bg-[oklch(0.80_0.18_55)] transition-colors cursor-pointer">
+                  Explore Courses <ArrowRight size={15} />
+                </span>
+              </Link>
+              <Link href="/research">
+                <span className="flex items-center gap-2 px-5 py-2.5 rounded-xl glass border border-white/15 text-sm text-foreground hover:border-white/30 transition-all cursor-pointer">
+                  <Telescope size={15} /> Try the Workbench
                 </span>
               </Link>
             </motion.div>
@@ -56,38 +147,112 @@ export default function About() {
         </div>
       </section>
 
-      {/* Why I Built This */}
+      {/* What Nexus Is */}
       <section className="py-24 border-b border-white/5">
         <div className="container">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-3xl">
-            <h2 className="text-3xl font-bold mb-6">Why I Built Nexus</h2>
-            <div className="space-y-4 text-muted-foreground leading-relaxed">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-3xl"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">What Nexus is</h2>
+            <div className="space-y-4 text-muted-foreground leading-relaxed text-base">
               <p>
-                The best learning experiences I've had weren't courses or textbooks — they were conversations. A mentor who asked the right questions. A colleague who explained something three different ways until it clicked. A book that connected ideas I'd never thought to link.
+                Most learning platforms are a flat catalog: pick a course, watch the videos, take a quiz, collect
+                a certificate. The experience is basically identical for a curious beginner and a working
+                professional with a decade of context. That is not how people actually learn.
               </p>
               <p>
-                AI can now do all of that, at scale, personalized to each learner. But most platforms haven't caught up. They're still delivering static video lectures and multiple-choice quizzes. Nexus is built around what's actually possible: adaptive curricula, Socratic dialogue, multi-depth explanations, and research synthesis — all in one place.
+                Nexus is different. Every lesson is generated from a content bank at the moment you open it,
+                using a learner profile that tracks your goals, your reading level, your prior exposure to each
+                concept, and what you have recently gotten right or wrong. Two people opening the same lesson
+                get different examples, different depths, different vocabularies — because they are different
+                learners.
               </p>
               <p>
-                This is a living platform. It gets smarter the more you interact with it, remembers what you've learned, and adapts to how you think. That's the kind of tool I want to use — and the kind I want to build.
+                On top of the adaptive course layer, there is a Research Workbench for exploring ideas that do
+                not live inside a curriculum, a Lab for experimenting with AI primitives directly, and a
+                Socratic dialogue partner attached to every concept. The goal is a single coherent environment
+                where learning, studying, and researching are the same activity — not three separate apps.
               </p>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Philosophy */}
+      {/* Features */}
       <section className="py-24 border-b border-white/5">
         <div className="container">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
-            <h2 className="text-3xl font-bold mb-4">Operating Principles</h2>
-            <p className="text-muted-foreground max-w-xl">The beliefs that shape every decision, from architecture to pixel.</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16 max-w-2xl"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What you can do here</h2>
+            <p className="text-muted-foreground">
+              The platform is built around six core capabilities. They work together — the same concept flows
+              between courses, research, flashcards, and the Lab without losing context.
+            </p>
           </motion.div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {principles.map((p, i) => (
-              <motion.div key={p.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="p-6 glass rounded-2xl border border-white/10">
+          <div className="grid md:grid-cols-2 gap-5">
+            {features.map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                className="p-6 glass rounded-2xl border border-white/10 hover:border-white/20 transition-colors"
+              >
                 <div className="flex items-start gap-4">
-                  <div className="p-2.5 rounded-xl bg-[oklch(0.75_0.18_55_/_0.1)] border border-[oklch(0.75_0.18_55_/_0.2)]">
+                  <div
+                    className="p-3 rounded-xl shrink-0"
+                    style={{
+                      background: `color-mix(in oklch, ${f.color} 12%, transparent)`,
+                      border: `1px solid color-mix(in oklch, ${f.color} 25%, transparent)`,
+                    }}
+                  >
+                    <f.icon size={20} style={{ color: f.color }} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground mb-2 text-lg">{f.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Principles */}
+      <section className="py-24 border-b border-white/5">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16 max-w-2xl"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How Nexus is different</h2>
+            <p className="text-muted-foreground">
+              Four commitments that shape every product decision, from the lesson format down to the UI details.
+            </p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 gap-5">
+            {principles.map((p, i) => (
+              <motion.div
+                key={p.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="p-6 glass rounded-2xl border border-white/10"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 rounded-xl bg-[oklch(0.75_0.18_55_/_0.1)] border border-[oklch(0.75_0.18_55_/_0.2)] shrink-0">
                     <p.icon size={18} className="text-[oklch(0.75_0.18_55)]" />
                   </div>
                   <div>
@@ -101,31 +266,90 @@ export default function About() {
         </div>
       </section>
 
-      {/* Timeline */}
+      {/* Research-Backed */}
       <section className="py-24 border-b border-white/5">
         <div className="container">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
-            <h2 className="text-3xl font-bold mb-4">The Journey</h2>
-            <p className="text-muted-foreground max-w-xl">From first script to AI-powered learning platform.</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-12 max-w-2xl"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-[oklch(0.65_0.22_200_/_0.12)] border border-[oklch(0.65_0.22_200_/_0.25)]">
+                <BookOpen size={16} className="text-[oklch(0.65_0.22_200)]" />
+              </div>
+              <span className="text-[oklch(0.65_0.22_200)] text-sm font-medium tracking-wide uppercase">
+                Research-Backed
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">The science underneath</h2>
+            <p className="text-muted-foreground">
+              Nexus is built on decades of learning-science research — not vibes. The mechanisms below are
+              wired into the platform itself, not listed as bullet points on a marketing page.
+            </p>
           </motion.div>
-          <div className="relative">
-            <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[oklch(0.75_0.18_55_/_0.4)] via-[oklch(0.65_0.22_200_/_0.3)] to-transparent" />
-            <div className="space-y-12">
-              {timeline.map((item, i) => (
-                <motion.div key={item.year} initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }} className={`relative flex ${i % 2 === 0 ? "md:justify-end" : "md:justify-start"} pl-8 md:pl-0`}>
-                  <div className="absolute left-0 md:left-1/2 top-3 w-3 h-3 rounded-full bg-[oklch(0.75_0.18_55)] border-2 border-background -translate-x-1/2 shadow-[0_0_12px_oklch(0.75_0.18_55_/_0.6)]" />
-                  <div className={`glass rounded-2xl border border-white/10 p-6 max-w-sm ${i % 2 === 0 ? "md:mr-8" : "md:ml-8"}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[oklch(0.75_0.18_55)] font-mono text-sm font-bold">{item.year}</span>
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-[oklch(0.75_0.18_55_/_0.1)] text-[oklch(0.75_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.2)]">{item.tag}</span>
-                    </div>
-                    <h3 className="font-bold text-foreground mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                  </div>
-                </motion.div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {research.map((r, i) => (
+              <motion.div
+                key={r.label}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="p-5 glass rounded-xl border border-white/8"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={12} className="text-[oklch(0.65_0.22_200)]" />
+                  <h4 className="font-semibold text-foreground text-sm">{r.label}</h4>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{r.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Who It's For */}
+      <section className="py-24 border-b border-white/5">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-3xl"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Who it's for</h2>
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                Nexus is built for <span className="text-foreground">curious adults</span> — people who want to
+                understand the ideas shaping their world instead of just skimming headlines about them. That
+                includes parents, professionals, students, and career-changers who know that "lifelong
+                learning" is not a slogan but a daily practice.
+              </p>
+              <p>
+                It is especially useful if you have tried other platforms and bounced off. If MOOCs felt too
+                passive, textbooks felt too flat, and YouTube felt too scattered, you are the person Nexus was
+                built for. The platform assumes you are intelligent, busy, and want depth without being
+                condescended to.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3 mt-8">
+              {[
+                { icon: Target, label: "Professionals leveling up" },
+                { icon: Compass, label: "Career-changers orienting" },
+                { icon: GraduationCap, label: "Lifelong learners going deep" },
+              ].map(({ icon: Icon, label }) => (
+                <div
+                  key={label}
+                  className="p-4 glass rounded-xl border border-white/8 flex items-center gap-3"
+                >
+                  <Icon size={16} className="text-[oklch(0.75_0.18_55)]" />
+                  <span className="text-sm text-foreground">{label}</span>
+                </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -133,17 +357,37 @@ export default function About() {
       <section className="py-24">
         <div className="container text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-3xl font-bold mb-4">Ready to start learning?</h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">Explore the platform — adaptive curricula, research tools, and AI-powered concept explanations.</p>
-            <div className="flex justify-center gap-4 flex-wrap">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Start where it makes sense.</h2>
+            <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+              You do not have to commit to anything to begin. Open a course, open the Workbench, or open the
+              Lab — the platform will learn what you need as you use it.
+            </p>
+            <div className="flex justify-center gap-3 flex-wrap">
               <Link href="/learn">
-                <motion.button className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[oklch(0.75_0.18_55)] text-[oklch(0.08_0.015_260)] font-semibold text-sm hover:bg-[oklch(0.80_0.18_55)] transition-colors" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  Start Learning <ArrowRight size={15} />
+                <motion.button
+                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[oklch(0.75_0.18_55)] text-[oklch(0.08_0.015_260)] font-semibold text-sm hover:bg-[oklch(0.80_0.18_55)] transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Browse Courses <ArrowRight size={15} />
+                </motion.button>
+              </Link>
+              <Link href="/research">
+                <motion.button
+                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl glass border border-white/15 text-foreground font-medium text-sm hover:border-white/30 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Telescope size={15} /> Research Workbench
                 </motion.button>
               </Link>
               <Link href="/contact">
-                <motion.button className="flex items-center gap-2 px-7 py-3.5 rounded-xl glass border border-white/15 text-foreground font-medium text-sm hover:border-white/30 transition-all" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  Get in Touch
+                <motion.button
+                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl glass border border-white/10 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Contact
                 </motion.button>
               </Link>
             </div>
