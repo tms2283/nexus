@@ -475,16 +475,19 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
       content: (
         <div className="space-y-5">
           <p className="text-muted-foreground leading-relaxed">
-            Before any definitions, consider six things all called <strong className="text-foreground">"AI"</strong>:
+            Most public conversation treats "AI" as one thing — a single entity that is either going to cure cancer or end civilization. That framing is the first misconception worth dissolving. The six products below are all legally, technically, and commercially called "AI" — and they share almost no underlying mechanism. A useful mental model of AI starts by separating them.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            For each one, pay attention to <strong className="text-foreground">what it was trained on</strong> and <strong className="text-foreground">what it was asked to optimize</strong>. Those two choices explain almost every behavior you will ever observe from that system — including its failure modes.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { name: "Gmail spam filter", type: "Classifier (ML)", reality: "Trained on labelled spam vs. ham emails. Adjusts based on feedback." },
-              { name: "ChatGPT", type: "LLM (Generative AI)", reality: "Predicts probable next tokens, trained on vast text corpora with human feedback." },
-              { name: "Netflix recommendations", type: "Collaborative filter", reality: "Learns which viewers share tastes; predicts what you'll rate highly." },
-              { name: "Tesla Autopilot", type: "Computer vision + RL", reality: "Neural networks trained on millions of miles of driving data." },
-              { name: "DALL-E / Midjourney", type: "Diffusion model", reality: "Learns to reverse a noise process, conditioned on text descriptions." },
-              { name: "Stockfish (chess)", type: "Search + heuristics", reality: "Classic tree search with hand-tuned evaluation — debated whether it counts as ML at all." },
+              { name: "Gmail spam filter", type: "Classifier (ML)", reality: "Trained on labelled spam vs. ham emails. Adjusts based on feedback. Cannot write you a poem; wasn't asked to." },
+              { name: "ChatGPT", type: "LLM (Generative AI)", reality: "Predicts probable next tokens, trained on vast text corpora with human feedback. Has no memory between conversations by default." },
+              { name: "Netflix recommendations", type: "Collaborative filter", reality: "Learns which viewers share tastes; predicts what you'll rate highly. Does not 'understand' any film." },
+              { name: "Tesla Autopilot", type: "Computer vision + RL", reality: "Neural networks trained on millions of miles of driving data. World-class on freeways; fails on unusual obstacles it hasn't seen." },
+              { name: "DALL-E / Midjourney", type: "Diffusion model", reality: "Learns to reverse a noise process, conditioned on text descriptions. Famous for fingers because hands appear in wildly varied poses in training data." },
+              { name: "Stockfish (chess)", type: "Search + heuristics", reality: "Classic tree search with hand-tuned evaluation — debated whether it counts as ML at all. Crushes every human; can't explain a single move in English." },
             ].map(({ name, type, reality }) => (
               <div key={name} className="glass rounded-xl p-4 border border-white/8">
                 <div className="text-xs font-bold text-foreground mb-1">{name}</div>
@@ -493,10 +496,13 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
               </div>
             ))}
           </div>
+          <p className="text-muted-foreground leading-relaxed">
+            Notice the pattern: every one of these systems is <strong className="text-foreground">extraordinarily narrow</strong>. Each does one kind of task — classifying email, ranking movies, generating text, steering a car, drawing pictures, searching a chess tree — and is essentially useless outside that domain. Stockfish has beaten every human who has ever lived at chess, and it cannot identify a cat in a photograph. ChatGPT can write a sonnet in the style of Emily Dickinson and cannot tell you what moves are legal from a chess position unless the rules have been described in its training text.
+          </p>
           <div className="flex items-start gap-2 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.06)] border border-[oklch(0.75_0.18_55_/_0.2)]">
             <Info size={14} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">The question worth asking:</strong> what is the mechanism that makes each one work? Once you can answer that, "is it AI?" becomes a much less important question than "what does it actually do, and what can go wrong?"
+              <strong className="text-foreground">The question worth asking:</strong> what is the mechanism that makes each one work, and what was it optimizing? Once you can answer that, "is it AI?" becomes a much less important question than <em>"what does it actually do, what can go wrong, and where does that failure mode come from?"</em> Those three questions will carry you through the rest of this course.
             </p>
           </div>
         </div>
@@ -508,7 +514,10 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
       content: (
         <div className="space-y-5">
           <p className="text-muted-foreground leading-relaxed">
-            The word "weight" sounds technical. Here is all it means: <strong className="text-foreground">a number on a dial</strong>. A large neural network has billions of these dials. Training turns them until the model's predictions match the training data.
+            The word "weight" sounds technical. Here is all it means: <strong className="text-foreground">a number on a dial</strong>. A large neural network has billions of these dials. Training turns them until the model's predictions match the training data. GPT-4 is rumored to have roughly a trillion of them. Nobody designed those numbers. The training loop set them.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            This is the most important idea in modern AI, and it is often skipped. The system has no rules inside. It has numbers. A rule like "if the email contains 'Nigerian prince' then it is spam" is nowhere in a modern spam classifier. Instead, there are weights whose particular values happen to make the final prediction high for spam and low for real mail. No engineer looked at any individual weight and decided what it should be. The training loop nudged it there, one tiny adjustment at a time, over millions of examples.
           </p>
           {/* Training loop visual */}
           <div className="rounded-xl overflow-hidden border border-white/8">
@@ -539,10 +548,16 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
               </div>
             </div>
           </div>
+          <p className="text-muted-foreground leading-relaxed">
+            The "loss" in step 3 is just a single number measuring how wrong the prediction was. Lower loss = better prediction. Training is the process of adjusting every weight by a tiny amount in whatever direction the math says will push loss down next time. That process is called <strong className="text-foreground">gradient descent</strong>, and it is the only way modern AI learns anything. Whether we are talking about spam filters, self-driving cars, or ChatGPT, under the hood it is this same loop.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            An analogy that often clicks: imagine you are rolling a marble down a hilly landscape, trying to find the lowest point. The landscape is defined by the loss function, the marble's position is defined by the values of all the weights, and the direction it rolls is defined by the gradient. After enough rolls, the marble settles into a valley — a set of weight values where the model's predictions are good. Nobody knows the shape of this landscape in advance. The model discovers it by rolling.
+          </p>
           <div className="flex items-start gap-2 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.06)] border border-[oklch(0.75_0.18_55_/_0.2)]">
             <Lightbulb size={14} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">Key insight:</strong> no rules are written. The behavior emerges from the weight values the training loop converged on. This is why AI can be surprisingly capable at things nobody specifically programmed — and surprisingly brittle at things that seem obvious.
+              <strong className="text-foreground">Key insight:</strong> no rules are written. The behavior emerges from the weight values the training loop converged on. This is why AI can be surprisingly capable at things nobody specifically programmed — and surprisingly brittle at things that seem obvious. It also explains the <em>"black box"</em> complaint: nobody can point at a specific weight and explain what it does, because each one participates in millions of predictions in ways that interact. The capability is real. The interpretability problem is also real.
             </p>
           </div>
         </div>
@@ -554,7 +569,10 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
       content: (
         <div className="space-y-5">
           <p className="text-muted-foreground leading-relaxed">
-            An LLM does not look things up in a database. It computes a <strong className="text-foreground">probability distribution</strong> over every possible next word — then samples from it. Try it:
+            An LLM does not look things up in a database. It does not retrieve a pre-written answer. It computes a <strong className="text-foreground">probability distribution</strong> over every possible next token — tens of thousands of them — and samples one. Then it adds that token to the input and does it again. That is the entire process. Every essay, every poem, every Python function, every hallucinated citation — all of it is this loop, one token at a time.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            A "token" is usually a word fragment: "surpr", "ising", "ly". The word <em>surprisingly</em> is three tokens. This matters because the model's unit of thought is not a word — it is a sub-word piece. It is also why the model can sometimes break up a perfectly common word in a weird way mid-generation. Try it below: guess the next word in the sentence, then compare your guess to the model's actual probability distribution.
           </p>
           <div className="glass rounded-xl p-5 border border-[oklch(0.65_0.22_200_/_0.25)]">
             <div className="text-xs font-semibold text-[oklch(0.65_0.22_200)] mb-3">SENTENCE SO FAR</div>
@@ -619,7 +637,10 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
       content: (
         <div className="space-y-5">
           <p className="text-muted-foreground leading-relaxed">
-            The question "will AI take over?" requires understanding why current systems are narrow. The answer is not "we don't have enough compute yet." The answer is the <strong className="text-foreground">objective function</strong>.
+            The question "will AI take over?" requires understanding why current systems are narrow. The answer is not "we don't have enough compute yet." The answer is the <strong className="text-foreground">objective function</strong> — the mathematical target the training loop was pointed at. You get what you optimize for. You do not get what you did not optimize for, no matter how much compute you throw at it.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            An LLM was optimized to predict plausible text and, later, to produce responses that human raters preferred. Every capability you see — reasoning, coding, analysis — is a side effect of getting very good at that specific task. It is genuinely impressive. It is also genuinely bounded by the objective. The model has no goal of its own, because no goal was ever in the objective. It is not "pretending to be helpful"; it is optimizing for the statistical shape of responses that rater-like humans historically preferred. Within a conversation it may appear to plan, strategize, or deceive, but between conversations there is nothing — no continuous process, no memory, no self.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.18_150_/_0.3)]">
@@ -645,10 +666,13 @@ function Lesson1({ onComplete, completed }: { onComplete: () => void; completed:
               <p className="text-xs text-[oklch(0.72_0.2_290)] mt-3 italic">Result: no drive, no plan, no continuity</p>
             </div>
           </div>
+          <p className="text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">AGI</strong> — Artificial General Intelligence — is the hypothetical system that could transfer across domains the way a human can: read a novel, diagnose a disease, fix a sink, plan a vacation, all with the same underlying intelligence. We do not currently know how to build that. We know how to build extraordinarily capable narrow systems, and we can stitch them together, but every system you have ever interacted with is still pointed at a specific objective. "Will AI take over?" is a question about a system that does not yet exist. "How should we deploy narrow AI responsibly?" is a question about systems that exist right now and are already causing real harm and real benefit.
+          </p>
           <div className="flex items-start gap-2 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.06)] border border-[oklch(0.75_0.18_55_/_0.2)]">
             <Info size={14} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">The honest picture:</strong> current AI is simultaneously more capable than most people expect (language tasks, coding, analysis) and more limited than the hype suggests (no will, no persistence, no understanding). Both are true. Neither cancels the other.
+              <strong className="text-foreground">The honest picture:</strong> current AI is simultaneously more capable than most people expect (language tasks, coding, analysis) and more limited than the hype suggests (no will, no persistence, no understanding). Both are true. Neither cancels the other. If you walk away from this lesson believing only the "more capable" half, you will over-rely on AI. If you walk away believing only the "more limited" half, you will miss what has genuinely changed. Holding both at once is the mental model.
             </p>
           </div>
         </div>
