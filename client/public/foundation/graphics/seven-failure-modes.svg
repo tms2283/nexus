@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-label="Seven ways AI output fails">
+  <defs>
+    <linearGradient id="fm-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#12161f"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="520" fill="url(#fm-bg)" rx="18"/>
+  <text x="480" y="38" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#e2e8f0">The 7 ways AI output fails — the only taxonomy you need</text>
+  <text x="480" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#94a3b8">Every bad AI answer is one or more of these. Learn to name them and you can catch them.</text>
+
+  <!-- 7 cards in a 4+3 grid -->
+  <g font-family="Inter, system-ui, sans-serif">
+    <!-- 1 Hallucination -->
+    <g transform="translate(40,90)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#fca5a5">① HALLUCINATION</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Confident fabrication of</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">facts, citations, quotes.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">"Per 2019 Harvard study…"</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">(No such study exists.)</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: optimizes for plausibility, not truth.</text>
+    </g>
+
+    <!-- 2 Outdated -->
+    <g transform="translate(270,90)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#f97316" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#fdba74">② OUTDATED</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Correct at training cutoff,</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">wrong today.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">Prices, laws, leaders,</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">tool versions.</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: the world kept moving; the model didn't.</text>
+    </g>
+
+    <!-- 3 Sycophancy -->
+    <g transform="translate(500,90)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#fbbf24">③ SYCOPHANCY</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Tells you what you</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">want to hear.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">Agrees when you push</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">back, without evidence.</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: trained on humans rating replies.</text>
+    </g>
+
+    <!-- 4 Scope creep -->
+    <g transform="translate(730,90)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#d8b4fe">④ SCOPE DRIFT</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Answers a different</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">question than asked.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">You: narrow legal Q.</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">It: general legal essay.</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: pulled toward common patterns.</text>
+    </g>
+
+    <!-- 5 False precision -->
+    <g transform="translate(155,240)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#67e8f9">⑤ FALSE PRECISION</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Specific numbers where</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">only a range is justified.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">"43% of companies…"</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">(No study actually said so.)</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: specificity sounds credible.</text>
+    </g>
+
+    <!-- 6 Context blindness -->
+    <g transform="translate(385,240)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#93c5fd">⑥ CONTEXT BLINDNESS</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Ignores a constraint</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">you clearly stated.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">"Reply under 100 words"</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">→ returns 400 words.</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: instruction-following is imperfect.</text>
+    </g>
+
+    <!-- 7 Bias amplification -->
+    <g transform="translate(615,240)">
+      <rect width="215" height="135" rx="12" fill="#1e293b" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="15" y="28" font-size="11" font-weight="700" fill="#86efac">⑦ BIAS AMPLIFICATION</text>
+      <text x="15" y="52" font-size="12" fill="#e2e8f0">Inherits the biases</text>
+      <text x="15" y="68" font-size="12" fill="#e2e8f0">in the training data.</text>
+      <text x="15" y="92" font-size="11" fill="#94a3b8" font-style="italic">"CEO" → he / him.</text>
+      <text x="15" y="108" font-size="11" fill="#94a3b8" font-style="italic">"Nurse" → she / her.</text>
+      <text x="15" y="126" font-size="10" fill="#94a3b8">Why: the past is encoded in the data.</text>
+    </g>
+  </g>
+
+  <!-- Bottom summary -->
+  <g transform="translate(40,400)">
+    <rect width="880" height="98" rx="12" fill="#0b0e14" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="28" font-family="Inter" font-size="13" font-weight="700" fill="#fbbf24">THE PATTERN</text>
+    <text x="20" y="52" font-family="Inter" font-size="12" fill="#e2e8f0">Every failure above shares one cause: the model was trained to produce outputs that <tspan font-style="italic" fill="#fbbf24">look right</tspan>, not outputs that</text>
+    <text x="20" y="70" font-family="Inter" font-size="12" fill="#e2e8f0"><tspan font-style="italic" fill="#fbbf24">are right</tspan>. Fluency and truth are separate properties. Learning to see them as separate is the entire skill of evaluating AI output.</text>
+    <text x="20" y="88" font-family="Inter" font-size="11" fill="#94a3b8" font-style="italic">Takeaway: before you trust any AI output, scan for all 7. Most errors fit more than one category.</text>
+  </g>
+</svg>

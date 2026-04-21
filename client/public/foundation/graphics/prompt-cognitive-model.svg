@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" role="img" aria-label="Why prompting works: the cognitive model">
+  <defs>
+    <linearGradient id="pm-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#12161f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="400" fill="url(#pm-bg)" rx="18"/>
+  <text x="450" y="38" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#e2e8f0">Why prompting works — the one idea that explains everything</text>
+  <text x="450" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#94a3b8">A prompt is not an instruction to an agent. It is the beginning of a document the model is completing.</text>
+
+  <!-- Left: wrong mental model -->
+  <g transform="translate(50,95)" font-family="Inter, system-ui, sans-serif">
+    <rect width="380" height="265" rx="14" fill="#1a0f0f" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="20" y="30" font-size="13" font-weight="700" fill="#fca5a5">THE WRONG MENTAL MODEL</text>
+    <text x="20" y="54" font-size="12" fill="#cbd5e1">A prompt is an order to a smart assistant.</text>
+    <text x="20" y="74" font-size="12" fill="#cbd5e1">The assistant parses the request, decides</text>
+    <text x="20" y="94" font-size="12" fill="#cbd5e1">what to do, and does it.</text>
+
+    <text x="20" y="130" font-size="12" font-weight="700" fill="#fca5a5">What this predicts:</text>
+    <text x="20" y="152" font-size="12" fill="#cbd5e1">• "Smarter" prompts should work better</text>
+    <text x="20" y="172" font-size="12" fill="#cbd5e1">• Politeness and formality should help</text>
+    <text x="20" y="192" font-size="12" fill="#cbd5e1">• Bullet lists should be optimal</text>
+
+    <text x="20" y="228" font-size="12" font-weight="700" fill="#fca5a5">But in reality:</text>
+    <text x="20" y="250" font-size="11" fill="#cbd5e1" font-style="italic">None of that is reliably what wins.</text>
+  </g>
+
+  <!-- Center arrow -->
+  <line x1="440" y1="230" x2="470" y2="230" stroke="#94a3b8" stroke-width="2" marker-end="url(#pm-arrow)"/>
+  <defs>
+    <marker id="pm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Right: correct mental model -->
+  <g transform="translate(480,95)" font-family="Inter, system-ui, sans-serif">
+    <rect width="370" height="265" rx="14" fill="#0f1a12" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="20" y="30" font-size="13" font-weight="700" fill="#86efac">THE CORRECT MENTAL MODEL</text>
+    <text x="20" y="54" font-size="12" fill="#cbd5e1">The model reads your prompt as the opening</text>
+    <text x="20" y="74" font-size="12" fill="#cbd5e1">of a document. It is asking one question:</text>
+    <text x="20" y="96" font-size="12" font-weight="700" font-style="italic" fill="#86efac">"What kind of document continues like this?"</text>
+
+    <text x="20" y="132" font-size="12" font-weight="700" fill="#86efac">What this predicts (and is true):</text>
+    <text x="20" y="154" font-size="12" fill="#cbd5e1">• Specific roles &amp; contexts win</text>
+    <text x="20" y="174" font-size="12" fill="#cbd5e1">  ("You are a radiologist reviewing…")</text>
+    <text x="20" y="194" font-size="12" fill="#cbd5e1">• Examples outperform rules</text>
+    <text x="20" y="214" font-size="12" fill="#cbd5e1">• "Think step by step" unlocks reasoning</text>
+    <text x="20" y="234" font-size="12" fill="#cbd5e1">• Format of the prompt sets format of the reply</text>
+  </g>
+</svg>

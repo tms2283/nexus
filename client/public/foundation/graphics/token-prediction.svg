@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" role="img" aria-label="How an LLM predicts the next token">
+  <defs>
+    <linearGradient id="tp-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#12161f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="460" fill="url(#tp-bg)" rx="18"/>
+  <text x="450" y="38" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#e2e8f0">What an LLM actually does, one word at a time</text>
+  <text x="450" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#94a3b8">It is not thinking. It is computing a probability distribution over the next token.</text>
+
+  <!-- Input context -->
+  <g transform="translate(60,100)">
+    <text x="0" y="0" font-family="Inter" font-size="12" font-weight="700" fill="#94a3b8">THE INPUT</text>
+    <rect x="0" y="10" width="780" height="56" rx="10" fill="#1e293b" stroke="#334155"/>
+    <text x="20" y="46" font-family="JetBrains Mono, monospace" font-size="18" fill="#e2e8f0">The sun rose slowly over the</text>
+    <rect x="362" y="22" width="28" height="30" rx="4" fill="#f59e0b" opacity="0.2" stroke="#f59e0b"/>
+    <text x="400" y="46" font-family="JetBrains Mono, monospace" font-size="18" fill="#64748b">???</text>
+  </g>
+
+  <!-- Arrow down -->
+  <line x1="450" y1="180" x2="450" y2="215" stroke="#94a3b8" stroke-width="2" marker-end="url(#tp-arrow)"/>
+  <defs>
+    <marker id="tp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Model step label -->
+  <text x="450" y="205" text-anchor="middle" font-family="Inter" font-size="12" fill="#64748b" font-style="italic">[billions of weights compute a distribution]</text>
+
+  <!-- Distribution label -->
+  <text x="60" y="245" font-family="Inter" font-size="12" font-weight="700" fill="#94a3b8">THE OUTPUT: PROBABILITY FOR EVERY POSSIBLE NEXT TOKEN</text>
+
+  <!-- Bar chart of probabilities -->
+  <g transform="translate(60,260)">
+    <!-- horizon -->
+    <rect x="0" y="0" width="150" height="28" rx="6" fill="#22c55e" opacity="0.85"/>
+    <text x="8" y="19" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#0b0e14">horizon</text>
+    <text x="720" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" fill="#86efac">24.1%</text>
+
+    <rect x="0" y="34" width="118" height="26" rx="6" fill="#06b6d4" opacity="0.85"/>
+    <text x="8" y="52" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#0b0e14">trees</text>
+    <text x="720" y="52" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" fill="#67e8f9">19.0%</text>
+
+    <rect x="0" y="66" width="96" height="26" rx="6" fill="#a855f7" opacity="0.85"/>
+    <text x="8" y="84" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#0b0e14">mountains</text>
+    <text x="720" y="84" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" fill="#d8b4fe">15.4%</text>
+
+    <rect x="0" y="98" width="68" height="26" rx="6" fill="#f59e0b" opacity="0.75"/>
+    <text x="8" y="116" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#0b0e14">city</text>
+    <text x="720" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" fill="#fbbf24">10.9%</text>
+
+    <rect x="0" y="130" width="44" height="26" rx="6" fill="#64748b" opacity="0.7"/>
+    <text x="8" y="148" font-family="JetBrains Mono, monospace" font-size="13" fill="#e2e8f0">lake</text>
+    <text x="720" y="148" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" fill="#94a3b8">7.1%</text>
+
+    <rect x="0" y="162" width="30" height="22" rx="6" fill="#475569" opacity="0.7"/>
+    <text x="8" y="178" font-family="JetBrains Mono, monospace" font-size="12" fill="#cbd5e1">ocean</text>
+    <text x="720" y="178" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="13" fill="#94a3b8">4.8%</text>
+
+    <text x="8" y="200" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b" font-style="italic">…thousands more possibilities, each with a tiny probability</text>
+  </g>
+
+  <!-- Insight callout -->
+  <g transform="translate(60,420)">
+    <rect width="780" height="28" rx="8" fill="#0b0e14" stroke="#f59e0b" stroke-width="1"/>
+    <text x="390" y="18" text-anchor="middle" font-family="Inter" font-size="12" fill="#fbbf24">
+      The model samples from this distribution. Change one word above → the whole distribution shifts. That is all "prompting" is.
+    </text>
+  </g>
+</svg>

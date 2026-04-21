@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 460" role="img" aria-label="The inference chain: how one data point reveals your life">
+  <defs>
+    <linearGradient id="ic-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#12161f"/>
+    </linearGradient>
+    <marker id="ic-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="920" height="460" fill="url(#ic-bg)" rx="18"/>
+  <text x="460" y="38" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#e2e8f0">The inference chain: one data point is never just one data point</text>
+  <text x="460" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#94a3b8">AI systems do not only use the data you give them. They infer. Each arrow is one inference.</text>
+
+  <!-- Root: location data -->
+  <g font-family="Inter, system-ui, sans-serif">
+    <g transform="translate(350,95)">
+      <rect width="220" height="50" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+      <text x="110" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24">WHAT YOU HAND OVER</text>
+      <text x="110" y="40" text-anchor="middle" font-size="13" fill="#e2e8f0">GPS location data</text>
+    </g>
+
+    <!-- Second row: direct inferences -->
+    <g transform="translate(40,185)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#334155"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#94a3b8">DIRECT</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Home address</text>
+    </g>
+
+    <g transform="translate(220,185)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#334155"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#94a3b8">DIRECT</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Workplace</text>
+    </g>
+
+    <g transform="translate(400,185)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#334155"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#94a3b8">DIRECT</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Places you visit</text>
+    </g>
+
+    <g transform="translate(580,185)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#334155"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#94a3b8">DIRECT</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Daily routines</text>
+    </g>
+
+    <!-- connectors from root -->
+    <line x1="460" y1="145" x2="120" y2="185" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="460" y1="145" x2="300" y2="185" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="460" y1="145" x2="480" y2="185" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="460" y1="145" x2="660" y2="185" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+
+    <!-- Third row: second-order inferences -->
+    <g transform="translate(40,275)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#d8b4fe">INFERRED</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Income bracket</text>
+    </g>
+
+    <g transform="translate(220,275)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#d8b4fe">INFERRED</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Religious practice</text>
+    </g>
+
+    <g transform="translate(400,275)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#d8b4fe">INFERRED</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Medical conditions</text>
+    </g>
+
+    <g transform="translate(580,275)">
+      <rect width="160" height="46" rx="10" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="80" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#d8b4fe">INFERRED</text>
+      <text x="80" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Political leaning</text>
+    </g>
+
+    <g transform="translate(760,275)">
+      <rect width="135" height="46" rx="10" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="67" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#d8b4fe">INFERRED</text>
+      <text x="67" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Relationships</text>
+    </g>
+
+    <!-- connectors from row 2 to row 3 -->
+    <line x1="120" y1="231" x2="120" y2="275" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="300" y1="231" x2="300" y2="275" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="480" y1="231" x2="480" y2="275" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="660" y1="231" x2="660" y2="275" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="660" y1="231" x2="827" y2="275" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+
+    <!-- Fourth row: downstream real-world consequences -->
+    <g transform="translate(40,365)">
+      <rect width="220" height="46" rx="10" fill="#1a0f0f" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="110" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#fca5a5">REAL-WORLD IMPACT</text>
+      <text x="110" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Insurance pricing</text>
+    </g>
+
+    <g transform="translate(280,365)">
+      <rect width="220" height="46" rx="10" fill="#1a0f0f" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="110" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#fca5a5">REAL-WORLD IMPACT</text>
+      <text x="110" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Targeted political ads</text>
+    </g>
+
+    <g transform="translate(520,365)">
+      <rect width="220" height="46" rx="10" fill="#1a0f0f" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="110" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#fca5a5">REAL-WORLD IMPACT</text>
+      <text x="110" y="38" text-anchor="middle" font-size="12" fill="#e2e8f0">Credit / loan terms</text>
+    </g>
+
+    <!-- connectors row 3 -> row 4 -->
+    <line x1="120" y1="321" x2="150" y2="365" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="480" y1="321" x2="390" y2="365" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="660" y1="321" x2="630" y2="365" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+    <line x1="300" y1="321" x2="150" y2="365" stroke="#64748b" stroke-width="1.5" marker-end="url(#ic-arrow)"/>
+  </g>
+
+  <!-- Bottom callout -->
+  <text x="460" y="440" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#94a3b8" font-style="italic">You did not share income, religion, medical conditions, or politics. The chain did.</text>
+</svg>

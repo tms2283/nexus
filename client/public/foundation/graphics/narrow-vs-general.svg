@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" role="img" aria-label="Narrow AI vs general intelligence: what the model was actually trained to do">
+  <defs>
+    <linearGradient id="ng-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#12161f"/>
+    </linearGradient>
+    <linearGradient id="ng-spec" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22c55e"/>
+      <stop offset="0.6" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="380" fill="url(#ng-bg)" rx="18"/>
+  <text x="450" y="38" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#e2e8f0">Why today's AI is narrow — and why AGI is a different thing entirely</text>
+  <text x="450" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#94a3b8">The answer is not "hardware limits." The answer is what the model was trained to optimize.</text>
+
+  <!-- Spectrum bar -->
+  <g transform="translate(60,110)">
+    <rect x="0" y="0" width="780" height="14" rx="7" fill="url(#ng-spec)"/>
+    <!-- ticks -->
+    <circle cx="80" cy="7" r="10" fill="#0b0e14" stroke="#22c55e" stroke-width="2"/>
+    <circle cx="350" cy="7" r="10" fill="#0b0e14" stroke="#f59e0b" stroke-width="2"/>
+    <circle cx="600" cy="7" r="10" fill="#0b0e14" stroke="#f97316" stroke-width="2"/>
+    <circle cx="760" cy="7" r="10" fill="#0b0e14" stroke="#ef4444" stroke-width="2"/>
+
+    <text x="80" y="40" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="#86efac">Chess engine</text>
+    <text x="80" y="56" text-anchor="middle" font-family="Inter" font-size="11" fill="#94a3b8">One task, perfectly</text>
+
+    <text x="350" y="40" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="#fbbf24">ChatGPT, Claude</text>
+    <text x="350" y="56" text-anchor="middle" font-family="Inter" font-size="11" fill="#94a3b8">Wide range, one modality</text>
+
+    <text x="600" y="40" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="#fdba74">Multimodal agents</text>
+    <text x="600" y="56" text-anchor="middle" font-family="Inter" font-size="11" fill="#94a3b8">Today's frontier</text>
+
+    <text x="760" y="40" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="#fca5a5">AGI</text>
+    <text x="760" y="56" text-anchor="middle" font-family="Inter" font-size="11" fill="#94a3b8">Hypothetical</text>
+  </g>
+
+  <!-- Two columns: trained for vs NOT trained for -->
+  <g transform="translate(60,200)">
+    <rect width="370" height="160" rx="12" fill="#0f1a12" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="20" y="28" font-family="Inter" font-size="13" font-weight="700" fill="#86efac">WHAT LLMs WERE TRAINED TO DO</text>
+    <text x="20" y="52" font-family="Inter" font-size="12" fill="#cbd5e1">• Predict the next token in text</text>
+    <text x="20" y="76" font-family="Inter" font-size="12" fill="#cbd5e1">• Match human preferences in reply ratings</text>
+    <text x="20" y="100" font-family="Inter" font-size="12" fill="#cbd5e1">• Score well on benchmark evaluations</text>
+    <text x="20" y="124" font-family="Inter" font-size="12" fill="#cbd5e1">• Follow instructions inside a single message</text>
+    <text x="20" y="150" font-family="Inter" font-size="11" font-style="italic" fill="#86efac">Result: extraordinary language ability</text>
+  </g>
+
+  <g transform="translate(470,200)">
+    <rect width="370" height="160" rx="12" fill="#1a0f0f" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="20" y="28" font-family="Inter" font-size="13" font-weight="700" fill="#fca5a5">WHAT THEY WERE NOT TRAINED TO DO</text>
+    <text x="20" y="52" font-family="Inter" font-size="12" fill="#cbd5e1">• Survive</text>
+    <text x="20" y="76" font-family="Inter" font-size="12" fill="#cbd5e1">• Pursue goals across days or months</text>
+    <text x="20" y="100" font-family="Inter" font-size="12" fill="#cbd5e1">• Act in the physical world</text>
+    <text x="20" y="124" font-family="Inter" font-size="12" fill="#cbd5e1">• Be honest when dishonesty scores higher</text>
+    <text x="20" y="150" font-family="Inter" font-size="11" font-style="italic" fill="#fca5a5">Result: no drive, no plan, no continuity</text>
+  </g>
+</svg>
