@@ -178,6 +178,38 @@ function resolveResearchServiceUrl(url: string) {
   return `${RESEARCH_SERVICE_ORIGIN}${url}`;
 }
 
+// Fetch sources for a project with graceful fallback: try the Python pipeline
+// first (which has full-text summaries), otherwise read source stubs saved in
+// MySQL during ingest so local-only projects still work for downstream tools.
+async function fetchProjectSources(
+  project: { id: number; sessionId: number | null; cookieId: string; sourceCount: number | null },
+): Promise<ResearchServiceSource[]> {
+  const serviceProjectId = project.sessionId ?? project.id;
+  try {
+    const result = await callResearchService<{ sources: ResearchServiceSource[]; count: number }>(
+      `/projects/${serviceProjectId}/sources`,
+    );
+    if (result?.sources?.length) return result.sources;
+  } catch (err) {
+    console.warn("[research.fetchProjectSources] Python pipeline unavailable, reading MySQL fallback:", err);
+  }
+  const db = await getDb();
+  if (!db) return [];
+  const localSources = await db.select().from(researchSources)
+    .where(eq(researchSources.cookieId, project.cookieId))
+    .orderBy(desc(researchSources.id))
+    .limit(Math.max(project.sourceCount ?? 50, 50));
+  return localSources.map((s: any, i: number) => ({
+    id: s.id ?? i,
+    title: s.title ?? "Untitled",
+    url: s.url ?? "",
+    author: null,
+    publish_date: null,
+    summary: s.shortSummary ?? null,
+    topics: [],
+  }));
+}
+
 export const researchRouter = router({
   // ─── Existing analysis (text/URL paste) ──────────────────────────────────
   analyze: publicProcedure
@@ -517,24 +549,40 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     .query(async ({ input }) => {
       const project = await assertProjectOwnership(input.cookieId, input.projectId);
       const serviceProjectId = getServiceProjectId(project);
-      const response = await callResearchService<{ items: Array<{
-        id: number;
-        title: string;
-        summary: string;
-        voice_a: string;
-        voice_b: string;
-        style: string;
-        duration_seconds: number;
-        created_at: string | null;
-        audio_url: string;
-        cached?: boolean;
-      }> }>(`/projects/${serviceProjectId}/audio-overviews`);
-      return {
-        items: (response.items ?? []).map((item) => ({
-          ...item,
-          audio_url: resolveResearchServiceUrl(item.audio_url),
-        })),
-      };
+      try {
+        const response = await callResearchService<{ items: Array<{
+          id: number; title: string; summary: string; voice_a: string; voice_b: string;
+          style: string; duration_seconds: number; created_at: string | null;
+          audio_url: string; cached?: boolean;
+        }> }>(`/projects/${serviceProjectId}/audio-overviews`);
+        return {
+          items: (response.items ?? []).map((item) => ({
+            ...item,
+            audio_url: resolveResearchServiceUrl(item.audio_url),
+          })),
+        };
+      } catch (_err) {
+        // Python pipeline unavailable — surface any local overviews stored in MySQL.
+        const db = await getDb();
+        if (!db) return { items: [] };
+        const rows = await db.select().from(audioOverviews)
+          .where(eq(audioOverviews.sourceId, project.id))
+          .orderBy(desc(audioOverviews.createdAt)).limit(10);
+        return {
+          items: rows.map((r: any) => ({
+            id: r.id,
+            title: project.name ?? "Audio Overview",
+            summary: r.transcript?.slice(0, 280) ?? "",
+            voice_a: "Alex",
+            voice_b: "Morgan",
+            style: "conversational",
+            duration_seconds: r.durationSeconds ?? 0,
+            created_at: r.createdAt ? new Date(r.createdAt).toISOString() : null,
+            audio_url: r.audioUrl ?? "",
+            cached: true,
+          })),
+        };
+      }
     }),
 
   generateProjectAudioOverview: publicProcedure
@@ -549,26 +597,55 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     .mutation(async ({ input }) => {
       const project = await assertProjectOwnership(input.cookieId, input.projectId);
       const serviceProjectId = getServiceProjectId(project);
-      const item = await callResearchService<{
-        id: number;
-        title: string;
-        summary: string;
-        voice_a: string;
-        voice_b: string;
-        style: string;
-        duration_seconds: number;
-        created_at: string | null;
-        audio_url: string;
-        cached?: boolean;
-      }>(`/projects/${serviceProjectId}/audio-overviews`, {
-        force_refresh: input.forceRefresh ?? false,
-        voice_a: input.voiceA ?? "Kore",
-        voice_b: input.voiceB ?? "Puck",
-        style: input.style ?? "conversational",
+      // Try Python pipeline first (real Gemini TTS dual-voice).
+      try {
+        const item = await callResearchService<{
+          id: number; title: string; summary: string; voice_a: string; voice_b: string;
+          style: string; duration_seconds: number; created_at: string | null;
+          audio_url: string; cached?: boolean;
+        }>(`/projects/${serviceProjectId}/audio-overviews`, {
+          force_refresh: input.forceRefresh ?? false,
+          voice_a: input.voiceA ?? "Kore",
+          voice_b: input.voiceB ?? "Puck",
+          style: input.style ?? "conversational",
+        });
+        return { ...item, audio_url: resolveResearchServiceUrl(item.audio_url) };
+      } catch (err) {
+        console.warn("[research.generateProjectAudioOverview] Python pipeline unavailable, trying local ElevenLabs fallback:", err);
+      }
+      // Local fallback — ElevenLabs two-voice. Requires ELEVENLABS_API_KEY.
+      const sources = await fetchProjectSources(project as any);
+      if (sources.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "This notebook has no sources to summarize." });
+      }
+      const content = sources.slice(0, 10).map((s) =>
+        `[${s.title}] ${s.url ? `(${s.url})` : ""}\n${s.summary || ""}`
+      ).join("\n\n---\n\n").slice(0, 6000);
+      const { generateAudioOverview } = await import("../audio");
+      const result = await generateAudioOverview({
+        cookieId: input.cookieId,
+        sourceType: "research_session",
+        sourceId: project.id,
+        title: project.name ?? "Research Notebook",
+        content,
       });
+      if (!result.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: result.error ?? "Audio generation failed. Ensure ELEVENLABS_API_KEY is configured on the server.",
+        });
+      }
       return {
-        ...item,
-        audio_url: resolveResearchServiceUrl(item.audio_url),
+        id: Date.now(),
+        title: project.name ?? "Audio Overview",
+        summary: result.transcript?.slice(0, 280) ?? "",
+        voice_a: "Alex",
+        voice_b: "Morgan",
+        style: input.style ?? "conversational",
+        duration_seconds: result.durationSeconds ?? 0,
+        created_at: new Date().toISOString(),
+        audio_url: result.audioUrl ?? "",
+        cached: false,
       };
     }),
 
@@ -601,13 +678,10 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     }))
     .mutation(async ({ input }) => {
       const project = await assertProjectOwnership(input.cookieId, input.projectId);
-      const serviceProjectId = getServiceProjectId(project);
-      const sourcesResult = await callResearchService<{ sources: ResearchServiceSource[]; count: number }>(
-        `/projects/${serviceProjectId}/sources`
-      );
-      const context = (sourcesResult.sources ?? [])
+      const sources = await fetchProjectSources(project as any);
+      const context = sources
         .slice(0, 15)
-        .map(s => `[${s.title}]${s.topics?.length ? ` (${s.topics.slice(0, 4).join(', ')})` : ''}\n${s.summary || ''}`)
+        .map(s => `[${s.title}]${s.topics?.length ? ` (${s.topics.slice(0, 4).join(', ')})` : ''}\nURL: ${s.url}\n${s.summary || ''}`)
         .join('\n\n---\n\n')
         .slice(0, 12000);
       const prompts: Record<string, string> = {
