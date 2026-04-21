@@ -8,7 +8,81 @@ import { callAI } from "./shared";
 import { researchSources, researchProjects, audioOverviews } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { recordPsychSignalAndRefresh } from "../services/personalityAnalyzer";
+import { ENV } from "../_core/env";
 const RESEARCH_SERVICE_URL = process.env.RESEARCH_SERVICE_URL || "http://localhost:8001/api";
+
+// ─── Gemini Google-Search grounding fallback for source discovery ───────────
+// When the Python research microservice is unavailable, use Gemini's native
+// google_search tool to return grounded web results with real URIs.
+type GeminiGroundingChunk = { web?: { uri?: string; title?: string } };
+type GeminiGroundingResponse = {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+    groundingMetadata?: {
+      groundingChunks?: GeminiGroundingChunk[];
+      webSearchQueries?: string[];
+    };
+  }>;
+};
+
+async function geminiGroundedDiscover(
+  topic: string,
+  maxResults: number,
+): Promise<Array<{ title: string; url: string; description: string; score: number; published_date?: string }>> {
+  const apiKey = ENV.geminiApiKey || ENV.geminiApiKeyBackup;
+  if (!apiKey) throw new Error("No Gemini API key configured");
+  const model = "gemini-2.5-flash";
+  const body = {
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            text: `Find the ${maxResults} most authoritative, diverse, and recent web sources about: "${topic}". Prefer primary sources, academic papers, reputable journalism, and official documentation. For each source, give a one-sentence description of what it covers. Number them.`,
+          },
+        ],
+      },
+    ],
+    tools: [{ google_search: {} }],
+    generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
+  };
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30000),
+    },
+  );
+  if (!res.ok) throw new Error(`Gemini grounding error ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as GeminiGroundingResponse;
+  const candidate = data.candidates?.[0];
+  const chunks = candidate?.groundingMetadata?.groundingChunks ?? [];
+  const text = (candidate?.content?.parts ?? []).map((p) => p.text ?? "").join("\n");
+
+  // Try to map each grounded URI to a description line from the model text.
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const seen = new Set<string>();
+  const sources: Array<{ title: string; url: string; description: string; score: number }> = [];
+  for (let i = 0; i < chunks.length && sources.length < maxResults; i++) {
+    const web = chunks[i]?.web;
+    if (!web?.uri) continue;
+    // Resolve Google's redirect URLs into real URLs where possible via a HEAD fetch is costly; keep original.
+    if (seen.has(web.uri)) continue;
+    seen.add(web.uri);
+    // Best-effort description: pick the i-th numbered line if it exists.
+    const descCandidate = lines.find((l) => new RegExp(`^${i + 1}[\\).:\\-]`).test(l)) || lines[i] || "";
+    const description = descCandidate.replace(/^\d+[\).:\-]\s*/, "").replace(/\*\*/g, "").slice(0, 400);
+    sources.push({
+      title: (web.title || new URL(web.uri).hostname).slice(0, 200),
+      url: web.uri,
+      description: description || `Grounded web source about ${topic}.`,
+      score: Math.max(0.3, 1 - i * 0.04),
+    });
+  }
+  return sources;
+}
 const RESEARCH_SERVICE_ORIGIN = RESEARCH_SERVICE_URL.replace(/\/api$/, "");
 
 type ResearchServiceSource = {
@@ -221,9 +295,19 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
         await addXP(input.cookieId, 10);
         return result;
       } catch (err) {
-        // Graceful fallback: research service may not be running
-        console.warn("[research.discover] Research service unavailable:", err);
-        return { sources: [], count: 0, error: "Research pipeline is not available. Use the text/URL analysis above to analyze content directly." };
+        // Python research service unreachable — fall back to Gemini Google-Search grounding.
+        console.warn("[research.discover] Python service unavailable, trying Gemini grounding:", err);
+        try {
+          const sources = await geminiGroundedDiscover(input.topic, input.maxResults);
+          if (sources.length > 0) {
+            await addXP(input.cookieId, 10);
+            return { sources, count: sources.length };
+          }
+          return { sources: [], count: 0, error: "No sources found for that topic. Try broadening or rephrasing the query." };
+        } catch (fallbackErr) {
+          console.error("[research.discover] Gemini grounding fallback also failed:", fallbackErr);
+          return { sources: [], count: 0, error: "Source discovery is temporarily unavailable. Use the text/URL analysis above to analyze content directly." };
+        }
       }
     }),
 
