@@ -16,6 +16,12 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { AdaptiveLessonView } from "@/components/lesson/AdaptiveLessonView";
+import { LessonDepthProvider, DepthBar } from "@/components/aiLiteracy/primitives";
+import NewLesson1 from "@/components/aiLiteracy/lessons/Lesson1";
+import NewLesson2 from "@/components/aiLiteracy/lessons/Lesson2";
+import NewLesson3 from "@/components/aiLiteracy/lessons/Lesson3";
+import NewLesson4 from "@/components/aiLiteracy/lessons/Lesson4";
+import NewLesson5 from "@/components/aiLiteracy/lessons/Lesson5";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1718,13 +1724,18 @@ export default function AILiteracy() {
                   className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <ChevronLeft size={14} /> Back to all lessons
                 </button>
-                <AnimatePresence mode="wait">
-                  {activeLesson === 1 && <Lesson1 key={1} onComplete={() => handleComplete(1)} completed={completedLessons.has(1)} />}
-                  {activeLesson === 2 && <Lesson2 key={2} onComplete={() => handleComplete(2)} completed={completedLessons.has(2)} />}
-                  {activeLesson === 3 && <Lesson3 key={3} onComplete={() => handleComplete(3)} completed={completedLessons.has(3)} />}
-                  {activeLesson === 4 && <Lesson4 key={4} onComplete={() => handleComplete(4)} completed={completedLessons.has(4)} />}
-                  {activeLesson === 5 && <Lesson5 key={5} onComplete={() => handleComplete(5)} completed={completedLessons.has(5)} completedLessons={completedLessons} />}
-                </AnimatePresence>
+                <LessonDepthProvider>
+                  <div className="mb-4">
+                    <DepthBar />
+                  </div>
+                  <AnimatePresence mode="wait">
+                    {activeLesson === 1 && <NewLesson1 key={1} onComplete={() => handleComplete(1)} />}
+                    {activeLesson === 2 && <NewLesson2 key={2} onComplete={() => handleComplete(2)} />}
+                    {activeLesson === 3 && <NewLesson3 key={3} onComplete={() => handleComplete(3)} />}
+                    {activeLesson === 4 && <NewLesson4 key={4} onComplete={() => handleComplete(4)} />}
+                    {activeLesson === 5 && <NewLesson5 key={5} onComplete={() => handleComplete(5)} />}
+                  </AnimatePresence>
+                </LessonDepthProvider>
                 {activeLesson < 5 && (
                   <div className="mt-6 flex justify-end">
                     <button onClick={() => handleOpenLesson((activeLesson + 1) as LessonId)}
