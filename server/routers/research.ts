@@ -236,32 +236,30 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database unavailable");
-      const serviceProject = await callResearchService<{
-        project_id: number;
-        project_name: string;
-        created: number;
-        failed: number;
-        processing: string;
-      }>("/sources/create-batch", {
-        sources: input.sources,
-        project_name: input.projectName,
-      }).catch((err) => {
-        console.warn("[research.ingest] Research service unavailable:", err);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Research pipeline is unavailable. Start the research service and try again.",
+      // Try the Python research pipeline (scrape + embed). If unavailable,
+      // fall back to a local-only project: store the sources in MySQL so the
+      // notebook/workspace can still render them, and mark sessionId=null so
+      // downstream features that need embeddings know this is a lite project.
+      let externalProjectId: number | null = null;
+      try {
+        const serviceProject = await callResearchService<{
+          project_id: number;
+          project_name: string;
+          created: number;
+          failed: number;
+          processing: string;
+        }>("/sources/create-batch", {
+          sources: input.sources,
+          project_name: input.projectName,
         });
-      });
-      if (!serviceProject.project_id) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Research pipeline did not return a project id.",
-        });
+        if (serviceProject?.project_id) externalProjectId = serviceProject.project_id;
+      } catch (err) {
+        console.warn("[research.ingest] Python pipeline unavailable — creating local-only notebook:", err);
       }
-      // Create project record linked to the external research project
+      // Create project record (linked to external project when available)
       const insertResult = await db.insert(researchProjects).values({
         cookieId: input.cookieId,
-        sessionId: serviceProject.project_id,
+        sessionId: externalProjectId,
         name: input.projectName,
         topic: input.projectName,
         sourceCount: input.sources.length,
@@ -371,10 +369,41 @@ Title: ${input.title}, URL: ${input.url ?? "N/A"}, Author: ${input.author ?? "Un
           graph: graphResult,
         };
       } catch (err) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: err instanceof Error ? err.message : "Research workspace unavailable",
-        });
+        // Python pipeline unavailable — serve a local-only workspace from MySQL
+        // so the notebook at least shows the selected sources.
+        console.warn("[research.getProjectWorkspace] Python pipeline unavailable, serving local data:", err);
+        const db2 = await getDb();
+        const localSources = db2
+          ? await db2.select().from(researchSources)
+              .where(eq(researchSources.cookieId, input.cookieId))
+              .orderBy(desc(researchSources.id)).limit(100)
+          : [];
+        const mapped = localSources
+          .filter((s: any) => !s.sessionId || s.sessionId === (project.sessionId ?? project.id))
+          .slice(0, project.sourceCount || 50)
+          .map((s: any, i: number) => ({
+            id: s.id ?? i,
+            title: s.title ?? "Untitled",
+            url: s.url ?? "",
+            author: null,
+            publish_date: null,
+            summary: s.shortSummary ?? null,
+            topics: [],
+          }));
+        return {
+          project: {
+            id: project.id,
+            name: project.name,
+            topic: project.topic,
+            sourceCount: project.sourceCount,
+            isIndexed: false,
+            createdAt: project.createdAt,
+          },
+          sources: mapped,
+          summary: "",
+          insights: {},
+          graph: { nodes: [], edges: [] },
+        };
       }
     }),
 
