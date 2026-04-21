@@ -190,19 +190,35 @@ function buildLesson(
     ],
     posterPath: assetPath("lessons", lessonId),
     beats: {
-      hook: `Hook: ${lesson.scenario}\n\nWhy this matters: the mistake in this scenario feels reasonable in the moment, which is exactly why learners need a durable habit instead of a definition. ${palette.lens}`,
-      explain: `Explain: ${explainLead} Start in plain language, connect it to ${module.purpose.toLowerCase()}, then make the boundary conditions explicit.\n\nKey clarification: ${lesson.title} is useful because it helps learners notice what is usually invisible before a bad decision feels obvious. Common trap to surface directly: ${lesson.trap}`,
-      visualize: `Visualize: ${lesson.visual}\n\n${visualizeLead} Walk left to right through the model, label each step, and show exactly where the reasoning or trust mistake tends to enter.`,
+      hook: lesson.hook
+        ? `Hook: ${lesson.hook}\n\nScenario: ${lesson.scenario}\n\nWhy this matters: the mistake in this scenario feels reasonable in the moment, which is exactly why learners need a durable habit instead of a definition. ${palette.lens}`
+        : `Hook: ${lesson.scenario}\n\nWhy this matters: the mistake in this scenario feels reasonable in the moment, which is exactly why learners need a durable habit instead of a definition. ${palette.lens}`,
+      explain: [
+        `Explain: ${explainLead} Start in plain language, connect it to ${module.purpose.toLowerCase()}, then make the boundary conditions explicit.`,
+        lesson.callback ? `Connect back: ${lesson.callback}` : null,
+        lesson.mechanism ? `Mechanism (the 'why' layer): ${lesson.mechanism}` : null,
+        `Key clarification: ${lesson.title} is useful because it helps learners notice what is usually invisible before a bad decision feels obvious. Common trap to surface directly: ${lesson.trap}`,
+      ].filter(Boolean).join("\n\n"),
+      visualize: [
+        `Visualize: ${lesson.visual}`,
+        `${visualizeLead} Walk left to right through the model, label each step, and show exactly where the reasoning or trust mistake tends to enter.`,
+        lesson.realCase ? `Documented case to anchor the diagram: ${lesson.realCase}` : null,
+      ].filter(Boolean).join("\n\n"),
       check: checkpoint.question,
       apply: `Apply: ${lesson.challenge}\n\n${applyLead} Ask the learner to produce a concrete artifact, not just an opinion.`,
-      reflect: `Reflect: where in your work, media diet, relationships, or AI use would avoiding "${lesson.trap}" improve judgment this week?\n\nWrite one sentence that starts with: "The next time I notice this pattern, I will..."`,
+      reflect: [
+        `Reflect: where in your work, media diet, relationships, or AI use would avoiding "${lesson.trap}" improve judgment this week?`,
+        `Write one sentence that starts with: "The next time I notice this pattern, I will..."`,
+        lesson.retrievalCue ? `Retrieval warmup for the next lesson: ${lesson.retrievalCue}` : null,
+      ].filter(Boolean).join("\n\n"),
     },
     checkpoint,
     flashcards: [
-      { front: `Core idea in ${lesson.title}?`, back: `${lesson.title} helps learners recognize and act on the hidden structure inside a practical decision.` },
+      { front: `Core idea in ${lesson.title}?`, back: lesson.mechanism ?? `${lesson.title} helps learners recognize and act on the hidden structure inside a practical decision.` },
       { front: `Most common trap in ${lesson.title}?`, back: lesson.trap },
       { front: `What question should you ask during ${lesson.title}?`, back: palette.lens },
       { front: `How do you apply ${lesson.title}?`, back: lesson.challenge },
+      ...(lesson.realCase ? [{ front: `Real-world case for ${lesson.title}?`, back: lesson.realCase }] : []),
     ],
   };
 }

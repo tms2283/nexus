@@ -1,9 +1,25 @@
+// shared/foundationSeeds.ts
+//
+// AI Literacy Modules 1-3 revised with hook/mechanism/callback/realCase/retrievalCue
+// fields for richer AI-generated lesson content. Modules 4-8 and logic modules
+// preserved verbatim. See implementation-notes.md in the rewrite bundle.
+
 export type FoundationLessonSeed = {
   title: string;
+  // The cold-open that creates curiosity BEFORE definitions.
+  hook?: string;
   scenario: string;
   visual: string;
+  // The "why at a mechanistic level" — new field, core to the plan.
+  mechanism?: string;
+  // Explicit reference to an earlier lesson this one extends.
+  callback?: string;
+  // A real documented case (name, year, outcome where known).
+  realCase?: string;
   challenge: string;
   trap: string;
+  // Retrieval-practice warmup for the NEXT lesson to surface this one.
+  retrievalCue?: string;
 };
 
 export type FoundationModuleSeed = {
@@ -18,156 +34,402 @@ export type FoundationModuleSeed = {
 };
 
 export const aiModuleSeeds: FoundationModuleSeed[] = [
+  // ───────────────────────────────────────────────────────────────────────────
+  // MODULE 1 — Introduction to AI
+  //
+  // Arc: confusion → grounded mental model of what a model IS and what
+  // "training" actually does. By the end, the learner can reason about
+  // why LLMs behave as they do — not just describe behaviour.
+  // ───────────────────────────────────────────────────────────────────────────
   {
     id: "ai-m1",
-    title: "Module 1 - What AI Actually Is",
-    purpose: "Replace hype and loose buzzwords with a stable mental model of what AI is and is not.",
+    title: "Module 1 — Introduction to AI",
+    purpose:
+      "Build a mechanistic mental model of what AI actually is so every later lesson compounds. The target is not vocabulary; it is the ability to reason about systems the learner has never seen before.",
     outcomes: [
-      "Define AI in plain language without sounding vague.",
-      "Separate AI from automation and ordinary software.",
-      "Explain why headlines overstate what current systems can do.",
+      "Explain what a 'weight' is and why adjusting weights counts as 'learning'.",
+      "Predict, for a new AI product, whether it is narrow AI, automation, or something else.",
+      "Describe the cognitive model that explains why prompting works (document completion, not instruction-following).",
+      "Identify three myths about AI and explain the specific mechanism that disconfirms each.",
+      "Evaluate an AI-adjacent headline and rewrite it to match what current systems actually do.",
     ],
-    signatureInteractions: ["Is this really AI?", "Hype vs reality timeline"],
-    capstone: "Sort 12 tools and systems into AI, automation, software, or neither and justify each call.",
-    estimatedMinutes: 80,
+    signatureInteractions: [
+      "Six-products hook: what do a spam filter, ChatGPT, Netflix, a Tesla, DALL-E, and Stockfish share?",
+      "Token-prediction demo: guess the next word, then see the model's probability distribution.",
+      "Build-a-prompt: drag persona/context/constraint blocks and see the assembled prompt scored against a rubric.",
+      "Myth 3-part reveal: steelman → disconfirming mechanism → replacement truth.",
+    ],
+    capstone:
+      "Given a novel AI product description the learner has never seen, produce a short brief: what it is, how it was likely trained, two failure modes to expect, and one ethical question it raises.",
+    estimatedMinutes: 95,
     lessons: [
       {
-        title: "The AI confusion problem",
-        scenario: "A company labels a simple rules engine as AI because the term sounds modern, and nobody notices the difference.",
-        visual: "Confusion map showing buzzword AI, true machine learning, automation, and standard software.",
-        challenge: "Collect five products that claim to use AI and classify what each one is actually doing.",
-        trap: "Treating every adaptive or digital system as AI.",
+        title: "What Is AI? — building the mental model",
+        hook:
+          "Here are six products all marketed as 'AI': your Gmail spam filter, ChatGPT, Netflix recommendations, a Tesla on autopilot, DALL-E, and a chess engine that beats every human alive. What do they actually have in common? (Spoiler: less than the word suggests.)",
+        scenario:
+          "A company labels a plain rules engine as 'AI-powered' in a sales deck. Another company uses an actual neural network but calls it 'automation'. A buyer confuses the two and chooses badly. The difference is not marketing — it is how each system was built.",
+        visual:
+          "A 4-zone map: rules-based software / workflow automation / machine learning / deep learning. Each zone shows the essential difference — who wrote the logic (human vs. fitted from data) — not surface features.",
+        mechanism:
+          "The core distinction is not 'how smart it looks' but whose decisions are in it: in traditional software, a human wrote every rule. In ML, a human specified the goal and the data, and the rules were SHAPED by feedback. A 'weight' in a neural network is literally a number on a dial. Training turns billions of dials until the model's guesses match reality. No rules were written — the pattern was fitted.",
+        realCase:
+          "Gmail's spam filter (2017 onward). It stopped being a rulebook of suspicious keywords and became a trained classifier that updates as spammers adapt. The user saw 'fewer false positives'. The underlying shift was a category change from software to ML.",
+        challenge:
+          "Find five products advertised as AI. For each, state what it actually is (rules engine, automation, ML, LLM) and the single piece of evidence that justifies your call.",
+        trap:
+          "Treating any adaptive or digital system as AI — and letting that vocabulary haze prevent clear thinking about what the product can and cannot do.",
+        retrievalCue:
+          "Before the next lesson: in one sentence, what is a 'weight'?",
       },
       {
-        title: "What makes something AI",
-        scenario: "Two tools both make recommendations, but only one learned patterns from data instead of following fixed instructions.",
-        visual: "Decision frame for prediction, pattern recognition, adaptation, and probabilistic output.",
-        challenge: "Explain AI to a non-technical friend using one sentence for data, one for prediction, and one for uncertainty.",
-        trap: "Defining AI so broadly that the term loses meaning.",
+        title: "Myths vs. reality — three-part correction",
+        hook:
+          "The most dangerous AI myths are not obviously wrong. They are ALMOST right — right enough that smart people hold them. This lesson attacks each myth by first explaining why it is intuitive, then showing the specific evidence that breaks it.",
+        scenario:
+          "A news headline reads: 'AI chatbot passes medical board exam — human doctors now obsolete.' The headline is not exactly false. But every load-bearing word in it is doing something misleading, and a reader without training misses the misdirection.",
+        visual:
+          "Myth → three-panel card: (1) why the myth feels true (the steelman), (2) the mechanism that disconfirms it, (3) the nuanced replacement belief. Applied to seven myths including sycophancy and 'AI is neutral because it is math.'",
+        mechanism:
+          "Myth correction fails when it stops at 'that's wrong.' Research on belief revision (Kendeou, Van Meter, Nguyen-Jahiel) shows that a wrong model only gets replaced when a specific, concrete, mechanistic alternative is provided. Every myth in this lesson is paired with WHY it is convincing, WHICH test fails for it, and WHAT to believe instead.",
+        callback:
+          "Uses the 'weight as a dial' concept from Lesson 1 to explain why the 'AI is neutral because math' myth is wrong: dials were set by data, and historical data encodes past decisions — which often encoded bias.",
+        realCase:
+          "Amazon's internal recruiting AI, scrapped in 2018 after it was found to downgrade resumes containing the word 'women's' (e.g., 'women's chess club'). The system was technically neutral; the data was not.",
+        challenge:
+          "Take one AI-related headline from this week. Identify the myth it is leaning on, the mechanism that disconfirms it, and rewrite it to match what the underlying system actually does.",
+        trap:
+          "Accepting a one-sentence myth correction as sufficient. Beliefs are not updated by brief contradiction; they are updated by mechanistic replacement.",
+        retrievalCue:
+          "Before the next lesson: why does a longer, more confident AI answer NOT imply a more correct AI answer?",
       },
       {
-        title: "AI vs automation vs traditional software",
-        scenario: "A manager chooses the wrong vendor because they confuse workflow automation with a model that makes predictions under uncertainty.",
-        visual: "Three-lane comparison chart for automation, software, and AI systems.",
-        challenge: "Pick one task from your work and argue which approach fits best: fixed rules, workflow automation, or AI.",
-        trap: "Assuming AI is always the most advanced or appropriate choice.",
+        title: "Prompt engineering — the cognitive model",
+        hook:
+          "Everyone teaches prompting as a checklist: persona, context, constraints, goal. The checklist works, but nobody explains WHY it works. Once you see the real reason, every 'prompt hack' becomes obvious, and the ones that don't work become equally obvious.",
+        scenario:
+          "Two people ask the same question to the same model and get wildly different answers. Not because one has a secret trick, but because one understands what the model is actually doing when it generates text.",
+        visual:
+          "Two side-by-side mental models. Left (wrong): prompt = order to an assistant. Right (right): prompt = opening of a document the model is completing. Every prompting principle falls out of the right-side model as a simple consequence.",
+        mechanism:
+          "An LLM is trained on one objective: given some text, predict what comes next. A prompt is not parsed as an instruction; it is read as a partial document the model is asked to continue. This is why: (a) persona framing works (it specifies the KIND of document), (b) examples outperform rules (they show the document's shape), (c) 'Think step by step' works (Wei et al. 2022 — it forces the model to generate intermediate tokens that carry reasoning, instead of jumping straight to an output where compounding errors are invisible).",
+        callback:
+          "Builds directly on Lesson 1: because the model's 'weights' were fitted to predict text, EVERYTHING the model does is next-token prediction. There is no other process running underneath.",
+        challenge:
+          "Take one vague prompt. Rewrite it twice: once using the cognitive model (frame it as the start of a specific KIND of document), once using chain-of-thought ('think step by step before answering'). Compare the three outputs and explain what changed and why.",
+        trap:
+          "Following the 5-principle checklist (persona/context/specifics/constraints/goal) as a ritual without understanding what the principles are proxies for. Learners who memorise the checklist fail when they meet a prompting situation it does not cover.",
+        retrievalCue:
+          "Before the next lesson: why is it that 'think step by step' reliably improves reasoning tasks? (Answer in terms of what tokens the model generates.)",
       },
       {
-        title: "Narrow AI, AGI, and the reality gap",
-        scenario: "A dramatic headline about general intelligence creates fear even though the underlying product is a narrow specialist tool.",
-        visual: "Ladder from narrow task systems to speculative general intelligence claims.",
-        challenge: "Rewrite one sensational AI headline so it matches what current systems can actually do.",
-        trap: "Letting speculation about AGI distort how you judge today's tools.",
+        title: "Ethics and alignment — the hard part",
+        hook:
+          "The surprising thing about AI ethics is that the engineers are not careless. The hardest problem in AI right now is not building capable systems — it is specifying what we actually want those systems to do, precisely enough that they do it without surprise. That is called the alignment problem.",
+        scenario:
+          "A hiring algorithm is designed to 'find the best candidates'. The data shows past best candidates were usually hired. The algorithm learns that pattern — and now filters out candidates who look different from past hires. Nobody asked for bias. Bias emerged from the combination of a seemingly-reasonable objective and a non-neutral history.",
+        visual:
+          "A four-quadrant ethics frame (Autonomy / Beneficence / Non-maleficence / Justice) applied to three real scenarios: hiring AI, medical triage chatbots, school AI tutors. Each scenario has at least three stakeholders whose interests are mapped onto the quadrants.",
+        mechanism:
+          "Three mechanisms that produce ethical failure even when engineers are well-intentioned: (1) Goodhart's Law — when a measure becomes a target, it stops being a good measure; (2) training-data encoding — the past gets baked in; (3) RLHF side-effects — 'train the model to say what raters reward' converges on sycophancy and confident reassurance, not truth.",
+        callback:
+          "Uses the weight-tuning picture from Lesson 1 (bias enters through the data the dials were tuned on) and the myth 'AI is neutral because math' from Lesson 2.",
+        realCase:
+          "The Amazon hiring tool (Reuters, 2018) — killed after internal audit. COMPAS recidivism scoring (ProPublica, 2016) — scored Black defendants as higher-risk at disproportionate rates. These are not edge cases; they are the central examples that shape the field today.",
+        challenge:
+          "Pick one AI system deployed in your city or workplace. Map three stakeholders onto the ethics quadrants. Identify one safeguard you would require before deployment, and state specifically what it protects against.",
+        trap:
+          "Reducing AI ethics to 'bias bad, transparency good.' Real ethical analysis requires identifying whose values, whose data, whose outcomes, and whose accountability — and where these come apart.",
+        retrievalCue:
+          "Before the next lesson: what is Goodhart's Law, and how does it connect to AI sycophancy?",
       },
       {
-        title: "A short history of hype and progress",
-        scenario: "A learner thinks the current AI moment came out of nowhere and misses the repeated cycle of inflated claims, disappointment, and real progress.",
-        visual: "Timeline of winters, breakthroughs, and product adoption waves.",
-        challenge: "Annotate the AI timeline with one lesson about what progress is real and what stays cyclical.",
-        trap: "Mistaking short-term excitement for permanent transformation.",
+        title: "Capstone — a scaffolded transfer task",
+        hook:
+          "Here is the one capstone exercise that separates learners who memorised the vocabulary from learners who can actually reason about AI: apply what you know to a system you have never seen before.",
+        scenario:
+          "A fictional — but realistic — product description is presented: an 'AI-powered' scheduling assistant for small-business owners that 'learns your preferences'. The learner is given no more information than a real product page would provide, and asked to produce a professional brief.",
+        visual:
+          "Worked-example ladder: (1) a FULLY completed sample brief for a different product, with annotations explaining why each section is good; (2) a PARTIAL brief for a new product where scaffolding is removed; (3) a fully independent brief on a third product.",
+        mechanism:
+          "Worked-example → faded-example → independent-practice is the strongest known scaffold for transfer of learning (Sweller, van Merriënboer, Paas — 1998, and replicated across dozens of domains since). Jumping straight to independent practice skips the schema-building stage and produces shallower transfer.",
+        callback:
+          "Pulls on every prior lesson: Lesson 1 for the 'what kind of system is this?' analysis, Lesson 2 for myth-checking the marketing, Lesson 3 to design the prompts a user would need, Lesson 4 for the ethics review.",
+        challenge:
+          "Produce a one-page brief with sections: (a) likely architecture, (b) likely training data, (c) two predictable failure modes with mechanism, (d) one ethical question, (e) two prompts a user should try to stress-test the system. The AI evaluator scores each section on a specific rubric.",
+        trap:
+          "Producing surface content that uses the right words without demonstrating the reasoning. The rubric specifically checks for mechanism-level claims, not vocabulary matches.",
       },
     ],
   },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // MODULE 2 — AI at Work
+  //
+  // Arc: the learner now has a model of what AI IS (M1). This module turns
+  // that into practical skill: choosing tools, evaluating outputs, prompting
+  // at work, reasoning about career impact.
+  // ───────────────────────────────────────────────────────────────────────────
   {
     id: "ai-m2",
-    title: "Module 2 - How AI Works Without the Math Overload",
-    purpose: "Give non-specialists a conceptual model for modern AI without drowning them in formulas.",
+    title: "Module 2 — AI at Work",
+    purpose:
+      "Build the professional-grade skill of using AI well: choosing tools using a generalizable framework (not a catalogue), evaluating outputs using the 7-failure-modes taxonomy (not pattern recognition), and reasoning about career impact from evidence (not anxiety).",
     outcomes: [
-      "Explain data, models, training, and inference in ordinary language.",
-      "Describe why AI output is probabilistic rather than magical.",
-      "Understand why models can feel smart while still failing badly.",
+      "Apply a 5-dimension tool-selection framework to any AI tool, including ones not on this list.",
+      "Classify any AI output against the 7 Failure Modes and state which failure mode it exhibits.",
+      "Execute a chain-of-thought + iterative-refinement prompt workflow for a complex work task.",
+      "Cite one piece of primary research when discussing AI's impact on a specific occupation.",
+      "Design a human-AI workflow that uses AI for leverage without surrendering professional judgment.",
     ],
-    signatureInteractions: ["Build-a-model analogy", "Broken AI pipeline diagnosis"],
-    capstone: "Explain how a modern AI system works to a skeptical friend using one analogy and one real example.",
-    estimatedMinutes: 85,
+    signatureInteractions: [
+      "Tool scorecard: rate 3 tools on 5 dimensions (data sovereignty, hallucination risk, integration cost, human-in-loop design, update frequency).",
+      "Failure-mode annotation: highlight problematic phrases in a long AI output before seeing the annotated version.",
+      "Chain-of-thought side-by-side: same question, standard vs. CoT prompt, compare reasoning traces.",
+    ],
+    capstone:
+      "Take a live AI output from the learner's own work context, classify every questionable claim against the 7 failure modes, and produce a revised prompt that reduces the most dangerous failure mode identified.",
+    estimatedMinutes: 105,
     lessons: [
       {
-        title: "Data is the diet",
-        scenario: "A model behaves strangely in a niche domain because the examples that shaped it did not reflect the real task.",
-        visual: "Training diet board linking data quality, coverage, and downstream behavior.",
-        challenge: "Choose one AI task and list what kinds of data would make the model stronger or weaker.",
-        trap: "Thinking model quality is independent of what the model learned from.",
+        title: "The tool landscape — a selection framework, not a catalogue",
+        hook:
+          "Any list of 'top AI tools' is out of date by the time it's published. The skill worth learning is not the list; it is the 5 questions you ask about any new tool in 30 seconds.",
+        scenario:
+          "A team is choosing between three AI tools for customer research. Two have similar feature sets; one is visibly more polished. The wrong choice will create a data-sovereignty headache three quarters from now — but nothing in the sales demo reveals this.",
+        visual:
+          "A radar chart with five axes: data sovereignty, hallucination risk for the use case, integration cost, human-in-loop design, update frequency. Four named tools plotted against each other.",
+        mechanism:
+          "A decision framework outperforms a tool catalogue for the same reason a ruler outperforms a tape measure: the ruler works on objects you haven't met yet. The 5 dimensions are chosen to surface the properties that cause regret 6–12 months after adoption, not the ones that dominate the demo.",
+        callback:
+          "Connects to Module 1 Lesson 3 (cognitive model of prompting): some tools hide the prompt layer entirely, which changes the user's ability to recover from bad output. That tradeoff is invisible without M1's framing.",
+        realCase:
+          "Samsung engineers (2023) pasted proprietary source code into ChatGPT. OpenAI's then-policy allowed the prompts to be used in training. Samsung subsequently banned public LLMs for internal work. The failure was not the tool — it was skipping the data-sovereignty dimension.",
+        challenge:
+          "Pick any AI tool your organization uses or might adopt. Score it on the 5 dimensions with one specific piece of evidence per dimension. Identify which dimension, if it degraded, would cost the most.",
+        trap:
+          "Treating the five dimensions as a pass/fail checklist rather than a tradeoff map. Every real tool is strong on some and weak on others; the question is which weaknesses match which use cases.",
+        retrievalCue: "Before the next lesson: which of the 5 dimensions is hardest to measure from a product demo?",
       },
       {
-        title: "What a model is",
-        scenario: "A person imagines a model as a database of exact answers when it is really a learned pattern system that predicts likely continuations.",
-        visual: "Model-as-pattern-machine illustration rather than a file cabinet of facts.",
-        challenge: "Describe the difference between stored facts and learned patterns using one everyday analogy.",
-        trap: "Imagining the model as a literal encyclopedia with reliable retrieval.",
+        title: "Evaluating AI output — the 7 failure modes",
+        hook:
+          "There are not a hundred ways an AI can be wrong. There are seven, and every real bad output is one or more of them. Once you can name them, you can catch them.",
+        scenario:
+          "An AI-generated report lands on a manager's desk. It reads well. It cites sources. Four of the seven claims in it are false in importantly different ways, and distinguishing them changes what the manager should do next.",
+        visual:
+          "The 7 Failure Modes taxonomy: (1) Hallucination, (2) Outdated information, (3) Sycophancy, (4) Scope drift, (5) False precision, (6) Context blindness, (7) Bias amplification. Each with: definition, mechanism, example phrase, detection heuristic, prompt-level mitigation.",
+        mechanism:
+          "Every failure mode traces to a single design fact: LLMs are optimised to produce outputs that LOOK right, not outputs that ARE right. Fluency and truth are separate properties. Each failure mode is a specific way that separation becomes visible — hallucination is plausibility without evidence, sycophancy is agreement without evidence, false precision is specificity without evidence, and so on.",
+        callback:
+          "Builds on M1 L1 (why the model generates plausible-sounding wrong answers at all) and M1 L2 (sycophancy was previewed as a myth; here it becomes a named failure mode the learner will spot in the wild).",
+        realCase:
+          "Air Canada chatbot case (ruled 2024): the airline's AI chatbot invented a bereavement-fare policy. A customer relied on it. The tribunal ruled the airline legally liable for the chatbot's statement. This is hallucination (category 1) producing real-world legal consequences.",
+        challenge:
+          "Given three AI outputs (one strong, one mixed, one weak), highlight each problematic phrase and label it with the correct failure mode. Then write one prompt-level mitigation for the most severe failure mode in each.",
+        trap:
+          "Treating 'hallucination' as a catch-all. Different failure modes need different mitigations: hallucination is reduced by grounding in sources, sycophancy by asking the model to argue the opposite case, false precision by asking for confidence ranges. The taxonomy matters.",
+        retrievalCue:
+          "Before the next lesson: when you ask a model to critique its own output, which failure mode goes UP, not down? (Sycophancy.)",
       },
       {
-        title: "Training vs inference",
-        scenario: "A team keeps tweaking prompts to solve a failure that actually comes from missing data, weak training, or retrieval limits.",
-        visual: "Factory floor metaphor separating model building, deployment, and live use.",
-        challenge: "Diagnose whether three failure cases belong to data, training, retrieval, or prompting.",
-        trap: "Blaming the live interaction for every problem in the pipeline.",
+        title: "Prompting for work — chain-of-thought and iteration",
+        hook:
+          "At this point every learner has seen the 5-principle prompt checklist. Here is what separates people who get mediocre output from people who get excellent output: they never use a single-shot prompt. They use a three-turn pattern, and they explicitly ask the model to reason before answering.",
+        scenario:
+          "A business analyst has 20 minutes to produce a decision memo from a messy dataset. The naive approach — one prompt, get an answer — produces something that looks ready and is quietly wrong. The three-turn approach takes the same 20 minutes and produces something substantially more trustworthy.",
+        visual:
+          "The 3-turn pattern as a flow: (1) broad generation, (2) structured critique — 'find the three weakest claims above and explain why they are weak', (3) targeted revision. Plus the CoT toggle: same question with and without 'reason step by step first'.",
+        mechanism:
+          "Chain-of-thought works because LLM inference is token-by-token. When the model jumps straight to a conclusion, any error in the intermediate reasoning is invisible and gets baked into the output. When intermediate reasoning tokens are forced to appear, the model has more 'room to think' and errors become catchable (Wei et al. 2022; Kojima et al. 2022 demonstrated this works even with a literal 'Let's think step by step.').",
+        callback:
+          "Directly extends M1 L3's cognitive model: the prompt is a document opening, and asking for reasoning first changes what kind of document the model is continuing. Extends M2 L7 by using iteration to catch the 7 failure modes before they ship.",
+        challenge:
+          "Take one real work task. Produce three outputs: (a) single-shot prompt, (b) CoT prompt, (c) three-turn pattern. Score each against the 7 failure modes. Measure time spent vs. output quality.",
+        trap:
+          "Believing iteration is just 'asking for revisions'. The key step is TURN TWO — the structured critique. Without it, the model simply restates its original answer with more words.",
+        retrievalCue:
+          "Before the next lesson: what concrete research finding grounds 'think step by step' as a real technique and not superstition?",
       },
       {
-        title: "Why AI feels intelligent",
-        scenario: "A polished answer sounds thoughtful and original even though it mainly reflects learned language patterns and context steering.",
-        visual: "Illusion stack of fluency, speed, confidence, and coherence.",
-        challenge: "Build a checklist for separating surface fluency from grounded competence.",
-        trap: "Equating eloquence with understanding.",
+        title: "AI and your career — evidence, not anxiety",
+        hook:
+          "Every career conversation about AI is poisoned by two things: doomer hot-takes and consultancy-report hype. The honest truth — what the primary research actually shows — is more interesting and more useful than either.",
+        scenario:
+          "A mid-career learner asks: 'Is my job at risk?' The honest answer requires distinguishing three different claims the literature makes: (1) specific task automation, (2) job transformation, (3) labour-market displacement. Most career advice conflates them.",
+        visual:
+          "The Human-AI Collaboration Spectrum: tasks plotted from 'fully automatable' (high volume, well-defined, low-stakes) to 'fully human' (novel, ambiguous, high relational stakes). The middle zone — augmented work — is where most interesting current work lives.",
+        mechanism:
+          "Acemoglu & Restrepo (2022) decomposed 'automation' into task displacement vs. task reinstatement — the claim that automation always destroys jobs is empirically false; the claim that it transforms the task mix is strongly supported. The distinction matters because the second produces winners and losers inside the same occupation.",
+        callback:
+          "Uses M2 L7's output-evaluation skill: 'you will increasingly be the person reviewing AI's work — so the skill from L7 is not just a literacy skill, it is a career skill.'",
+        realCase:
+          "The Noy & Zhang MIT study (2023, Science) on ChatGPT and professional writing showed an average 40% time reduction and 18% quality improvement — AND the largest gains went to the lowest-performing writers, which is different from the narrative that 'AI benefits the most skilled.' Primary research complicates the narrative.",
+        challenge:
+          "Take your own occupation (or one you care about). Identify: three tasks in the 'automate' zone, three in the 'augment' zone, three that will remain fully human for the foreseeable future. Cite one piece of primary research for the zone you're most uncertain about.",
+        trap:
+          "Citing a consultancy report (McKinsey GI, Goldman Sachs) as if it were primary research. These are secondary syntheses with known directional bias. Primary research is the BLS Occupational Outlook, MIT Work of the Future, Acemoglu's NBER papers, specific peer-reviewed studies.",
+        retrievalCue:
+          "Before the next lesson: which specific piece of research did you find most decision-relevant for your career?",
       },
       {
-        title: "Why AI can be confidently wrong",
-        scenario: "A model invents a policy detail and states it with complete certainty in a context where the user most needs caution.",
-        visual: "Failure path from probability-based completion to fabricated certainty.",
-        challenge: "Run a verification pass on an AI answer and mark every claim that needs outside checking.",
-        trap: "Treating confidence as a signal of truth.",
+        title: "Capstone — a work-integrated AI workflow",
+        hook:
+          "This capstone is graded not on what you submit, but on whether you can defend your design choices using the concepts from this module.",
+        scenario:
+          "The learner picks a recurring task from their actual work. They design and document a human-AI workflow for it — which tool, which prompt pattern, which verification checkpoints, which failure modes they're explicitly designing around.",
+        visual:
+          "A workflow map with decision diamonds at each human-in-loop checkpoint. Each checkpoint labelled with the failure mode it catches.",
+        mechanism:
+          "Good workflow design is deliberate about where human judgment is inserted. The 7 failure modes provide a principled way to place checkpoints: a checkpoint exists BECAUSE a specific failure mode is predictable at that step.",
+        callback:
+          "Every lesson in the module is used: tool framework (L6), failure modes (L7), prompt pattern (L8), career context (L9).",
+        challenge:
+          "Submit the workflow as a one-page document: tool chosen + 5-dimension justification, prompt template with CoT, 2+ human checkpoints with the failure mode each catches, one measurable quality criterion. AI evaluator scores each dimension.",
+        trap:
+          "Designing a workflow that is AI-first instead of judgment-first. The best professional AI workflows leave more human judgment in place, not less — the AI is leverage, not substitute.",
       },
     ],
   },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // MODULE 3 — AI in Your Everyday Life
+  //
+  // Arc: the learner can now reason about AI (M1) and use it professionally
+  // (M2). This module is graduate-adjacent — it handles the places where AI
+  // intersects with domains that already have their own stakes and norms:
+  // health, money, creativity, privacy.
+  // ───────────────────────────────────────────────────────────────────────────
   {
     id: "ai-m3",
-    title: "Module 3 - Generative AI and the New Tool Landscape",
-    purpose: "Help learners choose the right AI tool and understand what generative systems are actually good at.",
+    title: "Module 3 — AI in Your Everyday Life",
+    purpose:
+      "Take M1's mechanisms and M2's evaluation skill into the four high-stakes domains where AI meets ordinary life — health, money, creativity, and privacy. The ambition is graduate-adjacent: mechanism-level understanding of sycophancy, inference chains, latent space, and the current legal landscape.",
     outcomes: [
-      "Differentiate search, chat, and generation.",
-      "Recognize major AI product categories.",
-      "Match the right type of AI help to the right kind of task.",
+      "Explain why AI symptom checkers systematically under-refer, in terms of the training loop.",
+      "Identify a generative-AI scam pattern from a single sentence and articulate the mechanism.",
+      "Describe, non-mathematically, what 'latent space' is and why it predicts AI's creative capabilities.",
+      "Map an inference chain from one piece of data you share to three downstream risks you did not consent to.",
+      "Navigate the current legal landscape: GDPR, CCPA, FDA SaMD, and active cases (Getty v. Stability AI, NYT v. OpenAI).",
     ],
-    signatureInteractions: ["Choose the right tool", "Search vs chat vs generate challenge"],
-    capstone: "Map 10 realistic tasks to the best AI tool type and defend your reasoning.",
-    estimatedMinutes: 80,
+    signatureInteractions: [
+      "Health decision tree: symptom → AI recommendation → your action (Trust / Verify / See doctor).",
+      "Scam red-flag reveal: read a message, flag every problematic phrase, compare to annotated version.",
+      "Style transfer demo: same prompt, three author personas, same underlying latent-space mechanics.",
+      "Inference chain builder: pick a piece of data you share weekly, map three downstream inferences.",
+    ],
+    capstone:
+      "Scenario-based assessment: the learner is given four real-seeming scenarios (one per domain) and must make a decision, cite the mechanism, and identify the risk they are consciously accepting.",
+    estimatedMinutes: 110,
     lessons: [
       {
-        title: "What generative AI is",
-        scenario: "One family of tools can produce text, images, code, and audio, but the risks differ across each output type.",
-        visual: "Modality wheel covering text, image, audio, video, and code generation.",
-        challenge: "List where generative AI helps you the most today and where its risks change by medium.",
-        trap: "Treating all generated outputs as equally reliable.",
+        title: "AI & health — sycophancy is the safety problem",
+        hook:
+          "AI symptom checkers are less likely to tell you to go to the ER than a human triage nurse would be. That is not a bug. It is the training objective, working as designed.",
+        scenario:
+          "A user describes chest pain to an AI symptom checker. It recommends rest. A human nurse with the same description would have said 'go to the ER now.' The AI is not worse at medicine — it is better at keeping users satisfied. Those are different goals.",
+        visual:
+          "Three-verdict frame: Trust AI / Verify before acting / See a clinician. Applied to 12 symptom scenarios with the mechanism-level reason behind each verdict.",
+        mechanism:
+          "AI health tools trained on user-satisfaction data converge on reassurance. Over-referral (sending people to the ER unnecessarily) hurts user ratings. Under-referral (missing a real emergency) is rare in training data, because people who actually went to the ER and had an emergency don't return to rate the chatbot. Training pressure is therefore asymmetric — and the model learns to reassure. This is sycophancy, the M2 L7 failure mode, showing up where it can kill someone.",
+        callback:
+          "Pulls on three earlier lessons: M1 L1 (the training loop), M1 L4 (Goodhart's Law: when user-satisfaction becomes the target, it stops being a good measure of medical accuracy), M2 L7 (sycophancy as a named failure mode).",
+        realCase:
+          "BabyCenter's symptom-checker audit (Semigran et al., 2015, BMJ) found that symptom checkers under-triaged — advised less urgent care than appropriate — in a majority of emergent cases tested. The FDA's Software as a Medical Device (SaMD) framework, published 2017 and revised since, exists specifically because this class of tool is high-risk and evolving.",
+        challenge:
+          "Given six symptom scenarios, produce the three-verdict classification for each. For each 'See a clinician' verdict, state the specific mechanism (why AI systematically fails this class of symptom).",
+        trap:
+          "Taking 'FDA-cleared' as equivalent to 'FDA-approved'. They are not the same regulatory category. FDA clearance (510(k)) is a lower bar than approval, and most AI health tools on the market are cleared, not approved.",
+        retrievalCue:
+          "Before the next lesson: what does 'voice cloning' actually require, technically, as of 2026?",
       },
       {
-        title: "LLMs in plain English",
-        scenario: "A learner sees radically different answers from the same model and realizes context and prompt structure shape the output path.",
-        visual: "Context window strip showing instructions, examples, retrieved facts, and output shaping.",
-        challenge: "Take one vague prompt and improve it by changing only the context and output format.",
-        trap: "Thinking the model has one stable answer independent of framing.",
+        title: "AI & money — the scams, the flash crashes, the algorithmic credit you don't see",
+        hook:
+          "Three seconds of your voice on a podcast is enough audio to clone you convincingly. A high-frequency AI trading system can move a market faster than a regulator can pick up a phone. Both are already deployed. Understanding how, not if, matters.",
+        scenario:
+          "A parent gets a call from their child's voice, in distress, asking for bail money. The voice is real — the call is not. A different learner notices that their credit-card application was declined in a decision that took 180 milliseconds. Both of these are AI. Both are invisible to most users.",
+        visual:
+          "Scam pattern accordion (voice cloning, deepfake video, spoofed-sender emails, authority impersonation) next to a timeline of AI-amplified market events (2010 Flash Crash, 2020 COVID-volatility amplification, 2023 deepfake-triggered trading spike).",
+        mechanism:
+          "Three mechanisms: (1) Voice cloning — modern models require as little as 3 seconds of audio (Microsoft VALL-E, ElevenLabs published thresholds). (2) Algorithmic trading — when hundreds of AI systems trained on similar data see the same signal, they react in microseconds and correlate; correlated selling cascades into flash crashes. (3) Algorithmic credit scoring — under FCRA, the factors used must be disclosable on request; most consumers do not know this right exists.",
+        callback:
+          "M1 L1 (what models can generate is directly determined by their training data — three seconds of audio is enough because voice models were trained on hours of varied speakers, not hours of YOU). M2 L7 (false precision: algorithmic credit scores often carry a false air of 3-decimal precision).",
+        realCase:
+          "The 2010 Flash Crash: the Dow dropped ~1000 points in minutes, recovering most of it within the half hour. SEC/CFTC joint report identified algorithmic-trading interaction as a key mechanism. This was not an AI attack; it was AI systems doing what they were designed to do, at scale, at the wrong moment.",
+        challenge:
+          "Audit your own financial AI exposure. Identify one algorithmic decision about you that you did not know was algorithmic. Describe, in one sentence, what right you have to contest it under existing law.",
+        trap:
+          "Thinking 'I wouldn't fall for a voice-cloning scam.' Current research on social-engineering attacks shows that the variable that predicts susceptibility is not intelligence or skepticism — it is situational load. A tired, stressed person in a hurry is vulnerable. Design defenses around that fact.",
+        retrievalCue:
+          "Before the next lesson: what is 'latent space' and why is it the concept that makes creative AI work?",
       },
       {
-        title: "Search, chat, and generation are not the same",
-        scenario: "Someone needs cited facts but uses a generation tool as if it were a search engine and ends up with polished uncertainty.",
-        visual: "Decision tree that begins with retrieve, converse, or create.",
-        challenge: "For five tasks, decide whether search, chat, or generation should come first and explain why.",
-        trap: "Mistaking synthesis for evidence retrieval.",
+        title: "AI & creativity — latent space, style, and the copyright landscape",
+        hook:
+          "The single most illuminating concept in generative AI is one most coverage skips: latent space. Once you have it, you understand why you can ask for 'a Van Gogh painting of a jazz musician' and get something coherent. You also understand exactly what's at stake in the copyright lawsuits.",
+        scenario:
+          "A graphic designer uses a generative model to create a marketing image. The client asks: was this trained on copyrighted work? Whose? The honest answer — 'yes, almost certainly, and the legal question is active in court' — requires understanding both the technology and the live cases.",
+        visual:
+          "Latent space as a conceptual map: dense cloud of 'document regions' — one dense region for 'Van Gogh painting', one for 'jazz musician', one for 'Picasso portrait'. A generative model interpolates between regions. Cleaner, non-mathematical, but mechanistically honest.",
+        mechanism:
+          "Diffusion and transformer-based image/text models represent concepts as positions in a high-dimensional space. 'Style transfer' is not style being COPIED — it is the prompt specifying a region in latent space (the Van Gogh cluster, say) and a subject (the jazz musician). The model samples from the intersection. This is why style transfer works and also why it is legally contested: the latent space was built from training data, and regions correspond to — are composed of — real works.",
+        callback:
+          "M1 L1 (weights as dials) extends here to 'weights as coordinates in concept space.' M2 L7 (specific failure modes show up in creative use — bias amplification is visible when a prompt for 'a CEO' overwhelmingly generates male images).",
+        realCase:
+          "Getty Images v. Stability AI (filed 2023, UK and US — ongoing, live as of 2026). The New York Times v. OpenAI (filed December 2023, ongoing). The EU AI Act's training data transparency provisions (in force August 2025). These are not settled — which means professional use of creative AI is being conducted under genuine legal uncertainty.",
+        challenge:
+          "Pick a creative AI use case in your work. Identify: (a) what latent-space regions the prompt is pointing at, (b) one specific legal question the use case raises under current law, (c) one workflow modification that reduces legal exposure without losing the benefit.",
+        trap:
+          "Thinking 'the legal question is settled because the EU AI Act exists.' It is not settled. GDPR, CCPA, the EU AI Act, and pending US case law address different pieces and conflict in places. Professionals need the current state, not a textbook answer.",
+        retrievalCue:
+          "Before the next lesson: you just shared your location with an app. Name three pieces of information that location alone reveals about you.",
       },
       {
-        title: "Common AI tool categories",
-        scenario: "A team buys a general assistant when what they really needed was an analyst or a domain-specific copilot.",
-        visual: "Landscape matrix for assistants, copilots, tutors, generators, analysts, and agents.",
-        challenge: "Map your current tool stack to the right categories and mark where the fit is poor.",
-        trap: "Assuming every AI product solves the same class of problem.",
+        title: "AI & privacy — the inference chain",
+        hook:
+          "The standard privacy conversation is about what data you share. The more important conversation is about what AI can INFER from what you share. You did not hand anyone your religion, your politics, your health conditions, or your income. The inference chain did.",
+        scenario:
+          "A user installs a weather app. It asks for 'precise location' — reasonable, for weather. They grant it. Six months later, a political campaign ad arrives that is uncannily targeted. The user did not share political views. The inference chain did.",
+        visual:
+          "The inference-chain diagram: one root data point (GPS location) branches into direct inferences (home, workplace, routine), which branch again into inferred attributes (income bracket, religious practice, medical conditions, political leaning), which feed downstream real-world consequences (insurance pricing, targeted ads, credit).",
+        mechanism:
+          "Modern AI systems do not require you to disclose a sensitive attribute to know it. Aggregated location data reveals religion (place-of-worship attendance patterns), politics (rally attendance), health (clinic visits), income (neighbourhood and retail patterns). Each of these is a probabilistic inference, but at data-broker scale the probabilities compound. 'Anonymised' data, in the sense the word is used in marketing materials, routinely re-identifies in published research (Sweeney, 2000; Narayanan & Shmatikov, 2008; countless replications since).",
+        callback:
+          "M2 L7 (evaluate the claims in a privacy policy the same way you evaluate AI output: what is the mechanism behind 'we anonymise your data'?). M1 L4 (the ethics quadrants — whose autonomy is violated when data you shared for one purpose is inferred-upon for another?).",
+        realCase:
+          "The Rite Aid FTC facial-recognition ban (December 2023): Rite Aid was banned from using facial recognition for five years after deploying a system that generated thousands of false positives, disproportionately affecting Black, Latino, Asian, and women customers. This is bias amplification (M2 L7) + privacy invasion + real consequences.",
+        challenge:
+          "Pick one piece of data you share weekly (location, purchases, search history, calendar). Map the inference chain: three direct inferences, three second-order inferences, three downstream risks you never explicitly consented to.",
+        trap:
+          "Relying on 'I'll just opt out.' Data broker ecosystems (Acxiom, LexisNexis, Equifax, CoreLogic, etc.) aggregate from thousands of sources; opting out of one leaves the inference intact. Meaningful privacy requires understanding the chain, not just the first link.",
       },
       {
-        title: "Where generative AI is strongest",
-        scenario: "A workflow improves dramatically when AI is used for first drafts and pattern synthesis, but degrades when AI is treated as final authority.",
-        visual: "Strength radar showing ideation, drafting, transformation, summarization, and pattern synthesis.",
-        challenge: "Design a first-draft-plus-human-review workflow for one recurring task.",
-        trap: "Using generative AI where final judgment still matters most.",
+        title: "Capstone — four scenarios, four decisions",
+        hook:
+          "Self-report checkboxes do not measure understanding. This capstone asks you to make real decisions in four scenarios and defend each decision using the mechanisms you've built up over three modules.",
+        scenario:
+          "Four realistic scenarios, one per domain, each requiring a specific decision and a specific mechanism-level justification: a health symptom + AI advice; a suspicious voice call from a family member; a client request to use AI for branded creative; an app requesting permissions.",
+        visual:
+          "A 2×2 decision matrix for each scenario: the four quadrants from Module 1 Lesson 4 (Autonomy / Beneficence / Non-maleficence / Justice) mapped against the specific facts of the scenario.",
+        mechanism:
+          "Performance assessment outperforms self-report across decades of education research (Nichols & Berliner, 2007 — multiple replications). What someone can DO in a scenario predicts transfer. What someone SAYS they understand does not.",
+        callback:
+          "Every prior lesson is touched. The scoring rubric explicitly checks that the decision is defended using the specific mechanism from the relevant lesson (sycophancy for health, inference chains for privacy, latent space for creativity, scam mechanisms for money).",
+        challenge:
+          "For each of the four scenarios: (a) the decision you make, (b) the specific mechanism your decision is responding to, (c) the risk you are consciously accepting. AI evaluator scores each response on a structured rubric: 25% decision-correctness, 50% mechanism-correctness, 25% risk-awareness.",
+        trap:
+          "Giving generic 'correct' decisions without mechanism. The rubric rewards specificity: 'I wouldn't trust the AI here because the user-satisfaction training loop produces under-referral in emergent symptoms' outscores 'I would see a doctor because AI can be wrong.'",
       },
     ],
   },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Modules 4–8 unchanged (awaiting same-depth revision in a follow-up pass).
+  // The rest of the file continues with the existing ai-m4 through ai-m8 seeds
+  // and the lr-* (Logic & Reason) seeds. See original foundationSeeds.ts for
+  // those; they are preserved verbatim below this block.
+  // ───────────────────────────────────────────────────────────────────────────
   {
     id: "ai-m4",
     title: "Module 4 - Where AI Fails",
