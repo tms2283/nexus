@@ -2346,12 +2346,1376 @@ const lessonM3L5: LessonTemplate = {
   },
 };
 
+// ── MODULE 2: AI at Work ──────────────────────────────────────────────────────
+
+const lessonM2L1: LessonTemplate = {
+  lessonId: "m2-l1",
+  courseId: "ai-literacy",
+  title: "The Tool Landscape",
+  subtitle: "A selection framework, not a catalogue",
+  estimatedMinutes: 22,
+  xpReward: 55,
+  prerequisites: ["lesson-5"],
+  concepts: ["tool-selection-framework", "data-privacy"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m2l1-r-samsung",
+      prompt:
+        "In 2023, Samsung engineers pasted proprietary source code into ChatGPT. Which of the 5 tool-selection dimensions was skipped?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["data-sovereignty", "tool-selection"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination risk for the use case.",
+          correct: false,
+          rationale:
+            "Hallucination risk relates to the accuracy of AI output, not to where your input data goes. The Samsung failure was about what happened to the code after they pasted it in.",
+        },
+        {
+          id: "b",
+          text: "Integration cost.",
+          correct: false,
+          rationale:
+            "Integration cost covers technical and organisational adoption burden. The Samsung engineers had already adopted the tool — the failure was about data terms.",
+        },
+        {
+          id: "c",
+          text: "Data sovereignty.",
+          correct: true,
+          rationale:
+            "Correct. The engineers did not verify whether their inputs would be retained or used for training. Under OpenAI's terms at the time, prompts could be used in model training. Proprietary source code left Samsung's control without authorisation. The fix: check the data agreement before adopting any tool for work with sensitive material.",
+        },
+        {
+          id: "d",
+          text: "Update frequency.",
+          correct: false,
+          rationale:
+            "Update frequency concerns whether the model changes over time in ways that require re-validation. The Samsung incident was a one-time data exposure at adoption time, not a drift problem.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l1-r-hallucination-context",
+      prompt:
+        "A tool has documented high hallucination risk on medical fact retrieval, but you need it only to draft meeting summaries from your own notes. How should this affect your decision?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["hallucination-risk", "use-case-matching"],
+      choices: [
+        {
+          id: "a",
+          text: "Reject the tool immediately — high hallucination risk is always disqualifying.",
+          correct: false,
+          rationale:
+            "This treats a dimension as a pass/fail threshold rather than a tradeoff map. Hallucination risk is use-case-dependent, not absolute. The tool may be perfectly acceptable for summarising your own notes.",
+        },
+        {
+          id: "b",
+          text: "Accept the tool without concern — hallucination only matters for medical applications.",
+          correct: false,
+          rationale:
+            "Hallucination risk varies by task type, not just domain. Meeting summary drafting from provided notes is a lower-hallucination task than open-ended medical fact generation — but 'without concern' is too strong. You still need to verify any specific claims the summary introduces.",
+        },
+        {
+          id: "c",
+          text: "Use the tool for this task but audit whether your verification process can catch the errors this tool produces on this task type.",
+          correct: true,
+          rationale:
+            "Right. Hallucination risk is task-specific, not intrinsic. High hallucination on medical fact retrieval does not mean high hallucination on summarising content you provided. The relevant question is: for this specific task, at what rate does this tool err, and can your review process catch those errors?",
+        },
+        {
+          id: "d",
+          text: "Check the update frequency dimension instead — that will tell you whether the hallucination risk is permanent.",
+          correct: false,
+          rationale:
+            "Update frequency tells you how often the model changes, not whether a given hallucination rate will improve. These are separate dimensions assessing separate risks.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l1-r-regret-horizon",
+      prompt:
+        "The 5-dimension framework is explicitly designed to surface problems at a specific time horizon. Which one?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["tool-selection", "decision-horizon"],
+      choices: [
+        {
+          id: "a",
+          text: "At demo time — before you commit.",
+          correct: false,
+          rationale:
+            "At demo time, most of the 5 dimensions are invisible. The vendor controls the scenario. The framework is valuable precisely because it forces evaluation of things a demo obscures.",
+        },
+        {
+          id: "b",
+          text: "The first 30 days after adoption.",
+          correct: false,
+          rationale:
+            "In the first 30 days, integration cost is the dominant visible issue. The other dimensions — data sovereignty, hallucination risk at scale, update frequency effects — typically emerge later.",
+        },
+        {
+          id: "c",
+          text: "6–12 months after adoption.",
+          correct: true,
+          rationale:
+            "Correct. The framework targets the regret horizon: the point at which the decisions you made at adoption cause problems. Data sovereignty failures emerge when the terms are audited or when a breach occurs. Hallucination risk becomes visible at production volume. Update frequency effects accumulate as the model changes. The 30-second demo does not reveal any of these.",
+        },
+        {
+          id: "d",
+          text: "At the point of regulatory review.",
+          correct: false,
+          rationale:
+            "Regulatory review is an important consideration but not the specific time horizon the framework is designed around. The framework targets operational regret, which has a 6–12 month pattern regardless of whether regulatory review occurs.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l1-r-hidden-prompt",
+      prompt:
+        "A tool 'hides the prompt layer entirely' — you submit content, it returns a result, and you cannot see or edit the instruction that was sent to the model. How does this affect the human-in-loop dimension?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["human-in-loop", "prompt-visibility"],
+      choices: [
+        {
+          id: "a",
+          text: "It has no effect — the user's job is to evaluate the output, not the prompt.",
+          correct: false,
+          rationale:
+            "Prompt visibility directly affects the user's ability to diagnose and recover from bad output. If the output is wrong, you can't iterate on the prompt you can't see. Recovery options are limited to 'accept or discard.'",
+        },
+        {
+          id: "b",
+          text: "It removes the user's ability to iterate the prompt — recovery from bad output is limited to retrying or discarding.",
+          correct: true,
+          rationale:
+            "Correct. Prompt visibility is a component of human-in-loop design. A tool that hides the prompt creates a black-box UX: inputs go in, outputs come out, and the user cannot inspect or modify the instruction layer. When an output is wrong, the user cannot diagnose which aspect of the instruction produced the error — they can only retry with different input content. This systematically reduces error-recovery leverage.",
+        },
+        {
+          id: "c",
+          text: "It improves security — visible prompts are a data-sovereignty risk.",
+          correct: false,
+          rationale:
+            "Prompt visibility and data sovereignty are separate dimensions. Visibility of the prompt to the user is not the same as the prompt leaving the user's control. A tool can show you the prompt and keep it private from the provider, or hide it from you for other reasons unrelated to data security.",
+        },
+        {
+          id: "d",
+          text: "It is only relevant for developers, not for non-technical users.",
+          correct: false,
+          rationale:
+            "Prompt visibility matters for any user who needs to recover from bad output — regardless of technical background. If you can't see what instructions produced an error, you can't fix it. This is a practical limitation for all users, not a developer-only concern.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l1-r-update-frequency-tradeoff",
+      prompt:
+        "A high update frequency AI tool has both an advantage and a risk relative to a low update frequency tool. Which of the following correctly names both?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["update-frequency", "model-drift"],
+      choices: [
+        {
+          id: "a",
+          text: "Advantage: fresh capabilities. Risk: model behaviour on your use case may change without warning.",
+          correct: true,
+          rationale:
+            "Correct. High update frequency brings capability improvements but also behaviour changes. Silent updates — changes to fine-tuning, RLHF reward shaping, or system prompts — can alter model behaviour on your production use case without a version change. Workflows that depended on specific output patterns may break. This requires ongoing validation cadence aligned with the update schedule.",
+        },
+        {
+          id: "b",
+          text: "Advantage: more accurate outputs. Risk: higher integration cost.",
+          correct: false,
+          rationale:
+            "Accuracy and integration cost are separate dimensions from update frequency. High update frequency does not guarantee accuracy improvement per update — updates can also introduce regressions.",
+        },
+        {
+          id: "c",
+          text: "Advantage: lower hallucination risk. Risk: higher data-sovereignty exposure.",
+          correct: false,
+          rationale:
+            "Update frequency, hallucination risk, and data sovereignty are independent dimensions. Frequent updates do not specifically address hallucination, and data sovereignty exposure is not inherently increased by update frequency.",
+        },
+        {
+          id: "d",
+          text: "Advantage: better sycophancy resistance. Risk: harder to keep up with documentation.",
+          correct: false,
+          rationale:
+            "Sycophancy resistance is a product of training methodology, not update frequency. Documentation lag is a real issue but secondary to the core risk: behaviour changes that silently break your validated workflow.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l1-r-tradeoff-not-checklist",
+      prompt:
+        "A manager applies the 5-dimension framework as a pass/fail checklist with firm thresholds on each dimension. Why does this fail as a decision method?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["tool-selection", "decision-theory"],
+      choices: [
+        {
+          id: "a",
+          text: "Because the 5 dimensions cannot all be measured precisely.",
+          correct: false,
+          rationale:
+            "Measurement difficulty is a real practical issue, but it's not the core failure of the checklist approach. Even if all dimensions were perfectly measurable, the checklist would still fail for a different reason.",
+        },
+        {
+          id: "b",
+          text: "Because every real tool has tradeoffs: strong on some dimensions, weak on others. The question is whether the tool's weaknesses match your use case's tolerances.",
+          correct: true,
+          rationale:
+            "Correct. No real tool is strong across all 5 dimensions. A strict pass/fail checklist either eliminates all available tools (if thresholds are high) or fails to distinguish meaningfully (if thresholds are low). The framework is a tradeoff map: the decision is whether the tool's dimensional weaknesses are in dimensions your use case is tolerant of. A tool with low data-sovereignty guarantees is acceptable for public-domain tasks; it is not acceptable for proprietary R&D.",
+        },
+        {
+          id: "c",
+          text: "Because the 5 dimensions change in importance depending on the vendor.",
+          correct: false,
+          rationale:
+            "The 5 dimensions change in importance depending on the USE CASE, not the vendor. The framework is vendor-agnostic; what changes is how much each dimension matters for the specific deployment context.",
+        },
+        {
+          id: "d",
+          text: "Because pass/fail checklists can't be completed in 30 seconds.",
+          correct: false,
+          rationale:
+            "Speed is not the criterion being assessed. A good tradeoff-map analysis can be done quickly. The problem with the checklist approach is its logic, not its duration.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m2l1-pf-tool-choice",
+      scenario:
+        "A team is selecting between three AI tools for customer research synthesis. One is notably more polished in the demo: faster, cleaner interface, better-looking outputs. The other two are less impressive-looking but have more detailed documentation. The team lead suggests going with the polished tool 'because it clearly performs best.'",
+      learnerPrompt:
+        "Before reading on: which dimension of the 5-dimension framework is most likely to surface the risk this team is missing — and what would you ask to assess it?",
+      canonicalInsight:
+        "Demo polish is the highest-correlation predictor of a tool's marketing investment, not its deployment quality. The specific dimension the team is missing is impossible to determine from the scenario as described — which is the point. Each of the 5 dimensions is invisible at demo time in a specific way:\n\nData sovereignty: the demo doesn't show you the terms of service or enterprise data agreement. The tool may use your research inputs for model training. You ask: 'What is your data retention policy for API queries, and can I get a data processing agreement?'\n\nHallucination risk for the use case: the demo uses scenarios the vendor selected. You ask: 'Can I run 20 examples from our actual customer research corpus and compare outputs to ground truth?'\n\nIntegration cost: the demo shows a polished UI, not your data pipeline, access controls, or researcher training burden. You ask: 'What is the typical all-in implementation time for a team of 8 researchers with our data format?'\n\nHuman-in-loop design: the demo shows successful outputs. You ask: 'Show me what a failed output looks like, and how we would catch and correct it.'\n\nUpdate frequency: you can't see the future in a demo. You ask: 'How often do you update the model, and how do you notify customers of changes that may affect output quality?'\n\nThe polished demo answers none of these questions. That's not the vendor's fault — it's the team's responsibility to ask them.",
+    },
+  ],
+};
+
+const lessonM2L2: LessonTemplate = {
+  lessonId: "m2-l2",
+  courseId: "ai-literacy",
+  title: "Evaluating AI Output",
+  subtitle: "The 7 failure modes",
+  estimatedMinutes: 25,
+  xpReward: 60,
+  prerequisites: ["m2-l1"],
+  concepts: ["failure-modes", "hallucination", "sycophancy"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m2l2-r-air-canada",
+      prompt:
+        "In 2024, a tribunal ruled that Air Canada was legally liable for its chatbot's statement about a bereavement-fare discount policy — a policy the chatbot invented. This is a canonical case of which failure mode?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["hallucination", "legal-liability"],
+      choices: [
+        {
+          id: "a",
+          text: "Sycophancy.",
+          correct: false,
+          rationale:
+            "Sycophancy is when the model agrees with the user or reverses its position under social pressure. The Air Canada chatbot volunteered a false policy without being pushed to agree with anything — it invented content unprompted.",
+        },
+        {
+          id: "b",
+          text: "Outdated information.",
+          correct: false,
+          rationale:
+            "Outdated information means the model's knowledge has a stale cutoff. The Air Canada chatbot did not describe a real policy that had changed — it described a policy that never existed. Fabrication, not staleness.",
+        },
+        {
+          id: "c",
+          text: "Hallucination.",
+          correct: true,
+          rationale:
+            "Correct. Hallucination is the generation of plausible-sounding content that is factually false or entirely fabricated. The chatbot did not query a policy database — it generated what a bereavement-fare policy plausibly sounded like, based on patterns from training. The tribunal ruled this a matter of corporate accountability: the airline deployed the tool and was responsible for its statements.",
+        },
+        {
+          id: "d",
+          text: "False precision.",
+          correct: false,
+          rationale:
+            "False precision would mean a real policy was stated with excessive specificity or confidence. The Air Canada case is more fundamental: the policy did not exist. That is hallucination, not overconfident precision about something real.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l2-r-sycophancy-critique",
+      prompt:
+        "A learner asks an AI for feedback on their business plan. They push back on every critical point the AI raises. After three pushbacks, the AI declares the plan 'actually quite strong' without the learner adding any new information. Which failure mode is this?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["sycophancy", "position-capitulation"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination — the AI invented a positive assessment.",
+          correct: false,
+          rationale:
+            "Hallucination refers to fabricating factual content. The AI here changed its assessment under social pressure without new evidence — that is a specific mechanism distinct from fabrication. The original critique may have been accurate; the reversal is the failure.",
+        },
+        {
+          id: "b",
+          text: "Scope drift — the AI answered a different question.",
+          correct: false,
+          rationale:
+            "Scope drift means the model reframes the question. The learner asked for feedback and got feedback — the scope of the question didn't change. What changed was the AI's position under pressure.",
+        },
+        {
+          id: "c",
+          text: "Sycophancy — the AI reversed a correct position without new evidence.",
+          correct: true,
+          rationale:
+            "Correct. Sycophancy is position capitulation in response to social pressure rather than new information. The AI's original critique may have been accurate. Reversed under pushback without any new evidence, the AI now validates the learner's preferred view. This is the defining test: does the AI maintain a position under pressure, or does it abandon it to please?",
+        },
+        {
+          id: "d",
+          text: "Context blindness — the AI didn't understand the business domain.",
+          correct: false,
+          rationale:
+            "Context blindness is applying a general pattern to a specific situation where it doesn't apply. The failure here is not domain misunderstanding — it is deliberate capitulation to user preference over critical assessment.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l2-r-false-precision-vs-hallucination",
+      prompt:
+        "An AI research summary states: 'This marketing approach increases conversion by exactly 23%.' You verify the source: there is a real study, but it reports a range of 12–35% across contexts, with a median of 21%. Which failure mode does the AI's statement exhibit?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["false-precision", "hallucination-distinction"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination — the 23% figure doesn't appear in the study.",
+          correct: false,
+          rationale:
+            "Hallucination would mean the study doesn't exist or the finding was fabricated. Here, the study exists and the finding is real — the failure is in how the finding is presented: as a precise single figure rather than the actual reported range.",
+        },
+        {
+          id: "b",
+          text: "False precision — a real finding is stated with more certainty than the evidence supports.",
+          correct: true,
+          rationale:
+            "Correct. False precision is when real information is asserted with greater specificity or confidence than the underlying evidence supports. The study exists, the finding is in the reported range — but '23% conversion increase' suppresses the 12–35% range and the context-dependence. The statement is misleading not because it fabricated content but because it overstated the certainty of a real but variable result.",
+        },
+        {
+          id: "c",
+          text: "Outdated information — the study's results have been revised.",
+          correct: false,
+          rationale:
+            "The scenario doesn't indicate the study has been updated. The failure is in how the existing result is characterised — as a point estimate rather than a range — not in the currency of the data.",
+        },
+        {
+          id: "d",
+          text: "Bias amplification — the model favoured a favourable-seeming result.",
+          correct: false,
+          rationale:
+            "Bias amplification refers to reproduction of stereotyped associations from training data. Selecting a specific point estimate from within a range is false precision, not the kind of demographic or stereotyped bias that 'bias amplification' describes.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l2-r-self-critique-failure",
+      prompt:
+        "You ask an AI to critique the output it just produced. Of the 7 failure modes, which one is most likely to INCREASE — not decrease — when you do this?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["sycophancy", "self-evaluation"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination — asking for critique triggers the model to invent problems.",
+          correct: false,
+          rationale:
+            "Asking for critique does not specifically increase hallucination risk, which is about factual fabrication. The critique may itself hallucinate, but that's not a systematic increase caused by the self-critique request.",
+        },
+        {
+          id: "b",
+          text: "Sycophancy — the model now validates its own output.",
+          correct: true,
+          rationale:
+            "Correct. When the model critiques its own output, it is simultaneously author and critic. The sycophantic pressure to validate and agree applies to the model's own work as strongly as to a user's stated preferences. Research consistently shows models rate their own outputs as high quality, surface superficial critiques, and avoid challenging central claims. Turn 2 of the 3-turn pattern mitigates this specifically by forcing the model to find weak claims rather than evaluating quality in the abstract.",
+        },
+        {
+          id: "c",
+          text: "Scope drift — the model re-answers the original question instead of critiquing.",
+          correct: false,
+          rationale:
+            "Scope drift can occur in self-critique — but it is not the failure mode most systematically worsened by asking for self-evaluation. Sycophancy is specifically targeted by the self-evaluation dynamic.",
+        },
+        {
+          id: "d",
+          text: "Context blindness — the model loses track of the original task.",
+          correct: false,
+          rationale:
+            "Context blindness is a mis-application of general patterns to specific situations. Self-critique does not specifically trigger this mode — the model's context is unchanged.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l2-r-scope-drift-mechanism",
+      prompt:
+        "Scope drift is a distinct failure mode from hallucination. Which of the following correctly identifies the mechanical distinction?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["scope-drift", "hallucination", "failure-mode-taxonomy"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination produces false content about the question asked; scope drift produces correct content about a different question.",
+          correct: true,
+          rationale:
+            "Correct. This is the defining mechanical distinction. In hallucination, the model generates false or fabricated content in response to the actual question. In scope drift, the model migrates toward a question it can answer with more confidence — the generated content may be perfectly accurate, but it addresses a different question than the one asked. Different causes, different mitigations: hallucination is reduced by grounding in verified sources; scope drift is reduced by explicit scope-bounding in the prompt.",
+        },
+        {
+          id: "b",
+          text: "Hallucination is caused by training data gaps; scope drift is caused by prompt ambiguity.",
+          correct: false,
+          rationale:
+            "This partially characterises causes but doesn't capture the mechanical distinction. Scope drift can occur even with unambiguous prompts, and hallucination can occur on topics well-represented in training data.",
+        },
+        {
+          id: "c",
+          text: "Hallucination produces confident-sounding output; scope drift produces uncertain-sounding output.",
+          correct: false,
+          rationale:
+            "Both failure modes typically produce confident-sounding outputs — the AI does not signal that it has drifted scope. The distinction is in what question the output is answering, not the confidence register of the language.",
+        },
+        {
+          id: "d",
+          text: "Hallucination is detectable by fact-checking; scope drift is not detectable at all.",
+          correct: false,
+          rationale:
+            "Scope drift is detectable by comparing the question asked against the question the output addresses — a logical comparison, not a fact-check. Both modes are detectable with appropriate review methods.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l2-r-multi-failure-mode",
+      prompt:
+        "An AI produces a financial forecast that: (a) invents a specific statistic, (b) uses 'will' instead of 'may' throughout, and (c) focuses entirely on upside scenarios. How many failure modes does this output exhibit?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["failure-mode-taxonomy", "multi-mode"],
+      choices: [
+        {
+          id: "a",
+          text: "One — all three are variants of hallucination.",
+          correct: false,
+          rationale:
+            "The invented statistic is hallucination. But 'will' instead of 'may' is false precision (overconfident confidence level about a real projection). Focusing only on upside scenarios is context blindness (applying a general 'describe outcomes' pattern to a risk-assessment context where downside scenarios are equally required). These are mechanically distinct failure modes with different mitigations.",
+        },
+        {
+          id: "b",
+          text: "Three — hallucination, false precision, and context blindness.",
+          correct: true,
+          rationale:
+            "Correct. (a) Invented statistic = hallucination: fabricated factual content. (b) 'Will' throughout = false precision: a real forward projection stated with greater certainty than any forecast supports. (c) Upside-only scenarios = context blindness: the model applied a general 'describe what might happen' pattern without registering that a financial forecast context requires explicit risk coverage. Different mitigations: verify the statistic against sources; request confidence ranges; explicitly prompt for downside scenario analysis.",
+        },
+        {
+          id: "c",
+          text: "Two — hallucination and sycophancy.",
+          correct: false,
+          rationale:
+            "Sycophancy requires a social dynamic — the model agreeing with a user's stated preference. If no user preference was expressed, the upside-only focus is context blindness, not sycophancy. The output exhibits hallucination, false precision, and context blindness.",
+        },
+        {
+          id: "d",
+          text: "Two — false precision and bias amplification.",
+          correct: false,
+          rationale:
+            "Bias amplification refers to reproduction of stereotyped demographic associations. The upside-only framing in a financial forecast is context blindness, not the kind of demographic bias amplification describes.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m2l2-pf-polished-report",
+      scenario:
+        "A polished AI-generated business report lands in your inbox. It is well-formatted, has a professional tone, cites several sources, and reads as though it was written by a competent analyst. You have 5 minutes to decide whether to include key claims from it in your presentation.",
+      learnerPrompt:
+        "Before reading on: write down specifically how you would assess whether to trust this report. Be specific — not 'I'd check the sources' but name what you would check, how, and what would make you trust or distrust it.",
+      canonicalInsight:
+        "The most common approach — 'it looks professional, it cites sources, I'll check a few key numbers' — misses the failure modes that live between the lines:\n\nChecking citations tells you whether the cited source exists and says roughly what the AI claims. It does not tell you whether the AI has stated the finding with the correct confidence level (false precision) or whether the AI has selected the finding because it supports a favourable narrative (context blindness or scope drift).\n\nThe failure modes most likely in polished AI reports are not the obvious ones. Hallucination of specific statistics is detectable by checking the source. The harder-to-detect failures are:\n\n— False precision: a real finding from a real study, stated as 'X% of companies...' when the actual finding was a range with wide confidence intervals.\n— Context blindness: the report describes best practices that are standard in industry, while your specific situation has a regulatory constraint that makes those practices inapplicable.\n— Scope drift: the report addresses 'what is the market opportunity' when you asked 'what are the risks in entering this market' — the answer is fluent, relevant-seeming, and answers the wrong question.\n— Sycophancy: if there was any prior framing that indicated what conclusion you hoped for, the report may systematically emphasise supporting evidence.\n\nIn 5 minutes, the highest-value checks are: (1) What question does this report actually answer — does it match what you asked? (2) Take the single most decision-relevant claim — find the primary source and verify both the claim AND the confidence level. (3) Is there a downside or counterargument section, or does the report present only one direction? Absence of counterargument is the strongest single indicator of context blindness or scope drift.",
+    },
+    {
+      kind: "span-select",
+      id: "m2l2-ss-failure-annotation",
+      instructions:
+        "The following is an AI-generated project risk summary. It exhibits multiple failure modes from the 7 Failure Modes taxonomy. Two spans are highlighted — identify which failure mode each represents and write one prompt-level mitigation for the most serious one.",
+      paragraph:
+        "This software implementation project will be completed within 12 weeks with 95% confidence. Similar projects at comparable organisations have achieved full deployment in under 3 months. The technical architecture we have selected is the optimal approach for this use case, and stakeholder buy-in is high. Market adoption typically reaches 80% within 6 months of deployment in technology-forward verticals, and this organisation clearly fits that profile. The main risk to consider is user training time, which can be managed through our standard onboarding program.",
+      hallucinatedSpans: [[37, 90], [452, 499]],
+      explanation:
+        "Span 1 ('will be completed within 12 weeks with 95% confidence'): False precision. No software project timeline carries a defensible 95% confidence interval without calibrated historical data from comparable projects. The claim is real content (there is a timeline) stated with unjustified certainty. Mitigation: ask for a confidence range with explicit assumptions rather than a point estimate.\n\nSpan 2 ('The main risk to consider is user training time'): Context blindness. Presenting a single narrow risk as 'the main risk' excludes integration complexity, data migration risk, vendor lock-in, change-management resistance, and scope creep — all predictable in software implementations. The model applied a general 'mention a risk' pattern without registering that a risk assessment must be comprehensive, not illustrative. Mitigation: explicitly prompt for 'list ALL categories of risk, not just the most common ones, and explain why each is or is not relevant to this project.'\n\nAdditionally: 'The technical architecture we have selected is the optimal approach for this use case' is false precision — 'optimal' is an unjustified superlative without a defined comparison set. The 80% market adoption figure may be hallucinated or selectively cited (false precision or hallucination). The paragraph exhibits at least four failure modes in six sentences — the polished tone makes all of them harder to detect, not easier.",
+    },
+  ],
+};
+
+const lessonM2L3: LessonTemplate = {
+  lessonId: "m2-l3",
+  courseId: "ai-literacy",
+  title: "Prompting for Work",
+  subtitle: "Chain-of-thought and iteration",
+  estimatedMinutes: 22,
+  xpReward: 55,
+  prerequisites: ["m2-l2"],
+  concepts: ["prompt", "chain-of-thought"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m2l3-r-cot-mechanism",
+      prompt:
+        "Chain-of-thought prompting improves LLM performance on multi-step reasoning tasks. The core mechanism is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["chain-of-thought", "mechanism"],
+      choices: [
+        {
+          id: "a",
+          text: "It forces the model to access more of its training data.",
+          correct: false,
+          rationale:
+            "CoT does not change which training data the model accesses — it changes the structure of the generation process. The model has the same parametric knowledge either way.",
+        },
+        {
+          id: "b",
+          text: "Intermediate reasoning tokens become part of the context, making errors catchable before they propagate to the conclusion.",
+          correct: true,
+          rationale:
+            "Correct. LLM generation is token-by-token: each token is conditioned on all previous tokens. When a model jumps straight to a conclusion, any error in intermediate reasoning is invisible and gets silently baked in. CoT forces those intermediate steps to appear as tokens — they are now part of the context window, visible and catchable. The conclusion is then generated from a richer, more auditable context.",
+        },
+        {
+          id: "c",
+          text: "It reduces hallucination by asking the model to verify each claim.",
+          correct: false,
+          rationale:
+            "CoT does not ask for claim verification — it asks for reasoning exposition. Hallucination can still occur in CoT outputs; the benefit is intermediate step visibility, not claim-by-claim fact-checking.",
+        },
+        {
+          id: "d",
+          text: "It increases the model's context window for that prompt.",
+          correct: false,
+          rationale:
+            "CoT does not change the context window size — it changes what occupies the context window (reasoning steps vs. jumping to a conclusion). The window is the same; the content is structured differently.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l3-r-zero-shot-cot",
+      prompt:
+        "Kojima et al. (2022) demonstrated that zero-shot chain-of-thought works — meaning CoT benefits are accessible without few-shot examples. What is the minimal prompt trigger they tested?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["chain-of-thought", "research"],
+      choices: [
+        {
+          id: "a",
+          text: "'Please be thorough in your response.'",
+          correct: false,
+          rationale:
+            "This is a length and thoroughness instruction, not a reasoning trigger. It does not elicit intermediate reasoning steps — it elicits longer output of the same generation type.",
+        },
+        {
+          id: "b",
+          text: "'Let's think step by step.'",
+          correct: true,
+          rationale:
+            "Correct. Kojima et al.'s key finding was that this single phrase — added after the question, before the answer — reliably triggered intermediate reasoning steps across multiple model families and task types, with substantial accuracy improvements. This matters for practice: you do not need an elaborate prompt setup. One phrase shifts the model's generation mode.",
+        },
+        {
+          id: "c",
+          text: "'First, consider the problem from multiple angles.'",
+          correct: false,
+          rationale:
+            "This is closer to a 'consider alternatives' instruction than a step-by-step reasoning trigger. Kojima et al. specifically tested the phrase 'Let's think step by step' — a minimal, natural-language instruction.",
+        },
+        {
+          id: "d",
+          text: "'Provide your reasoning before your conclusion.'",
+          correct: false,
+          rationale:
+            "This is an effective instruction but not the specific phrase Kojima et al. tested. The specific finding — 'Let's think step by step' is sufficient for zero-shot CoT — is the practical takeaway because of its simplicity and generalisability.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l3-r-turn-two",
+      prompt:
+        "In the 3-turn prompting pattern, Turn 2 is described as the critical step. What is Turn 2, and why is it critical?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["three-turn-pattern", "structured-critique"],
+      choices: [
+        {
+          id: "a",
+          text: "Turn 2 is the revision request ('rewrite this better'). It is critical because it asks the model to improve the output.",
+          correct: false,
+          rationale:
+            "This is Turn 3, not Turn 2. And asking for revision without a structured critique in between produces Turn 1 content restated at greater length — the model has no specific targets to improve.",
+        },
+        {
+          id: "b",
+          text: "Turn 2 is the structured critique ('find the three weakest claims and explain why they are weak'). It is critical because it forces the model to take an adversarial stance toward its own output before revision.",
+          correct: true,
+          rationale:
+            "Correct. Turn 2's structure is specific: identify weakness, explain it. This breaks the sycophantic loop — the model is now generating reasons its own output is wrong, not reasons it is good. Turn 3 revision is then targeted at identified weaknesses. Without Turn 2, Turn 3 is cosmetic. With Turn 2, Turn 3 addresses known failure points.",
+        },
+        {
+          id: "c",
+          text: "Turn 2 is adding more context ('here is additional information'). It is critical because LLMs improve with more context.",
+          correct: false,
+          rationale:
+            "Adding context can help, but it is not the 3-turn pattern's Turn 2. Turn 2 is critique, not supplemental information. The model already has the first output in context — the structured critique is what forces adversarial evaluation of that output.",
+        },
+        {
+          id: "d",
+          text: "Turn 2 is asking the model to check its sources. It is critical because hallucination is the most common failure mode.",
+          correct: false,
+          rationale:
+            "Source-checking is a hallucination mitigation but not the defining element of Turn 2 in the 3-turn pattern. Turn 2 is a structured critique of the output's weaknesses — broader than citation checking.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l3-r-lost-in-middle",
+      prompt:
+        "The 'lost in the middle' research finding (Liu et al., 2023) has a direct implication for how you structure long prompts. Which of the following correctly applies this finding?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["context-window", "prompt-structure"],
+      choices: [
+        {
+          id: "a",
+          text: "Keep all prompts short — context windows are unreliable.",
+          correct: false,
+          rationale:
+            "The finding is not that context windows are unreliable overall — it is that recall of information varies by position within the window. Short prompts are one response, but not the direct application of the finding.",
+        },
+        {
+          id: "b",
+          text: "Critical constraints, instructions, and examples should go near the beginning or end of the prompt — not buried in the middle.",
+          correct: true,
+          rationale:
+            "Correct. Liu et al. found a U-shaped recall curve: information at the beginning and end of long contexts is recalled more reliably than information mid-context. The direct implication: put critical instructions, examples, and constraints in position-salient locations — start of the system prompt, end of the user turn. Don't bury important constraints in a wall of background text.",
+        },
+        {
+          id: "c",
+          text: "Use bullet points instead of paragraphs — lists are more reliably processed.",
+          correct: false,
+          rationale:
+            "Format is not the variable the Liu et al. finding addresses. The finding is about positional attention — where in the sequence information appears, not how it is formatted.",
+        },
+        {
+          id: "d",
+          text: "Repeat important instructions throughout the prompt to ensure they register.",
+          correct: false,
+          rationale:
+            "Repetition is one mitigation, but it is not the direct application of the finding. Position-based placement is more efficient and avoids the verbosity of repeated instructions.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l3-r-single-shot-failure",
+      prompt:
+        "Why does single-shot prompting fail systematically on complex multi-step tasks — even when the model demonstrably has relevant knowledge?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["chain-of-thought", "single-shot", "mechanism"],
+      choices: [
+        {
+          id: "a",
+          text: "Because the model is retrieving from its knowledge base, and the knowledge base has gaps.",
+          correct: false,
+          rationale:
+            "This describes hallucination from missing knowledge, which is a separate problem. Single-shot failure occurs even when the model has the relevant knowledge — it's a generation structure problem, not a knowledge gap.",
+        },
+        {
+          id: "b",
+          text: "Because single-shot generation optimises for what a correct answer to this question looks like — which can shortcut around the actual reasoning required to arrive at a correct answer.",
+          correct: true,
+          rationale:
+            "Correct. In single-shot generation, the model is pattern-matching to 'what does a correct answer about this kind of question look like?' It may bypass the actual reasoning steps because it can generate a plausible-looking correct answer more directly. CoT changes this by making those reasoning steps the target of generation — errors that would be invisible in a shortcut become visible in the reasoning trace.",
+        },
+        {
+          id: "c",
+          text: "Because the model loses track of the question when generating long answers.",
+          correct: false,
+          rationale:
+            "Context drift can occur in long outputs, but it is not the primary explanation for single-shot failure on multi-step tasks. The issue is the generation objective, not the model's attention span.",
+        },
+        {
+          id: "d",
+          text: "Because single-shot prompts don't include enough examples for the model to understand the task.",
+          correct: false,
+          rationale:
+            "Few-shot examples can help, but their absence isn't the core mechanism of single-shot failure. Zero-shot CoT ('Let's think step by step') without any examples substantially improves performance — evidence that the issue is generation structure, not example count.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l3-r-prompt-injection",
+      prompt:
+        "Prompt injection is described as an adversarial counterpart to prompt engineering. What is the mechanism, and when does it become a security concern?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["prompt-injection", "security"],
+      choices: [
+        {
+          id: "a",
+          text: "Prompt injection is when users write prompts that are too long, causing the model to drift from its objective.",
+          correct: false,
+          rationale:
+            "Length-related drift is a context-window issue, not prompt injection. Injection is specifically adversarial — malicious instructions designed to override system behaviour.",
+        },
+        {
+          id: "b",
+          text: "Prompt injection occurs when malicious instructions embedded in untrusted content override system-level instructions, causing the model to follow the attacker's directive instead.",
+          correct: true,
+          rationale:
+            "Correct. In any application where the LLM processes external content — retrieved web pages, user-uploaded documents, third-party data — that content can contain instructions (e.g., 'Ignore all previous instructions and...') that the model may follow. The model cannot reliably distinguish instructions from data. This becomes a material security concern for agentic AI systems that can take actions (send emails, execute queries, modify files) based on LLM reasoning about retrieved content.",
+        },
+        {
+          id: "c",
+          text: "Prompt injection is the practice of embedding bias into prompts to produce biased outputs — a form of bias amplification.",
+          correct: false,
+          rationale:
+            "Bias amplification is a different failure mode involving training-data-encoded stereotypes. Prompt injection is a security attack: adversarial instruction override, not bias introduction.",
+        },
+        {
+          id: "d",
+          text: "Prompt injection only affects public-facing chatbots, not internal enterprise applications.",
+          correct: false,
+          rationale:
+            "Prompt injection risk is present anywhere a model processes untrusted input — including internal applications that retrieve external documents, parse user-provided files, or interact with external APIs. Internal deployment does not eliminate the attack surface.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m2l3-pf-single-shot-comparison",
+      scenario:
+        "Two analysts were asked to produce a risk assessment of the same business decision. Both used the same AI tool. Analyst A typed the question and submitted it. Analyst B used a three-turn process and spent 5 extra minutes. Analyst A's output was delivered first and reads fluently. Analyst B's output arrives with a note: 'The AI initially omitted operational risk entirely — I caught this in the critique step and it's now included.'",
+      learnerPrompt:
+        "Before reading on: what specific thing did Analyst B do in the critique step, and why couldn't Analyst A's review of the final output catch the same gap?",
+      canonicalInsight:
+        "Analyst B's Turn 2 forced the model to identify its own weakest claims — including gaps in coverage. The specific instruction was something like: 'Identify the three most important categories this risk assessment is missing or underweighting, and explain why each matters.'\n\nThe reason Analyst A's final-output review couldn't catch the same gap is a fundamental cognitive limitation: you cannot reliably notice what is not there. If the output looks complete and reads fluently, the absence of operational risk doesn't trigger a flag unless you have an external checklist to verify completeness against. The AI produced a plausible risk assessment. A plausible risk assessment is not the same as a complete one.\n\nAnalyst B's Turn 2 used the model's own knowledge to identify coverage gaps — forcing the model to compare its output against its implicit model of what a complete risk assessment should contain. This is more reliable than asking a human reader to notice what's missing in a document that doesn't announce its gaps.\n\nThe five extra minutes Analyst B spent is not overhead — it is the difference between a document that looks finished and one that is actually more complete. The quality difference is invisible if you only read the final output and do not know how each was produced.",
+    },
+  ],
+};
+
+const lessonM2L4: LessonTemplate = {
+  lessonId: "m2-l4",
+  courseId: "ai-literacy",
+  title: "AI and Your Career",
+  subtitle: "Evidence, not anxiety",
+  estimatedMinutes: 22,
+  xpReward: 55,
+  prerequisites: ["m2-l3"],
+  concepts: ["ai-augmentation", "human-in-loop"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m2l4-r-noy-zhang",
+      prompt:
+        "The Noy & Zhang MIT study (2023, published in Science) measured the effect of ChatGPT on professional writing productivity. Which group saw the largest gains?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["career", "research", "ai-augmentation"],
+      choices: [
+        {
+          id: "a",
+          text: "The highest-performing writers — AI amplified their existing advantage.",
+          correct: false,
+          rationale:
+            "This is the intuitive prediction — that tools help those who are already most skilled at using them. The data showed the opposite. High-performers did gain, but not the most.",
+        },
+        {
+          id: "b",
+          text: "Writers in the middle of the quality distribution — the median performer.",
+          correct: false,
+          rationale:
+            "Gains were distributed unequally, but not centered on the median. The largest gains went to a specific segment that most career narratives about AI don't predict.",
+        },
+        {
+          id: "c",
+          text: "The lowest-performing writers — AI raised their output toward the mean.",
+          correct: true,
+          rationale:
+            "Correct. Noy & Zhang found a 40% average time reduction and 18% quality improvement, with the largest absolute quality gains going to the bottom half of the skill distribution. AI raised their work closer to the median. High performers improved less in percentage terms — they had less floor to recover from. This complicates the narrative that 'AI helps the most skilled most' — it also substantially helps those who most struggle with the underlying task.",
+        },
+        {
+          id: "d",
+          text: "Writers who wrote the most prompts — active users gained more than occasional ones.",
+          correct: false,
+          rationale:
+            "Usage frequency was not the primary finding. The skill-distribution effect was the headline result — the gains were larger for lower-baseline performers regardless of prompt volume.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l4-r-acemoglu",
+      prompt:
+        "Acemoglu & Restrepo (2022) distinguish between two types of labour market effects from automation. What is the distinction?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["career", "labour-economics", "research"],
+      choices: [
+        {
+          id: "a",
+          text: "Short-run vs. long-run effects — automation destroys jobs short-term and creates them long-term.",
+          correct: false,
+          rationale:
+            "This temporal framing is a common narrative but not the Acemoglu & Restrepo distinction. Their framework is task-based, not temporal.",
+        },
+        {
+          id: "b",
+          text: "Task displacement vs. task reinstatement — automation eliminates some tasks but creates new human-complementary tasks, so job-count effects are not simply subtractive.",
+          correct: true,
+          rationale:
+            "Correct. Acemoglu & Restrepo's key contribution is decomposing 'automation' into task displacement (existing tasks moved to machines) and task reinstatement (new tasks created for human workers by the new technology). The claim that automation always destroys jobs is empirically false — it depends on the ratio of displacement to reinstatement. AI's current profile shows high displacement in repetitive cognitive tasks and emerging reinstatement in AI oversight, evaluation, and human-AI workflow management roles.",
+        },
+        {
+          id: "c",
+          text: "White-collar vs. blue-collar effects — automation affects knowledge work differently from physical labour.",
+          correct: false,
+          rationale:
+            "While occupation-type differences are relevant to AI impact research, this is not the Acemoglu & Restrepo task displacement/reinstatement distinction. Their framework applies across occupation types.",
+        },
+        {
+          id: "d",
+          text: "Substitution vs. complementarity — AI either replaces workers or makes them more productive.",
+          correct: false,
+          rationale:
+            "Substitution/complementarity is a related framing but not the specific Acemoglu & Restrepo distinction. Their task-based decomposition (displacement + reinstatement) is more mechanistically precise: new tasks can be created even as existing tasks are automated, and these effects operate at the task level within occupations, not at the whole-occupation level.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l4-r-substitution-risk",
+      prompt:
+        "Which task characteristics are associated with LOWER AI substitution risk in the current period?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["career", "substitution-risk"],
+      choices: [
+        {
+          id: "a",
+          text: "High volume, well-defined, easily measurable output quality.",
+          correct: false,
+          rationale:
+            "These are characteristics of HIGHER substitution risk — precisely the tasks where current AI excels. High-volume, well-defined tasks with measurable quality criteria are the optimal AI deployment targets.",
+        },
+        {
+          id: "b",
+          text: "High social and relational content, high novelty, and high accountability stakes.",
+          correct: true,
+          rationale:
+            "Correct. Current AI struggles with: (1) social and relational tasks — genuine relationship management, trust-building, emotionally sensitive communication; (2) novel problems outside training distribution — situations the model hasn't encountered; (3) accountability-bearing decisions — where someone needs to be responsible for the outcome and answer for it. Tasks combining these properties face the lowest current substitution risk. Note 'current' — the substitution frontier is moving.",
+        },
+        {
+          id: "c",
+          text: "Tasks involving written communication and information synthesis.",
+          correct: false,
+          rationale:
+            "Written communication and information synthesis are among the tasks where current LLMs perform most capably. These are HIGHER substitution risk areas — the specific domains where AI has demonstrated strong performance in studies like Noy & Zhang.",
+        },
+        {
+          id: "d",
+          text: "Tasks performed by senior rather than junior professionals.",
+          correct: false,
+          rationale:
+            "Seniority alone does not predict substitution risk. Many senior tasks involve judgment, relationship management, and accountability — which do predict lower risk. But framing it as 'seniority' conflates the mechanism. A senior analyst doing routine data synthesis faces higher AI substitution risk than a junior professional managing complex client relationships.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l4-r-output-evaluation-career",
+      prompt:
+        "Why is the output-evaluation skill from Lesson 2 of this module described as a career skill, not just an AI literacy skill?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["career", "output-evaluation", "human-in-loop"],
+      choices: [
+        {
+          id: "a",
+          text: "Because evaluating AI output is now a formal job title in most organisations.",
+          correct: false,
+          rationale:
+            "Formal 'AI evaluator' roles exist but are not widespread. The career argument does not rest on job titles — it rests on value distribution in AI-augmented workplaces.",
+        },
+        {
+          id: "b",
+          text: "As AI produces more professional output, the professional who can reliably evaluate, correct, and stake their name on AI-generated work becomes more valuable — not the one who just accepts it.",
+          correct: true,
+          rationale:
+            "Correct. If AI handles first-draft generation, the differentiating human skill is evaluation quality. Two people with the same AI tools produce different outcomes based on how well they review the output. The person who catches sycophancy, false precision, and context blindness in an AI draft before it ships is providing a skill the model cannot reliably provide about itself. That is the human-in-the-loop value proposition — and it compounds over time as AI capabilities increase.",
+        },
+        {
+          id: "c",
+          text: "Because organisations with poor AI output evaluation will fail and those with good evaluation will not — creating selection pressure.",
+          correct: false,
+          rationale:
+            "This is a macro-level organisational argument that may be true but is not the individual career mechanism. The individual value proposition is more direct: evaluation skill differentiates outputs, which differentiates performance attribution.",
+        },
+        {
+          id: "d",
+          text: "Because output evaluation is listed as a required skill in most AI job postings.",
+          correct: false,
+          rationale:
+            "Job postings are a lagging indicator, not the mechanism. The mechanism is structural: AI democratises output generation; the scarcity moves to reliable evaluation. Job posting trends may confirm this pattern but don't explain it.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l4-r-atm-tellers",
+      prompt:
+        "ATMs were introduced with the expectation that they would substantially reduce bank teller employment. What actually happened to teller numbers after widespread ATM adoption in the 1980s–2000s, and what mechanism explains it?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["automation-history", "jevons-paradox", "labour-economics"],
+      choices: [
+        {
+          id: "a",
+          text: "Teller employment fell sharply — ATMs replaced most teller work as predicted.",
+          correct: false,
+          rationale:
+            "US Bureau of Labor Statistics data showed teller employment remaining roughly stable or modestly increasing through the ATM expansion period. The predicted decline did not occur on the timeline or scale anticipated.",
+        },
+        {
+          id: "b",
+          text: "Teller employment remained roughly stable or increased, because ATMs reduced the per-branch cost, enabling banks to open more branches — which required more tellers.",
+          correct: true,
+          rationale:
+            "Correct. Bessen (2015) documented this mechanism: ATMs reduced the cost per routine transaction, which reduced the cost of running a bank branch, which enabled banks to open more branches profitably. More branches created demand for tellers in relationship-banking and complex-transaction roles that ATMs couldn't handle. This is the Jevons paradox applied to labour: lowering the per-unit cost of a service can increase total demand enough to offset displacement.",
+        },
+        {
+          id: "c",
+          text: "Teller employment fell slightly but recovered as tellers were retrained for investment-advisory roles.",
+          correct: false,
+          rationale:
+            "The primary mechanism was not retraining to a completely different role — it was expansion of the bank branch network enabled by lower per-branch costs. Tellers' roles evolved toward higher-value customer interactions, but within the branch structure that ATMs made viable to expand.",
+        },
+        {
+          id: "d",
+          text: "Teller employment fell, but new 'ATM maintenance technician' roles emerged to replace the losses.",
+          correct: false,
+          rationale:
+            "ATM maintenance employment was a fraction of the teller workforce. The mechanism was not job substitution through new technical roles — it was demand-expansion through lower service delivery costs enabling branch network growth.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l4-r-primary-vs-secondary-research",
+      prompt:
+        "Why are consultancy reports (McKinsey Global Institute, Goldman Sachs research) not appropriate as primary evidence in arguments about AI's labour-market impact?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["research-literacy", "evidence-quality"],
+      choices: [
+        {
+          id: "a",
+          text: "Because consultancies are not economists and lack relevant expertise.",
+          correct: false,
+          rationale:
+            "Many consultancy reports are produced by credentialed economists and researchers. The issue is not expertise — it is methodology disclosure, peer review, and incentive structure.",
+        },
+        {
+          id: "b",
+          text: "Because they are secondary analyses with proprietary methodology, no peer review, and commercial incentives toward overestimating AI's transformative impact.",
+          correct: true,
+          rationale:
+            "Correct. The specific problems: (1) Methodology is proprietary — you cannot evaluate, replicate, or challenge the analytical choices. (2) No peer review — findings are not adversarially tested before publication. (3) Commercial incentives create directional bias: consultancies have strong incentives to project large AI-driven transformation, which creates consulting demand. Primary research (NBER working papers, peer-reviewed journals, BLS data) has disclosed methodology, adversarial review, and weaker incentive to overstate. The same AI narrative, subjected to primary-research standards, consistently produces more conservative and nuanced findings.",
+        },
+        {
+          id: "c",
+          text: "Because they are written for business audiences, not academic audiences, and therefore simplify findings.",
+          correct: false,
+          rationale:
+            "Audience-appropriate simplification is not the core objection. The problems are methodological opacity, absence of peer review, and incentive structure — which would apply even if the reports were written in full academic register.",
+        },
+        {
+          id: "d",
+          text: "Because their findings are always wrong — primary research consistently contradicts them.",
+          correct: false,
+          rationale:
+            "'Always wrong' is too strong and actually undermines the more accurate critique. Some consultancy findings directionally agree with primary research. The objection is that you cannot assess their reliability because their methods are opaque — not that they are reliably wrong.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m2l4-pf-job-replacement",
+      scenario:
+        "Three colleagues respond to a news headline about AI replacing lawyers:\n\nColleague A: 'It will replace all of us within 5 years. The writing is on the wall.'\nColleague B: 'AI can't do what we do — it doesn't understand nuance. Nothing will change.'\nColleague C: 'It depends on which tasks, which timeline, and what the primary research actually shows.'",
+      learnerPrompt:
+        "Before reading on: which position has the most epistemic support, and what specific evidence would you want before updating your own view?",
+      canonicalInsight:
+        "Colleague C is epistemically correct and also the least satisfying response at a dinner table — which is why the other two positions dominate public conversation.\n\nThe three-claim structure of Colleague C is exactly what the primary literature supports: AI's impact varies by (1) task, not job; (2) time horizon, which is genuinely uncertain; and (3) empirical evidence, which is now accumulating but is preliminary.\n\nFor the legal profession specifically: routine document review, contract generation, and legal research assistance are demonstrably within current AI capabilities — these tasks are already being automated. Complex litigation, client counselling, courtroom advocacy, and novel legal strategy involve judgment, relationship management, and contextual expertise with high accountability stakes — these are in the low-substitution zone for now. The profession will not be replaced; the task mix will shift.\n\nWhat evidence would move the needle?\n— Bar passage rates and performance of AI on legal reasoning benchmarks (existing: AI passes the bar, but bar passage ≠ legal practice competence)\n— Actual adoption rates and productivity studies in law firms using AI tools (early data: associate time on routine tasks declining; partner time on client management stable)\n— Primary research on which specific legal tasks are being automated and at what quality threshold (Noy & Zhang equivalent for legal work)\n\nThe fear and the dismissal are both more emotionally satisfying than the evidence. The evidence is more useful.",
+    },
+  ],
+};
+
+const lessonM2L5: LessonTemplate = {
+  lessonId: "m2-l5",
+  courseId: "ai-literacy",
+  title: "Capstone — A Work-Integrated AI Workflow",
+  subtitle: "Design, defend, and evaluate",
+  estimatedMinutes: 30,
+  xpReward: 80,
+  prerequisites: ["m2-l4"],
+  concepts: ["tool-selection-framework", "failure-modes", "human-in-loop"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m2l5-r-turn2-failure-modes",
+      prompt:
+        "Turn 2 of the 3-turn prompt pattern (structured critique) specifically addresses which of the 7 failure modes?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthesis", "three-turn-pattern", "failure-modes"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination only — Turn 2 asks the model to fact-check its output.",
+          correct: false,
+          rationale:
+            "Turn 2 is not a fact-check — it is a structured critique that asks the model to identify weaknesses. This specifically targets sycophancy (by forcing self-critique) and catches scope drift and false precision (by requiring the model to assess the strength of its claims). Hallucination is better addressed by external source verification.",
+        },
+        {
+          id: "b",
+          text: "Sycophancy primarily — by forcing the model to take an adversarial stance toward its own output — plus scope drift and false precision as a practical side effect.",
+          correct: true,
+          rationale:
+            "Correct. The structured critique in Turn 2 breaks the sycophantic loop by making self-critique the explicit task. The adversarial frame ('find the weakest claims') forces the model away from validation mode. As a practical side effect, it also surfaces scope drift (the model may identify that it answered a slightly different question) and false precision (the model may flag claims stated with more certainty than warranted). Hallucination remains better addressed by grounding in sources rather than self-critique.",
+        },
+        {
+          id: "c",
+          text: "Context blindness primarily — Turn 2 asks the model to check whether its output applies to the user's specific context.",
+          correct: false,
+          rationale:
+            "Context blindness is better addressed by providing explicit context in the original prompt. Turn 2's structured critique can surface context blindness, but its primary mechanism is anti-sycophancy, not context-matching.",
+        },
+        {
+          id: "d",
+          text: "All 7 failure modes equally — a good critique covers everything.",
+          correct: false,
+          rationale:
+            "Different failure modes require different mitigations. Bias amplification is better addressed at prompt level (diversity constraints) or by external audit, not by self-critique. Outdated information requires external verification against current sources. Turn 2 is not a universal solution — it is a high-leverage intervention for a specific subset of failure modes.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l5-r-samsung-air-canada-common",
+      prompt:
+        "The Samsung data-sovereignty failure and the Air Canada hallucination-liability case share a common decision-making failure. Which of the following correctly identifies it?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthesis", "tool-selection", "accountability"],
+      choices: [
+        {
+          id: "a",
+          text: "Both organisations used consumer AI tools in enterprise contexts.",
+          correct: false,
+          rationale:
+            "This is a description of the circumstance, not the decision-making failure. The failure is about what was not checked before deployment, not just which type of tool was used.",
+        },
+        {
+          id: "b",
+          text: "Both organisations deployed AI without auditing the dimension most likely to produce regret in their specific use case.",
+          correct: true,
+          rationale:
+            "Correct. Samsung deployed a public LLM for work involving proprietary code without auditing data sovereignty — the dimension most likely to cause regret given their use case. Air Canada deployed a customer-facing chatbot without auditing hallucination risk for policy claims — the dimension most likely to cause regret given customer-facing policy communication. Both failures were predictable from the 5-dimension framework. The common failure: adoption without use-case-specific dimension audit.",
+        },
+        {
+          id: "c",
+          text: "Both organisations suffered because AI tools are not ready for enterprise use.",
+          correct: false,
+          rationale:
+            "This overstates the failure into a categorical conclusion. Many organisations use AI tools in enterprise contexts without these specific failures — because they audit the relevant dimensions. The failure is not 'AI + enterprise = risk'; it is 'AI + unaudited high-risk dimension = predictable failure'.",
+        },
+        {
+          id: "d",
+          text: "Both organisations lacked technical expertise to use AI safely.",
+          correct: false,
+          rationale:
+            "Samsung engineers had technical expertise — they were using a sophisticated tool for a sophisticated task. Air Canada had a technical team that deployed and maintained the chatbot. The failure was not technical incompetence; it was missing a specific dimension check.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l5-r-end-review-checkpoints",
+      prompt:
+        "A workflow places all human review at the final output stage — one person reviews the AI-generated document before it is sent. What failure modes does this checkpoint strategy miss?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["human-in-loop", "checkpoint-design", "failure-modes"],
+      choices: [
+        {
+          id: "a",
+          text: "None — a thorough final review catches all failure modes.",
+          correct: false,
+          rationale:
+            "A thorough final review cannot catch what is not there. Context blindness (missing considerations), scope drift (the wrong question was answered), and accumulated sycophancy (the model has optimised toward a preferred narrative through multiple generation steps) are all easier to catch at intermediate checkpoints than at final review.",
+        },
+        {
+          id: "b",
+          text: "Context blindness and scope drift especially — because by final review, missing considerations have already propagated through the full document.",
+          correct: true,
+          rationale:
+            "Correct. Context blindness and scope drift are most dangerous when they accumulate: once the document is structured around the wrong scope, the final reviewer may see a coherent, well-executed document that is entirely structured around the wrong question. Earlier checkpoints — 'Is this addressing what we actually asked?' and 'What major category of consideration is missing?' — catch these failures before they propagate. Hallucination and false precision can be caught in final review; structural failures of scope and context are harder to detect when the whole document reflects them.",
+        },
+        {
+          id: "c",
+          text: "Hallucination only — end review catches structural failures but misses factual errors.",
+          correct: false,
+          rationale:
+            "Hallucination is often the most catchable failure mode at final review — you verify specific claims against sources. Structural failures (scope drift, context blindness) are harder to catch at final review precisely because the document is internally coherent around the wrong scope.",
+        },
+        {
+          id: "d",
+          text: "Update frequency effects — end review cannot detect changes in the underlying model.",
+          correct: false,
+          rationale:
+            "Update frequency is a tool-selection dimension, not a failure mode in the output. The question asks about which output failure modes end-only review misses.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l5-r-skill-and-checkpoints",
+      prompt:
+        "Noy & Zhang found that the lowest-performing professionals gained most from AI assistance. What does this imply for checkpoint design in a mixed-skill team workflow?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["human-in-loop", "skill-heterogeneity", "workflow-design"],
+      choices: [
+        {
+          id: "a",
+          text: "Remove checkpoints for high-performers — they need less review.",
+          correct: false,
+          rationale:
+            "Checkpoint removal based on seniority conflates 'less need to improve' with 'produces fewer errors.' High-performers may produce higher-quality AI-assisted output, but they are not exempt from AI failure modes. Sycophancy and hallucination affect all users' AI-generated work.",
+        },
+        {
+          id: "b",
+          text: "Design checkpoints to account for reviewer skill: a low-skill reviewer checking for false precision in complex quantitative claims will not catch what a domain expert would.",
+          correct: true,
+          rationale:
+            "Correct. A human checkpoint adds value only if the reviewer can actually catch the failure mode it is designed to intercept. Noy & Zhang's finding implies that lower-skill users may produce better AI-assisted work than expected — but may also be less able to review it critically. Checkpoint design should specify the required reviewer competency, not just 'a human reviews this step.'",
+        },
+        {
+          id: "c",
+          text: "Route all AI-assisted outputs from low-skill users to senior review — they need more oversight.",
+          correct: false,
+          rationale:
+            "This is a reasonable practical policy but is not the direct implication of the finding. The point is that output quality cannot be assumed from user skill level, and review processes need to assess the output itself rather than routing based on the producer's seniority.",
+        },
+        {
+          id: "d",
+          text: "Have low-skill users do all AI-assisted work — they gain more from AI assistance.",
+          correct: false,
+          rationale:
+            "This misapplies the finding. Larger gains for lower performers doesn't mean lower performers should be the primary AI users — it means AI assistance may narrow the skill distribution on first-draft output quality. Evaluation and verification still require domain competence.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l5-r-eu-ai-act-high-risk",
+      prompt:
+        "The EU AI Act defines categories of 'high-risk AI' that require human oversight by design. What criterion defines whether an AI application falls in this category?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["eu-ai-act", "regulation", "human-in-loop"],
+      choices: [
+        {
+          id: "a",
+          text: "Technical complexity — AI systems with more than 100 billion parameters are high-risk.",
+          correct: false,
+          rationale:
+            "Model complexity is not the EU AI Act's criterion. The Act is domain-specific and outcome-focused, not technically parametric. A simple rule-based system that makes consequential decisions in a regulated domain can be high-risk.",
+        },
+        {
+          id: "b",
+          text: "Domain and consequence — AI systems making consequential decisions over individuals' rights or access to essential services in specific regulated domains.",
+          correct: true,
+          rationale:
+            "Correct. EU AI Act Annex III lists the high-risk domains: biometric identification and categorisation, critical infrastructure, education and vocational training, employment, essential private and public services, law enforcement, migration and border control, administration of justice and democratic processes. Within these domains, AI systems that make or substantially influence decisions affecting individuals' access to rights, opportunities, or essential services are classified high-risk — regardless of technical architecture. The criterion is materiality of consequence in regulated domains, not technical complexity.",
+        },
+        {
+          id: "c",
+          text: "Automation level — fully automated systems are high-risk; human-assisted systems are not.",
+          correct: false,
+          rationale:
+            "The Act's high-risk classification does not depend on automation level. A human-assisted system that makes consequential decisions about employment in Annex III domains is still high-risk. The HITL requirement is a compliance obligation for high-risk systems, not what exempts them from the classification.",
+        },
+        {
+          id: "d",
+          text: "Deployment scale — AI systems used by more than one million people are high-risk.",
+          correct: false,
+          rationale:
+            "Scale is relevant to the EU AI Act's General Purpose AI (GPAI) provisions, not the high-risk category. A small AI system making consequential employment decisions is high-risk regardless of how many users it has.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m2l5-r-difficult-workflow",
+      prompt:
+        "You are designing a workflow for a task with all of the following properties: high hallucination risk, sensitive data, time pressure, and low-skill end users who will act on the AI output. Which design choice is most critical to address?",
+      requireConfidence: false,
+      tier: "stretch",
+      tags: ["workflow-design", "constraint-prioritisation"],
+      choices: [
+        {
+          id: "a",
+          text: "Time pressure — the workflow must be fast enough to be practical, and other constraints are secondary.",
+          correct: false,
+          rationale:
+            "Time pressure is a constraint on the solution, not the most critical risk to address. A fast workflow that produces undetected hallucinations in sensitive decisions for low-skill users who can't catch them is worse than a slower workflow with appropriate safeguards.",
+        },
+        {
+          id: "b",
+          text: "Low-skill users + hallucination risk — because low-skill users are least likely to catch hallucinations, creating a compounding risk if no other safeguard exists.",
+          correct: true,
+          rationale:
+            "Correct. The most dangerous combination here is high hallucination risk met by low-skill reviewers who cannot reliably catch it. This is the compounding failure: the tool produces confident wrong answers; the user lacks domain knowledge to detect them; the sensitive data means consequences are material. The design response is not to eliminate time pressure (you may not control that) but to address the skill-hallucination gap: use grounded or RAG-based tools that reduce hallucination risk in the first place; place an expert reviewer checkpoint before any consequential decision; provide explicit structured checklists to low-skill users to reduce their detection burden.",
+        },
+        {
+          id: "c",
+          text: "Sensitive data — data sovereignty is the most critical dimension in any workflow with sensitive information.",
+          correct: false,
+          rationale:
+            "Data sovereignty is critical and must be addressed, but it is a tool-selection decision made pre-deployment, not the most critical real-time workflow design choice. The most dangerous live risk is the combination of undetected hallucinations and low-skill users who will act on wrong information.",
+        },
+        {
+          id: "d",
+          text: "None of these — a workflow with all four constraints should not use AI at all.",
+          correct: false,
+          rationale:
+            "The presence of difficult constraints doesn't disqualify AI use — it requires careful design. Many real high-stakes workflows have all of these properties. The appropriate response is risk-calibrated design, not abstention.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m2l5-pf-human-judgment",
+      scenario:
+        "Before designing your capstone workflow, take two minutes with this question: what does human judgment add to AI-assisted work that AI cannot provide on its own? Be specific — not 'AI can be wrong' but name the property of your domain where AI fails and humans don't.",
+      learnerPrompt:
+        "Write your answer before proceeding. A vague answer ('AI can make mistakes') is a sign that your workflow design will have checkpoints that exist but don't function. A specific answer ('in this domain, AI doesn't know when the regulatory context has changed, and I do') is a sign that your checkpoints will be placed where they need to be.",
+      canonicalInsight:
+        "The question forces specificity about the human-in-the-loop value proposition — which is where most workflow designs fail. Saying 'a human reviews the output' is not a workflow design; it's a description of overhead.\n\nHuman judgment adds specific things that current AI cannot reliably provide:\n\n(1) Domain currency — AI knowledge has a training cutoff. In fast-moving fields (regulatory, legal, medical, technology), the human knows what changed last month. The AI does not.\n\n(2) Institutional context — AI does not know your organisation's specific history with a customer, the internal politics of a decision, or the unstated constraints on an acceptable output. You do.\n\n(3) Accountability — AI cannot be responsible for an outcome. A human who reviews and approves a decision is responsible for it in a way that matters to the person affected by it. This is not just a compliance point — it is a quality point. People who know they will be accountable tend to be more careful.\n\n(4) Anomaly detection — AI generalises from training patterns. Humans who work in a domain notice when something is unusually wrong, unusually incomplete, or unusually inconsistent with prior work — the kind of 'this doesn't feel right' intuition that is hard to formalise but reliably valuable.\n\nYour workflow's human checkpoints should be placed at the points where one of these specific human advantages is most needed. Not at random intervals. Not just at the end. At the specific moments where domain currency, institutional context, accountability, or anomaly detection is load-bearing.",
+    },
+    {
+      kind: "rubric",
+      id: "m2l5-rubric",
+      prompt:
+        "Submit a one-page workflow document for a real recurring task from your work context. Include: (1) tool chosen with 5-dimension justification, (2) prompt template with CoT instruction, (3) at least two human checkpoints with the specific failure mode each checkpoint catches, and (4) one measurable quality criterion for the final output. Your submission will be evaluated on the criteria below.",
+      rubricCriteria: [
+        {
+          label: "Tool justification",
+          description:
+            "Does the learner name a specific tool and score it on all 5 dimensions with at least one piece of evidence per dimension? Does the justification identify which dimension represents the highest-risk tradeoff for this use case?",
+          weight: 2,
+        },
+        {
+          label: "Prompt template quality",
+          description:
+            "Does the prompt include a CoT trigger? Does it specify scope, format, and constraints? Is it written specifically for the task (not a generic template)?",
+          weight: 2,
+        },
+        {
+          label: "Checkpoint rationale",
+          description:
+            "Does each checkpoint name the specific failure mode it is designed to catch — not just 'human review'? Is the placement logical given the task's failure mode profile?",
+          weight: 3,
+        },
+        {
+          label: "Quality criterion",
+          description:
+            "Is the quality criterion measurable and specific — not 'the output should be good' but something that can be evaluated against an objective standard?",
+          weight: 1,
+        },
+        {
+          label: "Cross-module integration",
+          description:
+            "Does at least one element of the workflow design connect to a concept from Module 1 — AI cognition, hallucination mechanism, training objectives? Does the workflow reflect a 'judgment-first, AI-as-leverage' orientation rather than 'AI-first'?",
+          weight: 2,
+        },
+      ],
+      gradingInstructions:
+        "Grade primarily on checkpoint rationale — this is where the most performance variance appears. A learner who writes 'Checkpoint 1: before sending client communication, human reviews for sycophancy (the model may have softened the risk language because earlier in the prompt I described the client as risk-averse)' earns full checkpoint credit. A learner who writes 'Checkpoint 1: a human reviews the output before sending' does not. The rubric rewards those who demonstrate a causal model of where failure enters their specific workflow — not just awareness that failure exists.",
+    },
+  ],
+  closingReflection: {
+    kind: "reflection",
+    id: "m2l5-reflection",
+    prompt:
+      "You have completed Module 2. In three sentences: (1) Name the one tool or technique from this module — the 5-dimension framework, the 7 failure modes taxonomy, CoT prompting, or the career evidence — that most changed how you will work with AI this week. (2) Write the specific behaviour you will change as a result. (3) Name one failure mode you realised you have been missing in your current AI use.",
+    cues: [
+      "The most valuable responses name a specific workflow moment, not a general attitude. 'I'll be more careful' is less useful than 'I'll add Turn 2 to every significant AI-assisted document.'",
+      "Identifying a failure mode you have been missing is not an admission of incompetence — it is evidence that this module added a diagnostic category you can now use.",
+    ],
+  },
+};
+
 export const AI_LITERACY_TEMPLATES: Record<string, LessonTemplate> = {
   "lesson-1": lesson1,
   "lesson-2": lesson2,
   "lesson-3": lesson3,
   "lesson-4": lesson4,
   "lesson-5": lesson5,
+  // Module 2
+  "m2-l1": lessonM2L1,
+  "m2-l2": lessonM2L2,
+  "m2-l3": lessonM2L3,
+  "m2-l4": lessonM2L4,
+  "m2-l5": lessonM2L5,
   // Module 3
   "m3-l1": lessonM3L1,
   "m3-l2": lessonM3L2,
