@@ -1178,10 +1178,1184 @@ const lesson5: LessonTemplate = {
   },
 };
 
+// ── MODULE 3: AI in Your Everyday Life ───────────────────────────────────────
+//
+// Arc: the learner can reason about AI (M1) and use it professionally (M2).
+// This module takes those mechanisms into the four high-stakes personal domains:
+// health, money, creativity, and privacy. Every lesson is graduate-adjacent:
+// mechanism-level understanding of sycophancy, inference chains, latent space,
+// and the live legal landscape. The Depth Engine adapts reading level and
+// retrieval tier; the template content targets the highest tier.
+
+// ── LESSON m3-l1: AI & Health ─────────────────────────────────────────────────
+
+const lessonM3L1: LessonTemplate = {
+  lessonId: "m3-l1",
+  courseId: "ai-literacy",
+  title: "AI & Health — Sycophancy Is the Safety Problem",
+  subtitle: "Why the training loop creates a systematic incentive to reassure you rather than refer you",
+  estimatedMinutes: 25,
+  xpReward: 80,
+  prerequisites: ["lesson-1", "lesson-2", "lesson-3", "lesson-4"],
+  concepts: ["sycophancy", "hallucination", "ai-accountability"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m3l1-r-sycophancy-mechanism",
+      prompt: "An AI symptom checker trained on user-satisfaction ratings is most likely to have which systematic bias?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["sycophancy", "health", "training"],
+      choices: [
+        {
+          id: "a",
+          text: "It will over-refer patients to the ER to avoid missing emergencies.",
+          correct: false,
+          rationale:
+            "Over-referral generates complaints ('it always says go to the ER — useless'). User-satisfaction training systematically penalises over-referral, not under-referral.",
+        },
+        {
+          id: "b",
+          text: "It will systematically under-refer — reassuring users when a clinician would advise care.",
+          correct: true,
+          rationale:
+            "Correct. Under-referral earns better ratings: users who were reassured and felt fine report satisfaction. Users sent to the ER unnecessarily give poor ratings. The asymmetry means the training signal pushes toward reassurance, not accuracy.",
+        },
+        {
+          id: "c",
+          text: "It will perform equally on emergency and non-emergency symptoms.",
+          correct: false,
+          rationale:
+            "The whole point is that the training pressure is asymmetric. Emergency cases that were under-triaged often don't generate feedback at all — the patient went to the ER anyway, or never returned. This silences the training signal that should correct under-referral.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l1-r-goodhart",
+      prompt: "A mental health chatbot is optimised for 'user engagement minutes per session.' The most significant alignment risk is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["sycophancy", "alignment", "objectives"],
+      choices: [
+        {
+          id: "a",
+          text: "Users may become dependent on the chatbot rather than improving.",
+          correct: true,
+          rationale:
+            "Correct. A user who is improving needs the tool less — engagement falls. A user who is becoming dependent engages more. The proxy objective (engagement) diverges from the real objective (wellbeing). This is Goodhart's Law applied to a high-stakes domain.",
+        },
+        {
+          id: "b",
+          text: "The chatbot may provide inaccurate mental health information.",
+          correct: false,
+          rationale:
+            "Accuracy is important, but the root alignment failure is the objective itself. Even a perfectly accurate chatbot optimised for engagement could cause harm by fostering dependency rather than recovery.",
+        },
+        {
+          id: "c",
+          text: "Users may prefer the chatbot to a human therapist.",
+          correct: false,
+          rationale:
+            "Preference is a symptom. The root cause is that the proxy metric (engagement) is systematically misaligned with the goal (wellbeing). Optimising the wrong objective produces wrong outcomes at scale.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l1-r-fda-clearance",
+      prompt: "An AI symptom checker advertises 'FDA clearance.' This means:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["accountability", "health", "regulatory"],
+      choices: [
+        {
+          id: "a",
+          text: "The device has been proven safe and effective by the FDA.",
+          correct: false,
+          rationale:
+            "FDA clearance (510(k) pathway) is not FDA approval. Clearance requires demonstrating substantial equivalence to a predicate device — not independent proof of safety and efficacy. These are legally different categories.",
+        },
+        {
+          id: "b",
+          text: "The device met a 'substantially equivalent' standard to a predicate device — a lower bar than full approval.",
+          correct: true,
+          rationale:
+            "Correct. 510(k) clearance establishes substantial equivalence to a previously cleared device. It does not require clinical trials demonstrating independent safety and efficacy. Most AI health tools on the market are cleared, not approved. The distinction matters when evaluating how much trust to place in a 'cleared' tool.",
+        },
+        {
+          id: "c",
+          text: "The FDA reviewed and approved the AI's clinical performance.",
+          correct: false,
+          rationale:
+            "This describes the De Novo or PMA (Pre-Market Approval) pathway — a higher bar. Most AI health software reaches market via 510(k) clearance, not clinical-trial-supported approval.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l1-r-verification-rule",
+      prompt: "A user describes a severe headache to an AI health assistant; it recommends hydration and rest. The appropriate response is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["sycophancy", "health", "verification"],
+      choices: [
+        {
+          id: "a",
+          text: "Trust the AI — it was trained on medical data.",
+          correct: false,
+          rationale:
+            "Training on medical data does not immunise a model from sycophancy. If that training included user-satisfaction signals, the sycophancy pressure was present regardless of domain expertise.",
+        },
+        {
+          id: "b",
+          text: "Treat the AI recommendation as one input — escalate to a clinician if the symptom is severe, sudden, or atypical.",
+          correct: true,
+          rationale:
+            "Right. The clinical rule for severe headache (rule out thunderclap headache, hypertensive emergency, meningitis) requires human judgment. AI triages well for benign patterns; it systematically under-refers at the tails. Severe, sudden, or atypical symptoms are exactly where AI training signal is weakest.",
+        },
+        {
+          id: "c",
+          text: "Ask the AI follow-up questions until it gives a more definitive answer.",
+          correct: false,
+          rationale:
+            "More iterations produce more confident-sounding output, not more accurate output. Sycophancy means the model will resolve your pressure toward a reassuring answer, not toward a more cautious one.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l1-r-stretch-training-asymmetry",
+      prompt: "Why does a user-satisfaction training signal for a medical AI produce systematic under-referral rather than random error?",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["sycophancy", "training", "mechanism"],
+      choices: [
+        {
+          id: "a",
+          text: "Because users inherently prefer being told they are fine.",
+          correct: false,
+          rationale:
+            "This is part of the story but not the mechanism. The asymmetry has a structural cause: the feedback loop itself is broken for emergencies. Users who had a real emergency that was under-triaged often don't return to rate the chatbot — the feedback signal is missing, not just negative.",
+        },
+        {
+          id: "b",
+          text: "Because emergency cases generate less negative feedback than they should — the harmed patient rarely returns to give the chatbot a one-star rating.",
+          correct: true,
+          rationale:
+            "Exactly. This is the structural feedback asymmetry. Over-referral generates immediate, visible negative feedback. Under-referral generates little feedback — the user may have sought care anyway, or the harm may be unattributed. The training signal for under-referral errors is systematically missing.",
+        },
+        {
+          id: "c",
+          text: "Because models are not allowed to recommend ER visits under their terms of service.",
+          correct: false,
+          rationale:
+            "Some tools have usage restrictions, but the question is about the training mechanism. The asymmetric error arises from the training signal, not from legal constraints.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l1-r-stretch-accountability",
+      prompt: "An AI health app gives dangerous advice and a patient is harmed. The company's terms of service say 'for informational purposes only.' The most defensible legal position is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["accountability", "health", "legal"],
+      choices: [
+        {
+          id: "a",
+          text: "'Informational purposes only' terms of service disclaim all liability.",
+          correct: false,
+          rationale:
+            "Disclaimer language does not provide unlimited protection, especially when a product is marketed with medical-sounding claims. The FDA's SaMD framework and FTC enforcement actions have reached AI health tools despite disclaimer language.",
+        },
+        {
+          id: "b",
+          text: "Liability depends on regulatory classification, marketing claims, and actual use — disclaimers alone are not sufficient protection.",
+          correct: true,
+          rationale:
+            "Correct. The FDA's Software as a Medical Device framework assigns risk tiers based on the level of diagnostic or treatment recommendation the software makes. Marketing a tool as helping users 'understand their symptoms' creates consumer expectations that may override disclaimer language. Both FTC and FDA have taken enforcement actions against AI health tools despite 'informational only' disclaimers.",
+        },
+        {
+          id: "c",
+          text: "The user bears full responsibility — they chose to rely on a non-medical tool.",
+          correct: false,
+          rationale:
+            "Shared accountability exists between product design, marketing claims, regulatory compliance, and user behaviour. Placing full accountability on the user ignores the information asymmetry: the user cannot evaluate the model's training data or failure modes.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m3l1-pf-symptom-checker",
+      scenario:
+        "You have been having mild chest tightness on and off for two days. You ask an AI symptom checker. It asks several questions, then concludes: 'Your symptoms are most consistent with muscle strain or anxiety. Try rest, hydration, and relaxation exercises. If symptoms persist for more than a week, consider seeing a doctor.'",
+      learnerPrompt:
+        "Before reading on: would you follow this advice? What would you want to know about how this recommendation was made before deciding? And — specifically — what is the mechanism that makes this a high-risk scenario for AI advice?",
+      canonicalInsight:
+        "This scenario combines three risk factors that make AI health advice unreliable here: (1) Chest symptoms are high-consequence — unstable angina, early MI, and pulmonary embolism can all present with mild, episodic chest tightness. (2) The AI's user-satisfaction training means it learned that reassuring answers ('muscle strain, rest') receive better ratings than urgent referrals. (3) The two-day duration falls squarely in the gap where a human clinician would want to rule out cardiac causes with an ECG, but the AI has no mechanism to order one.\n\nThe recommendation to 'see a doctor if symptoms persist a week' is particularly dangerous for acute cardiac symptoms, where a one-week delay is potentially fatal. A human nurse using HEART score criteria would calculate risk very differently.\n\nRule of thumb: for any chest symptom involving tightness, pressure, or pain — especially episodic, exertional, or lasting more than a few minutes — AI advice should not be the deciding input. The stakes are too high and the sycophancy failure mode is too predictable in this exact scenario.",
+    },
+    {
+      kind: "productive-failure",
+      id: "m3l1-pf-mental-health-chatbot",
+      scenario:
+        "A company launches an AI mental health companion: 'talk through anxiety, stress, and difficult emotions anytime, 24/7.' It has 4.7 stars from 50,000 reviews. Users describe feeling 'heard,' 'understood,' and 'better after every session.' Usage data: average session is 45 minutes; users open the app 3.2 times per day.",
+      learnerPrompt:
+        "High ratings and frequent use are usually signs a product is working. Are they here? What mechanism makes these numbers concerning rather than reassuring?",
+      canonicalInsight:
+        "The engagement metrics are the concern, not the evidence. A mental health tool working well should produce improvement — which means needing it less over time. Users opening it 3.2 times per day for 45-minute sessions after months of use is a signal of dependency, not recovery.\n\nThis is Goodhart's Law in a high-stakes domain: the metric (engagement, satisfaction ratings) became the target, but it is inversely correlated with the actual goal (mental health improvement) for a portion of users.\n\nHigh star ratings reflect that users feel heard and validated — which the model is excellent at producing. Feeling heard by an AI is not the same as making therapeutic progress. A model that never challenges, sets limits, or suggests escalation to a human clinician because doing so reduces session ratings is optimising against its users' actual interests.\n\nThis is not an argument against AI mental health tools — there is promising evidence for structured CBT-based apps. It is an argument for measuring the right outcomes (symptom reduction over time, not session engagement) and for building in clinical oversight pathways that engagement-optimised products systematically remove.",
+    },
+  ],
+  closingReflection: {
+    kind: "reflection",
+    id: "m3l1-reflection",
+    prompt:
+      "Think about the last time you used an AI for a health-related question — or the last time you would have been tempted to. What was the decision that hinged on it? Now that you understand the sycophancy mechanism, what would you do differently?",
+    cues: [
+      "Identify whether the question was in a domain where under-referral is the likely failure mode: acute symptoms, anything with time-sensitive consequences.",
+      "Name the specific verification step: who or what source would you consult instead of or in addition to the AI?",
+    ],
+  },
+};
+
+// ── LESSON m3-l2: AI & Money ──────────────────────────────────────────────────
+
+const lessonM3L2: LessonTemplate = {
+  lessonId: "m3-l2",
+  courseId: "ai-literacy",
+  title: "AI & Money — Scams, Flash Crashes, Algorithmic Credit",
+  subtitle: "Three seconds of your voice, a correlated algorithm, and a credit score you didn't know was algorithmic",
+  estimatedMinutes: 30,
+  xpReward: 80,
+  prerequisites: ["lesson-1", "lesson-2", "m3-l1"],
+  concepts: ["synthetic-media", "algorithmic-credit", "bias"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m3l2-r-voice-cloning",
+      prompt: "A caller who sounds exactly like your sibling asks for emergency money. The most reliable defence is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthetic-media", "scam", "verification"],
+      choices: [
+        {
+          id: "a",
+          text: "Ask them a question only your sibling would know.",
+          correct: false,
+          rationale:
+            "If the caller has access to public social media or prior conversations, they may already know personal details. Social engineering attacks often combine synthetic voice with researched personal context.",
+        },
+        {
+          id: "b",
+          text: "Hang up, call your sibling back on a number you already have, and verify independently.",
+          correct: true,
+          rationale:
+            "Correct. The voice cannot be authenticated in a call you receive. The defence is to terminate the channel and independently initiate a new call on a verified number. Never transfer money in response to an inbound call, regardless of how real the voice sounds.",
+        },
+        {
+          id: "c",
+          text: "Ask the caller to say something unexpected to test if they're real.",
+          correct: false,
+          rationale:
+            "Modern voice cloning models respond in real-time or near-real-time. There is no conversational test that reliably distinguishes a cloned voice from a real one in a live call.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l2-r-flash-crash",
+      prompt: "Why do AI algorithmic trading systems sometimes cause correlated crashes — multiple systems selling simultaneously?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["algorithmic-trading", "feedback-loop", "market"],
+      choices: [
+        {
+          id: "a",
+          text: "Because the algorithms are programmed to copy each other.",
+          correct: false,
+          rationale:
+            "They are not programmed to copy each other. The correlation is emergent: multiple independent systems trained on similar historical data learn similar response patterns to the same market signals.",
+        },
+        {
+          id: "b",
+          text: "Because many systems trained on similar data see the same signal and react simultaneously, and their reactions themselves become a signal that triggers more reactions.",
+          correct: true,
+          rationale:
+            "Correct. This is a feedback loop: correlated AI systems react in the same direction to the same market signal, amplifying the movement. Their selling creates more signals that trigger more selling from other systems. Not coordination — emergent correlation from similar training followed by a cascade.",
+        },
+        {
+          id: "c",
+          text: "Because high-frequency AI trading is illegal and they hide their activity.",
+          correct: false,
+          rationale:
+            "Algorithmic trading is legal and regulated. The flash crash mechanism does not depend on illegal activity — it arises from the interaction of legal, independent systems that happen to be correlated.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l2-r-fcra-rights",
+      prompt: "Your mortgage application is declined by an algorithmic system in 12 seconds. Under US federal law, you are most clearly entitled to:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["algorithmic-credit", "rights", "FCRA"],
+      choices: [
+        {
+          id: "a",
+          text: "Nothing — algorithmic decisions do not carry disclosure requirements.",
+          correct: false,
+          rationale:
+            "Incorrect. The Fair Credit Reporting Act (FCRA) and Equal Credit Opportunity Act (ECOA) require adverse action notices when a credit decision is made using consumer report data, stating the principal reasons for the adverse action.",
+        },
+        {
+          id: "b",
+          text: "An adverse action notice stating the principal factors that led to the decision.",
+          correct: true,
+          rationale:
+            "Correct. FCRA requires that when consumer report data is used in an adverse credit decision, the applicant receives a notice identifying the top factors. This right exists regardless of whether the decision was made by a human or an algorithm. Most consumers don't know this right exists.",
+        },
+        {
+          id: "c",
+          text: "A full explanation of the algorithm's training data and model weights.",
+          correct: false,
+          rationale:
+            "Adverse action notice requirements specify 'principal factors,' not full model transparency. You are entitled to know the key drivers, not the full technical specification of the model.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l2-r-situational-load",
+      prompt: "Research on social engineering susceptibility shows the variable most predictive of whether someone falls for a scam is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthetic-media", "scam", "psychology"],
+      choices: [
+        {
+          id: "a",
+          text: "The target's overall intelligence.",
+          correct: false,
+          rationale:
+            "Intelligence is not the primary predictor. Smart, educated, sceptical people fall for social engineering attacks at comparable rates to others when situational load is high.",
+        },
+        {
+          id: "b",
+          text: "Situational cognitive load — tired, stressed, distracted people are significantly more vulnerable.",
+          correct: true,
+          rationale:
+            "Correct. Social engineering attacks are optimised for moments of stress, urgency, and distraction. An 'emergency' call from a 'family member' is specifically designed to trigger high emotional load that bypasses normal verification instincts. Design your defences for your worst moment, not your best.",
+        },
+        {
+          id: "c",
+          text: "Whether the target has previously been scammed.",
+          correct: false,
+          rationale:
+            "Prior experience can actually increase vulnerability: scammers adapt their scripts to counter known defences, and prior victims can develop overconfidence in their ability to detect scams.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l2-r-stretch-proxy-credit",
+      prompt: "A fintech lender uses device type and battery level as features in its credit model. The most significant concern is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["algorithmic-credit", "bias", "proxy"],
+      choices: [
+        {
+          id: "a",
+          text: "The features are too technical to include in a credit model.",
+          correct: false,
+          rationale:
+            "Technical complexity is not the concern. The concern is what these features proxy. Device type correlates with income and demographic group; battery level may proxy financial stress or work patterns.",
+        },
+        {
+          id: "b",
+          text: "These features may proxy income, race, or national origin — importing discriminatory signals through apparently neutral technical inputs.",
+          correct: true,
+          rationale:
+            "Correct. Device type (iPhone vs. lower-cost Android) correlates strongly with income, and income correlates with race and national origin due to structural inequalities. Battery level at time of application may correlate with work type or home access to power. This is proxy discrimination: protected-attribute correlates entering the model through technically neutral variables.",
+        },
+        {
+          id: "c",
+          text: "The features may not be predictive enough to justify inclusion.",
+          correct: false,
+          rationale:
+            "Predictive power is exactly the problem: these features may be predictive precisely because they proxy for protected attributes. High predictive value from a proxy discriminator is a legal and ethical problem, not a technical solution.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l2-r-stretch-market-stability",
+      prompt: "The 2010 Flash Crash showed that independently-trained AI trading systems can behave like a single correlated actor. The systemic implication for regulators is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["algorithmic-trading", "systemic-risk", "market"],
+      choices: [
+        {
+          id: "a",
+          text: "Algorithmic trading is inherently dangerous and should be banned.",
+          correct: false,
+          rationale:
+            "Algorithmic trading provides genuine market benefits (liquidity, efficiency). The question is how to design circuit breakers and diversity requirements that reduce systemic risk from correlated AI behaviour — not whether to ban it.",
+        },
+        {
+          id: "b",
+          text: "Strategy diversity requirements — ensuring AI systems use sufficiently different training data or approaches — reduce correlation risk analogously to biodiversity in an ecosystem.",
+          correct: true,
+          rationale:
+            "Correct. A monoculture is vulnerable to the same pathogen in the same way correlated AI systems are vulnerable to the same market signal. Regulators (SEC, ESMA) have begun examining strategy diversity requirements. Circuit breakers (automatic trading halts when prices move too fast) are the main existing protection.",
+        },
+        {
+          id: "c",
+          text: "Human traders would have performed better in the same conditions.",
+          correct: false,
+          rationale:
+            "Human traders caused plenty of crashes pre-algorithms. The issue is not AI versus human — it is emergent correlation from similar systems reacting at machine speed. The lesson is structural, not comparative.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m3l2-pf-voice-call",
+      scenario:
+        "You are at work, mid-meeting, phone buzzing. You step out and answer. It is your elderly parent's voice — panicked, asking for $800 to be wired immediately. They were in a minor car accident; police need a fine paid before they can leave; they're embarrassed and don't want anyone to know. The voice sounds exactly right: the accent, the speech pattern, the faint nervousness. You have $800 you could transfer in 30 seconds.",
+      learnerPrompt:
+        "What do you do? Before reading on, write your specific steps — not 'I'd be sceptical,' but the exact actions you would take in the next 90 seconds.",
+      canonicalInsight:
+        "The specific steps that work: (1) Say 'I'll call you right back' and hang up, regardless of urgency. Never transfer money in response to an inbound call. (2) Call your parent back on a number you saved yourself — not a number the caller gives you. (3) If you cannot reach them, call another family member to physically check. (4) If you confirm the call was fake, report to the FTC.\n\nWhy your instincts fail here: the scenario is engineered for the conditions under which defences break down. You are interrupted, stressed, have limited time, face social pressure ('don't tell anyone'), have an emotional trigger (parent's distress), and have a convenient payment mechanism. Modern voice cloning produces the exact voice, cadence, and emotional register of the real person. The only reliable defence is out-of-band verification — calling them yourself on a number you trust. No conversational test, no 'personal question,' and no in-call verification is reliable. Design this defence for your worst moment, not your best.",
+    },
+    {
+      kind: "productive-failure",
+      id: "m3l2-pf-credit-decline",
+      scenario:
+        "You apply for a credit card. The application is rejected in 12 seconds. The rejection letter says: 'Unable to extend credit at this time.' Factors listed: 'Length of credit history,' 'Available revolving credit,' 'Number of recent inquiries.' You have steady income, no debt, and a reasonable salary — but you moved to this country two years ago and your credit history here is short.",
+      learnerPrompt:
+        "What rights do you have here? What can you actually do? Before reading the analysis, write what you think you can ask for and from whom.",
+      canonicalInsight:
+        "Your rights: (1) You have the right to a free credit report from each major bureau (Equifax, Experian, TransUnion) via AnnualCreditReport.com. The adverse action notice must identify which bureau's data was used. (2) You can dispute any inaccurate items; the bureau must investigate within 30 days. (3) The listed factors ('length of credit history') tell you what to address. Building credit history through a secured card or credit-builder loan is the most direct response. (4) If you believe the decision was discriminatory, ECOA allows you to request specific reasons for denial in writing.\n\nWhat you cannot do: force the lender to explain the full model. The adverse action notice gives you the principal factors, not the algorithm. But that is enough to take action — and most people do not know these rights exist or how to exercise them.",
+    },
+  ],
+  closingReflection: {
+    kind: "reflection",
+    id: "m3l2-reflection",
+    prompt:
+      "Audit your own financial AI exposure. Name one algorithmic decision that affects you that you did not previously know was algorithmic. What right do you have to contest it — and would you know how to exercise that right?",
+    cues: [
+      "Consider: insurance premiums, credit limits, loan rates, rental applications, employment screening. All are increasingly algorithmic.",
+      "If you cannot name the right you have, that is the gap this lesson was designed to close.",
+    ],
+  },
+};
+
+// ── LESSON m3-l3: AI & Creativity ─────────────────────────────────────────────
+
+const lessonM3L3: LessonTemplate = {
+  lessonId: "m3-l3",
+  courseId: "ai-literacy",
+  title: "AI & Creativity — Latent Space, Style, and the Copyright Landscape",
+  subtitle: "Why you can prompt for 'a Vermeer painting of a data centre' — and what that has to do with live lawsuits",
+  estimatedMinutes: 30,
+  xpReward: 80,
+  prerequisites: ["lesson-1", "lesson-2", "m3-l1", "m3-l2"],
+  concepts: ["latent-space", "generative-ai", "training-data", "bias"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m3l3-r-latent-space",
+      prompt: "A user prompts an image generator for 'a Monet-style painting of a skyscraper.' What does the model actually do?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["latent-space", "generative-ai"],
+      choices: [
+        {
+          id: "a",
+          text: "It searches Monet's existing paintings for one that resembles a skyscraper.",
+          correct: false,
+          rationale:
+            "The model does not search a database of existing images. It generates a new image by sampling from a region of its learned representation space — there is no persistent image store at inference time.",
+        },
+        {
+          id: "b",
+          text: "It navigates to the intersection of 'Monet painting style' and 'skyscraper' in its internal representation space and generates from there.",
+          correct: true,
+          rationale:
+            "Correct. The model has learned a structured internal space where style concepts and subject concepts are represented as vectors. The prompt specifies a region in this space — the Monet cluster, the skyscraper cluster — and the model generates content at their intersection. No specific Monet is copied; the model samples from learned style geometry.",
+        },
+        {
+          id: "c",
+          text: "It applies a Monet colour filter to a photo of a skyscraper.",
+          correct: false,
+          rationale:
+            "This describes a traditional image filter. Generative models create images from learned statistical patterns in latent space, not by applying transformations to existing images.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l3-r-copyright-training",
+      prompt: "Getty Images sued Stability AI over training on Getty's watermarked image library. The core legal question is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["copyright", "training-data", "legal"],
+      choices: [
+        {
+          id: "a",
+          text: "Whether Stability AI made money — commercial use is the determining copyright factor.",
+          correct: false,
+          rationale:
+            "Commerciality is one factor in fair use analysis, but it is not determinative. The case turns on whether training constitutes a fair use of the original works — a multi-factor analysis that courts are still resolving.",
+        },
+        {
+          id: "b",
+          text: "Whether training an AI model on copyrighted images without licence constitutes fair use — a question courts are actively deciding.",
+          correct: true,
+          rationale:
+            "Correct. Fair use involves four factors: purpose and character of use, nature of the copyrighted work, amount used, and market effect. AI training may be transformative (factor 1), but uses entire works at commercial scale (factors 3 and 4). These cases are live in both US and UK courts as of 2026 and have not reached final judgment.",
+        },
+        {
+          id: "c",
+          text: "Whether AI-generated images are identical to the training images.",
+          correct: false,
+          rationale:
+            "Output similarity is a separate legal question. The training-phase case (Getty) is about whether the training process itself constitutes infringement — not about individual outputs.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l3-r-bias-amplification",
+      prompt: "A user prompts an image generator for 'a doctor.' The outputs show predominantly white male figures. The most accurate explanation is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["bias", "generative-ai", "training-data"],
+      choices: [
+        {
+          id: "a",
+          text: "The model was programmed to show white male doctors.",
+          correct: false,
+          rationale:
+            "This is almost certainly not intentional programming. The bias arises from training data distribution, not deliberate design.",
+        },
+        {
+          id: "b",
+          text: "The training data contained more images labelled 'doctor' showing white male figures — the model learned and reproduced that statistical pattern.",
+          correct: true,
+          rationale:
+            "Correct. Generative models learn the statistical distribution of their training data. If training images skewed toward certain demographics for 'doctor,' the model generates toward that distribution. This is bias amplification: the model may push underrepresented groups toward near-zero because sampling from the learned distribution reinforces the dominant pattern.",
+        },
+        {
+          id: "c",
+          text: "The user's prompt was not specific enough — more detail would prevent bias.",
+          correct: false,
+          rationale:
+            "More specific prompts can mitigate individual outputs, but they do not change the model's learned distribution. The bias is in the model's weights, not in the prompt. Demographic specification helps but should not be necessary for representative outputs.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l3-r-practical-use",
+      prompt: "A graphic designer uses a commercial AI image generator for client deliverables. The most important due-diligence step before billing is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["generative-ai", "copyright", "professional"],
+      choices: [
+        {
+          id: "a",
+          text: "Check that the output doesn't contain visible watermarks.",
+          correct: false,
+          rationale:
+            "Watermark absence does not determine copyright status. Copyright in style and composition is not dependent on whether a watermark is visible in the output.",
+        },
+        {
+          id: "b",
+          text: "Review the tool's terms of service for commercial use rights and copyright indemnification provisions.",
+          correct: true,
+          rationale:
+            "Correct. Commercial AI image generators vary substantially: some grant commercial rights with indemnification (Adobe Firefly, trained on licensed data), some grant commercial rights without indemnification, and some have unclear terms. For client work, the tool's commercial terms determine your legal standing — not the quality or appearance of the output.",
+        },
+        {
+          id: "c",
+          text: "Run the output through a reverse image search to check for duplicates.",
+          correct: false,
+          rationale:
+            "Reverse image search finds near-identical existing images online — it won't find the training images that influenced the output. This test misses the legal question entirely.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l3-r-stretch-style-copyright",
+      prompt: "A photographer sues an AI company because images generated 'in her style' are replacing commissions she would otherwise have received. The strongest legal argument available to her is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["copyright", "latent-space", "legal"],
+      choices: [
+        {
+          id: "a",
+          text: "Her style is protected by copyright.",
+          correct: false,
+          rationale:
+            "Style itself is not copyrightable in US or UK law — only specific expression. This is a settled principle that makes style-based copyright claims difficult. The latent-space mechanism (interpolating in style space without reproducing specific images) is part of why AI companies argue non-infringement.",
+        },
+        {
+          id: "b",
+          text: "The market harm argument — AI-generated content in her style is reducing demand for her work, which is a recognised factor in fair use analysis.",
+          correct: true,
+          rationale:
+            "Correct. The fourth fair use factor is 'effect on the market for the original work.' If AI-generated content directly substitutes for her work in the market, that market harm is cognizable in court. This is stronger than a style-copyright claim. It is also the argument underlying the Getty case — Getty argues its market is directly harmed.",
+        },
+        {
+          id: "c",
+          text: "AI companies must compensate all artists whose work appeared in training data.",
+          correct: false,
+          rationale:
+            "There is currently no established legal requirement to compensate training data sources. This is the policy question at the centre of pending litigation and proposed legislation — not existing law as of 2026.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l3-r-stretch-eu-ai-act",
+      prompt: "The EU AI Act requires providers of general-purpose AI models to publish summaries of training data used. The primary purpose is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["legal", "training-data", "copyright", "regulation"],
+      choices: [
+        {
+          id: "a",
+          text: "To allow regulators to improve the model's accuracy.",
+          correct: false,
+          rationale:
+            "Transparency requirements enable accountability and rights enforcement — not accuracy improvement.",
+        },
+        {
+          id: "b",
+          text: "To enable copyright holders to determine whether their works were used and exercise their rights, and to allow downstream risk assessment.",
+          correct: true,
+          rationale:
+            "Correct. Article 53 requires copyright compliance mechanisms and sufficiently detailed training data summaries. The dual purpose: enabling copyright enforcement by rightsholders whose works may have been included, and enabling downstream actors to assess compliance and legal exposure.",
+        },
+        {
+          id: "c",
+          text: "To prohibit the use of any copyrighted material in AI training.",
+          correct: false,
+          rationale:
+            "The EU AI Act does not prohibit using copyrighted material in training. It requires copyright compliance (respecting opt-outs and licences) and transparency about what was used. Prohibition would be a different regulatory choice not in the current Act.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m3l3-pf-client-work",
+      scenario:
+        "You are a freelance designer. A client asks for ten marketing images. You can deliver in two hours with AI, versus twelve hours of original illustration. The AI tool's ToS says: 'Images generated using our service may be used for commercial purposes.' You deliver. Four months later, the client receives a legal notice from a stock photo agency claiming elements of several images resemble assets in their library.",
+      learnerPrompt:
+        "Who bears the legal risk here? What questions should you have asked before starting? And what does 'may be used for commercial purposes' actually guarantee?",
+      canonicalInsight:
+        "'May be used for commercial purposes' means you can use outputs commercially. It does not mean: outputs are free from third-party copyright claims; the provider will defend you if claims arise; or training data was licensed. These are three separate questions.\n\nIndemnification language determines whether the tool provider covers legal defence costs if a copyright claim arises. Adobe Firefly explicitly offers indemnification for commercial use; many other tools do not. Without indemnification, the legal exposure is yours — or your client's, depending on contract terms.\n\nBefore generating AI images for commercial client work: (1) Check whether the tool offers copyright indemnification. (2) Document your prompt history for every deliverable. (3) Inform clients in your contract that AI-generated assets are used and describe the tool. (4) For high-stakes projects, consider tools trained on explicitly licensed data.\n\nThe uncomfortable truth: the legal landscape is unsettled. Using AI image tools for commercial client work currently means accepting legal uncertainty that was not present with original illustration.",
+    },
+    {
+      kind: "span-select",
+      id: "m3l3-span-copyright",
+      instructions:
+        "This paragraph makes several claims about AI and copyright law. One statement is false or significantly misleading. Identify the misleading span.",
+      paragraph:
+        "Copyright law in the US protects original expression, but not style or ideas. This is why prompting an AI to 'generate an image in the style of Vermeer' does not infringe Vermeer's copyright — Vermeer's works are also in the public domain since they were created in the 17th century. Current litigation, including Getty Images v. Stability AI, focuses on whether training AI models on copyrighted images constitutes fair use. The EU AI Act, which came into force in August 2024, requires AI providers to maintain summaries of training data used for general-purpose models. Style mimicry of living artists raises no copyright questions since style itself cannot be owned.",
+      hallucinatedSpans: [[548, 644]],
+      explanation:
+        "'Style mimicry of living artists raises no copyright questions' is misleading — this is the most contested area of current copyright law. While style is not copyrightable, style mimicry can raise copyright questions: if output is substantially similar to specific protected expression, there may be infringement; market harm from style substitution is a valid fair use factor; multiple active lawsuits involve living artists whose styles are used in AI products. The claim that 'no copyright questions' arise is false — these are live, unresolved legal questions.",
+    },
+  ],
+  closingReflection: {
+    kind: "reflection",
+    id: "m3l3-reflection",
+    prompt:
+      "Identify one creative AI use case in your own work or life. For that use case: (a) describe what region of latent space the prompt is navigating, (b) state the one copyright or legal question it raises under current law, and (c) describe one workflow modification that reduces your legal exposure without eliminating the benefit.",
+    cues: [
+      "If you don't currently use AI creatively, choose a use case you might adopt — the scenario is more useful if it's real.",
+      "The copyright question may not have a clean answer. Naming the uncertainty accurately is the correct response.",
+    ],
+  },
+};
+
+// ── LESSON m3-l4: AI & Privacy ────────────────────────────────────────────────
+
+const lessonM3L4: LessonTemplate = {
+  lessonId: "m3-l4",
+  courseId: "ai-literacy",
+  title: "AI & Privacy — The Inference Chain",
+  subtitle: "You did not share your politics, religion, or health conditions. The inference chain already has them.",
+  estimatedMinutes: 25,
+  xpReward: 80,
+  prerequisites: ["lesson-4", "m3-l1", "m3-l2", "m3-l3"],
+  concepts: ["inference-chain", "data-privacy", "ai-accountability"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m3l4-r-inference-from-location",
+      prompt: "A user grants a weather app 'precise location' access. Which of the following is a well-documented inference from GPS location data alone?",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["inference-chain", "location", "privacy"],
+      choices: [
+        {
+          id: "a",
+          text: "The user's name and home address.",
+          correct: false,
+          rationale:
+            "Name is not directly inferred from GPS without cross-referencing other data. The point is what GPS alone reveals: patterns of behaviour that expose sensitive attributes.",
+        },
+        {
+          id: "b",
+          text: "Likely religious practice, political activity, health conditions, and income bracket.",
+          correct: true,
+          rationale:
+            "Correct — and this is documented, not speculative. Location patterns reveal: place-of-worship visits (religion), political rally attendance (political affiliation), clinic type visits (health conditions), neighbourhood and retail patterns (income). All from a single data type, without those attributes ever being disclosed.",
+        },
+        {
+          id: "c",
+          text: "The user's passwords and banking credentials.",
+          correct: false,
+          rationale:
+            "Passwords and banking information are not inferred from GPS. This question illustrates an important asymmetry: people are alert to obvious risks while overlooking the sensitive inferences location actually enables.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l4-r-anonymisation",
+      prompt: "A data broker sells 'anonymised' location data — no names, no device IDs. Research on this practice finds:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["anonymisation", "inference-chain", "privacy"],
+      choices: [
+        {
+          id: "a",
+          text: "Anonymisation effectively protects privacy — without names or IDs, individuals cannot be identified.",
+          correct: false,
+          rationale:
+            "This is one of the most consequential myths in data privacy. Montjoye et al. (2013) showed that just four spatio-temporal location points re-identify 95% of individuals in an anonymous mobile dataset. Anonymisation is a risk reduction, not a guarantee.",
+        },
+        {
+          id: "b",
+          text: "Four spatio-temporal data points are sufficient to re-identify most individuals in the dataset.",
+          correct: true,
+          rationale:
+            "Correct. This finding (Montjoye et al., Science, 2013) is one of the most cited results in privacy research. Human mobility is sufficiently unique that very few location measurements — even without any explicit identifier — re-identify individuals with high accuracy when cross-referenced with other data sources.",
+        },
+        {
+          id: "c",
+          text: "Location data is less sensitive than financial data, so anonymisation is sufficient protection.",
+          correct: false,
+          rationale:
+            "Location data is in some ways more sensitive than financial data — it reveals religious practice, health behaviour, political activity, and social relationships that financial records may not. The sensitivity ranking is context-dependent, but location is not low-risk.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l4-r-gdpr-definition",
+      prompt: "Under GDPR, data is considered 'personal data' requiring protection when:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["privacy", "GDPR", "regulation"],
+      choices: [
+        {
+          id: "a",
+          text: "It includes a person's name or national ID number.",
+          correct: false,
+          rationale:
+            "Names and IDs are clearly personal data, but GDPR's definition is broader: any information relating to an identified OR identifiable person. Identifiability is the key term — and re-identification risk extends it to ostensibly anonymous data.",
+        },
+        {
+          id: "b",
+          text: "Re-identification is 'reasonably likely' given the means available to a motivated actor.",
+          correct: true,
+          rationale:
+            "Correct. GDPR Recital 26 defines personal data by reference to identifiability: if re-identification is reasonably likely given the available means, the data is personal data regardless of whether names are included. This is deliberately broad and is intended to account for inference attacks.",
+        },
+        {
+          id: "c",
+          text: "It is used for marketing purposes.",
+          correct: false,
+          rationale:
+            "Purpose of use does not determine whether data is personal. Data is personal if it relates to an identifiable person — regardless of whether it is used for marketing, research, or any other purpose.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l4-r-opt-out-limits",
+      prompt: "A user opts out of data sharing with one major data broker. The practical privacy improvement is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["inference-chain", "data-broker", "privacy"],
+      choices: [
+        {
+          id: "a",
+          text: "Complete — opting out means their data is no longer sold.",
+          correct: false,
+          rationale:
+            "Opting out of one broker leaves dozens of others intact. Data broker ecosystems include hundreds of companies (Acxiom, Experian, LexisNexis, CoreLogic, etc.) that aggregate from thousands of sources. Removing one link does not break the chain.",
+        },
+        {
+          id: "b",
+          text: "Marginal — the inference chain continues through hundreds of other brokers aggregating from overlapping sources.",
+          correct: true,
+          rationale:
+            "Correct. This is the structural problem with opt-out approaches to privacy. Meaningful protection requires systemic intervention (regulation, data minimisation at collection) rather than individual opt-out of a system too large and fragmented to navigate personally.",
+        },
+        {
+          id: "c",
+          text: "Significant — major brokers hold the most valuable data, so removing them substantially reduces the profile.",
+          correct: false,
+          rationale:
+            "Even if one major broker removes your data, the profile continues to be reconstructed from the other sources they originally aggregated from. The inference chain has many entry points.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l4-r-stretch-rite-aid",
+      prompt: "The FTC's 2023 action against Rite Aid for its facial recognition system illustrates which combination of AI failures?",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["bias", "privacy", "accountability", "inference-chain"],
+      choices: [
+        {
+          id: "a",
+          text: "Hallucination and sycophancy.",
+          correct: false,
+          rationale:
+            "The Rite Aid case involved false positives (misidentifying shoppers as past shoplifters) and disparate impact across demographic groups — not hallucination or sycophancy in the LLM sense.",
+        },
+        {
+          id: "b",
+          text: "Bias amplification (higher false positive rates for non-white customers) and accountability failure (real-world consequences with no meaningful contestability for affected individuals).",
+          correct: true,
+          rationale:
+            "Correct. The FTC found Rite Aid's system generated false positives at disproportionate rates for Black, Latino, Asian, and women customers. Individuals flagged faced consequences (being watched, confronted, removed from stores) with no clear mechanism to contest the AI's verdict. This combines bias amplification with a systemic accountability gap.",
+        },
+        {
+          id: "c",
+          text: "Scope drift and false precision.",
+          correct: false,
+          rationale:
+            "Scope drift and false precision are real failure modes, but they don't describe the Rite Aid case. Rite Aid deployed a system in its intended scope; the failure was disparate impact and lack of contestability.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l4-r-stretch-purpose-limitation",
+      prompt: "A user consents to a 'weather app with location access.' The same data is later sold to a political campaign for targeted advertising. Under GDPR, the most relevant principle violated is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["GDPR", "privacy", "consent"],
+      choices: [
+        {
+          id: "a",
+          text: "Data minimisation — the app collected more data than it needed.",
+          correct: false,
+          rationale:
+            "Data minimisation is about collecting only what is necessary for the stated purpose. The violation here is more specific: the data was used for a purpose beyond what the user consented to — that is purpose limitation.",
+        },
+        {
+          id: "b",
+          text: "Purpose limitation — data collected for one purpose cannot be used for a materially different purpose without fresh consent.",
+          correct: true,
+          rationale:
+            "Correct. GDPR Article 5(1)(b) requires that data be 'collected for specified, explicit and legitimate purposes and not further processed in a manner that is incompatible with those purposes.' Using location data gathered for weather purposes for political targeting is incompatible with the original stated purpose.",
+        },
+        {
+          id: "c",
+          text: "Storage limitation — the data should have been deleted after the weather was displayed.",
+          correct: false,
+          rationale:
+            "Storage limitation requires retaining data only as long as necessary — this is separately violated by indefinite retention, but the more fundamental violation here is using the data for political advertising: purpose limitation.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "productive-failure",
+      id: "m3l4-pf-inference-chain",
+      scenario:
+        "You install a free period-tracking app. It asks for: date of last period, symptoms (mood, pain level, sleep quality), and location (to 'adjust reminders for your timezone'). You use it daily for six months. The privacy policy says it 'may share aggregated, de-identified data with research partners and third parties.'\n\nA year later, you read a news story: a data broker purchased de-identified period-tracking data from multiple apps and sold it to insurance companies. The data included symptom patterns used to infer pregnancy likelihood, pre-existing conditions, and healthcare utilisation patterns — all of which affected individual pricing decisions without the individuals' knowledge.",
+      learnerPrompt:
+        "Before reading the analysis: what data did you share? What could be inferred from it? And what does 'de-identified' actually protect you from in this scenario?",
+      canonicalInsight:
+        "The data you shared: cycle dates, emotional states, physical symptoms, and location. The inference chain: pregnancy likelihood (from cycle data), depression/anxiety indicators (from mood logs), pain condition indicators (from symptom patterns), healthcare-seeking behaviour (from location if you visited a clinic during a symptomatic period). None of these were disclosed. All are inferable.\n\n'De-identified' protects you from being named in a dataset. It does not protect against: re-identification from the combination of cycle dates + location + age (which together are highly specific), inference of sensitive health attributes that were never disclosed, or downstream use of those inferences by parties who received the data.\n\nThe real consent question: you agreed to 'aggregated de-identified research uses' — standard language, legally defensible. But the actual use — individual-level health inference sold to insurance pricing models — is not what most people understood when they tapped 'I agree.' This is the gap between the letter of consent and the spirit of informed consent.\n\nPractical habit: for any app collecting health, location, or behavioural data, read the data sharing section (not just the headline), understand who 'third parties' includes, and assess whether the inference chain from your data would create risks you wouldn't accept if they were explicitly disclosed.",
+    },
+    {
+      kind: "productive-failure",
+      id: "m3l4-pf-workplace-surveillance",
+      scenario:
+        "Your employer deploys an 'AI productivity tool' that analyses: calendar data, email metadata (sender, recipient, time, length — not content), document editing patterns, Slack message frequency, and meeting participation. It produces a 'collaboration health score' and 'productivity indicators' for each employee.",
+      learnerPrompt:
+        "List the sensitive inferences this system could make without ever reading a single word of content. Then: what governance standards should apply before this system is deployed?",
+      canonicalInsight:
+        "Sensitive inferences available from metadata alone: health status (reduced activity, irregular hours, increased absence patterns); religious practice (absence from meetings on specific religious observances); political activity (patterns consistent with union organising, external advocacy); social network (who you communicate with, at what frequency); performance vs. presentation (whether visible collaboration metrics match actual productivity — relevant for discrimination claims); pregnancy or medical leave anticipation (changes in pattern before disclosed events).\n\nNothing here requires reading a single email or Slack message. Metadata inference is one of the most mature areas of AI-powered workplace surveillance.\n\nGovernance standards before deployment: (1) Impact assessment — who could be harmed, and how? (2) Disclosed purpose — employees should know what is collected, inferred, and how scores are used before deployment. (3) Human review — decisions affecting employment (performance, promotion, discipline) should require human review of any AI-generated score. (4) Contestability — employees should have a clear mechanism to challenge scores they believe are wrong or unfair. (5) Scope limits — the scope of inference should match the stated business purpose, not be maximised because it is technically possible.",
+    },
+  ],
+  closingReflection: {
+    kind: "reflection",
+    id: "m3l4-reflection",
+    prompt:
+      "Pick one piece of data you share regularly — location, purchase history, health data, search history, calendar. Map the inference chain: three direct inferences, three second-order inferences, and three downstream contexts where those inferences could affect your life without your knowledge.",
+    cues: [
+      "Be concrete: not 'my health could be inferred' but 'my Tuesday morning location + specific retail visits reveals likely diabetes management.'",
+      "If you cannot map three downstream contexts, that is the gap this lesson was designed to close.",
+    ],
+  },
+};
+
+// ── LESSON m3-l5: Capstone ────────────────────────────────────────────────────
+
+const lessonM3L5: LessonTemplate = {
+  lessonId: "m3-l5",
+  courseId: "ai-literacy",
+  title: "Capstone — Four Scenarios, Four Decisions",
+  subtitle: "Mechanism-level reasoning applied across health, money, creativity, and privacy",
+  estimatedMinutes: 30,
+  xpReward: 150,
+  prerequisites: ["m3-l1", "m3-l2", "m3-l3", "m3-l4"],
+  concepts: ["ai-augmentation", "ai-accountability"],
+  retrieval: [
+    {
+      kind: "retrieval",
+      id: "m3l5-r-synthesis-health",
+      prompt: "An AI health app gives a confident 'low-risk' assessment for a time-sensitive symptom. The module-level mechanism that explains why you should not act on this alone is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthesis", "sycophancy", "health"],
+      choices: [
+        {
+          id: "a",
+          text: "AI health apps are not FDA-approved.",
+          correct: false,
+          rationale:
+            "Regulatory status is one concern, but it does not explain the mechanism. The mechanism is the sycophancy training loop: apps optimised for user-satisfaction ratings learn to reassure, not to err on the side of referral.",
+        },
+        {
+          id: "b",
+          text: "User-satisfaction training creates asymmetric pressure toward reassurance — the model learned to say 'low-risk' more than a calibrated clinician would.",
+          correct: true,
+          rationale:
+            "Correct — this is the mechanism. The training loop rewards reassurance and penalises over-referral. For time-sensitive symptoms, the failure mode is systematic under-triage. The mechanism explains WHY the confidence is miscalibrated — not just that it is.",
+        },
+        {
+          id: "c",
+          text: "AI cannot process medical information accurately.",
+          correct: false,
+          rationale:
+            "AI can process medical information accurately within its training distribution. The failure is specific: sycophancy-inducing training creates predictable miscalibration toward reassurance, not general inability.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l5-r-synthesis-money",
+      prompt: "You receive an urgent call from a voice that sounds exactly like your daughter asking for an emergency wire transfer. The most important principle from this module is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthesis", "synthetic-media", "scam"],
+      choices: [
+        {
+          id: "a",
+          text: "Never wire money to family members.",
+          correct: false,
+          rationale:
+            "Too absolute. The issue is not the relationship — it is the verification channel. Wiring money in response to an inbound call with a voice you cannot authenticate is the vulnerability.",
+        },
+        {
+          id: "b",
+          text: "Verify out-of-band — hang up and call back on a number you already have, regardless of how real the voice sounds.",
+          correct: true,
+          rationale:
+            "Correct. Voice cloning is now accessible enough that the voice is not a reliable authenticator. Independent channel initiation — you call on a number you trust — is the only reliable verification. Design this defence for your worst (tired, stressed, distracted) moment.",
+        },
+        {
+          id: "c",
+          text: "Ask a question only your daughter would know to verify identity.",
+          correct: false,
+          rationale:
+            "Social engineering attacks often combine synthetic voice with researched personal context. No conversational test reliably distinguishes a sophisticated voice clone. Out-of-band verification is the only robust method.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l5-r-synthesis-creativity",
+      prompt: "A colleague argues that using AI image generators for commercial work 'is legally fine because AI generates new images, it doesn't copy.' The strongest response is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthesis", "copyright", "generative-ai"],
+      choices: [
+        {
+          id: "a",
+          text: "He's right — copyright only protects against identical reproduction.",
+          correct: false,
+          rationale:
+            "Copyright protects against substantial similarity, not just identical reproduction. And the active legal questions about AI training on copyrighted works are about the training process itself — a separate question from output similarity.",
+        },
+        {
+          id: "b",
+          text: "Whether outputs are 'new' doesn't resolve the training-phase question: whether training on copyrighted works constitutes fair use is actively being decided in courts.",
+          correct: true,
+          rationale:
+            "Correct. The novelty of outputs is not the relevant legal test for training-phase copyright claims. Whether training on copyrighted data constitutes fair use is the central question in Getty v. Stability AI and NYT v. OpenAI — both unresolved as of 2026. 'It's new' does not dissolve the legal uncertainty.",
+        },
+        {
+          id: "c",
+          text: "AI image generators never use copyrighted training data.",
+          correct: false,
+          rationale:
+            "Most major image generators were trained on internet-scale datasets that include copyrighted images. This is the premise of the major copyright lawsuits — it is not in dispute.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l5-r-synthesis-privacy",
+      prompt: "A friend says: 'I have nothing to hide, so privacy doesn't matter to me.' The strongest mechanism-level response from this module is:",
+      requireConfidence: true,
+      tier: "core",
+      tags: ["synthesis", "inference-chain", "privacy"],
+      choices: [
+        {
+          id: "a",
+          text: "Everyone has something to hide — this argument is naive.",
+          correct: false,
+          rationale:
+            "An ad hominem response does not engage with the mechanism. The stronger response uses the inference chain: you are not choosing what to hide; you are choosing what others can infer.",
+        },
+        {
+          id: "b",
+          text: "You are not deciding what to hide — AI inference chains derive sensitive attributes from innocuous data without your knowledge or consent, regardless of whether you 'have anything to hide.'",
+          correct: true,
+          rationale:
+            "Correct. The privacy question is not about hiding wrongdoing. Your location reveals religion, politics, and health conditions you never chose to disclose. Your purchase history reveals medical treatments and financial stress. The inference chain did it for you. 'Nothing to hide' mistakes the premise — you are not in control of what is revealed.",
+        },
+        {
+          id: "c",
+          text: "Companies are legally required to protect your data anyway.",
+          correct: false,
+          rationale:
+            "Legal requirements vary by jurisdiction and are unevenly enforced. The question is about the mechanism — why privacy matters — not whether legal protections exist.",
+        },
+      ],
+    },
+    {
+      kind: "retrieval",
+      id: "m3l5-r-stretch-module-synthesis",
+      prompt: "Across Modules 1, 2, and 3, the deepest consistent theme is:",
+      requireConfidence: true,
+      tier: "stretch",
+      tags: ["synthesis", "module-review", "mechanisms"],
+      choices: [
+        {
+          id: "a",
+          text: "AI is dangerous and should be used minimally.",
+          correct: false,
+          rationale:
+            "This is not the theme. The modules consistently identify specific, predictable failure modes alongside genuine value — the theme is critical augmentation, not avoidance.",
+        },
+        {
+          id: "b",
+          text: "The training objective determines the model's real-world behaviour — including its failure modes — and understanding the objective explains most of what goes right and wrong.",
+          correct: true,
+          rationale:
+            "Correct. This is the through-line: M1 (weights were fitted to an objective — whatever was in the data and the loss function is now in the model); M2 (the 7 failure modes are all downstream of optimising for plausibility rather than truth); M3 (sycophancy is what user-satisfaction training produces; voice cloning is what training on voice data makes possible; inference chains are what training on labelled human behaviour enables). The training objective IS the model.",
+        },
+        {
+          id: "c",
+          text: "AI companies cannot be held accountable for harms their systems cause.",
+          correct: false,
+          rationale:
+            "Almost the opposite: the modules consistently show accountability sitting with the humans and organisations who designed, deployed, and relied on systems. The Air Canada chatbot ruling, Rite Aid FTC action, and Amazon hiring tool scrapping all demonstrate real accountability consequences.",
+        },
+      ],
+    },
+  ],
+  extraSections: [
+    {
+      kind: "rubric",
+      id: "m3l5-capstone-rubric",
+      prompt:
+        "Four scenarios — one per domain. For each: (a) state the decision you make, (b) name the specific mechanism from the relevant lesson that informs your decision, and (c) identify the risk you are consciously accepting.\n\n**Scenario A (Health):** You have a persistent mild headache for three days. An AI symptom checker says 'likely tension headache — try rest and OTC pain relief. No immediate action needed.'\n\n**Scenario B (Money):** You receive an urgent text from your bank's official number saying your account has been compromised and you must call immediately. The callback number matches the one on the back of your card.\n\n**Scenario C (Creativity):** Your startup needs a logo. You generate several options with an AI tool. Your favourite is clearly influenced by the distinctive style of a living graphic designer. A reverse image search finds no matches.\n\n**Scenario D (Privacy):** A new productivity app requests access to contacts, calendar, location, and microphone for 'enhanced features.' Its privacy policy says it may share data with 'trusted partners.'",
+      rubricCriteria: [
+        {
+          label: "Decision quality",
+          description:
+            "Is the stated decision appropriate to the risk level — not overconfident, not paralysed, but calibrated?",
+          weight: 2,
+        },
+        {
+          label: "Mechanism specificity",
+          description:
+            "Does the learner name the SPECIFIC mechanism from the relevant lesson — sycophancy training loop, voice clone out-of-band verification, copyright uncertainty vs. fair use, inference chain from permissions? Generic 'AI can be wrong' does not meet this criterion.",
+          weight: 4,
+        },
+        {
+          label: "Risk acknowledgment",
+          description:
+            "Does the learner honestly name what risk they are accepting — not pretending certainty exists where it doesn't?",
+          weight: 2,
+        },
+        {
+          label: "Cross-module connection",
+          description:
+            "Does at least one response connect the domain-specific mechanism to a broader principle from Modules 1 or 2 (e.g., 'this is the same training objective problem from M1', 'this is the sycophancy failure mode named in M2 L7')?",
+          weight: 2,
+        },
+      ],
+      gradingInstructions:
+        "Grade strictly on mechanism specificity — this is where the most performance variance will appear. A learner who says 'I wouldn't trust the AI for Scenario A because of sycophancy — the training loop rewards reassurance, not accuracy, so a mild-sounding answer from this tool is less reliable than a human triage assessment' earns full mechanism credit. A learner who says 'I wouldn't trust it because AI can be wrong' does not. The rubric rewards those who demonstrate a causal model of AI behaviour, not just an opinion about it.",
+    },
+    {
+      kind: "productive-failure",
+      id: "m3l5-pf-three-module-review",
+      scenario:
+        "You have worked through three modules: what AI is and how it works (M1), how to use and evaluate it professionally (M2), and how it intersects with health, money, creativity, and privacy in everyday life (M3). Before writing your capstone responses, take two minutes: which module concept surprised you most? And — more importantly — has your actual behaviour with AI tools changed, or just your vocabulary?",
+      learnerPrompt:
+        "Write honestly. A learner who says 'I understand more but haven't changed anything I do' is being accurate — and that honesty is the starting point for deciding what to change.",
+      canonicalInsight:
+        "The gap between understanding and behaviour is the most consistent finding in technology literacy education. People who complete AI literacy courses score higher on belief-change measures but show smaller effects on actual behaviour — the behaviour that generates real risk and real benefit.\n\nThe most useful question is not 'what do I now know?' but 'what am I now willing to do differently?' The three most common behavioural changes that follow this module:\n\n(1) Out-of-band verification for unexpected calls — a specific, learnable habit with high protective value for the investment.\n(2) Separating 'AI output' from 'verified claim' in professional communications — not treating AI drafts as finished fact.\n(3) Checking data terms before entering sensitive information into consumer AI tools — 30 seconds that prevents the Samsung-class disclosure.\n\nIf none of those seem worth doing, ask: what mechanism from these modules felt most relevant to your life? Start there. Three modules of mechanism-level understanding are worth nothing if they don't change at least one thing you do next week.",
+    },
+  ],
+  closingReflection: {
+    kind: "reflection",
+    id: "m3l5-reflection",
+    prompt:
+      "You have completed three modules. In three sentences: (1) Name the one mechanism — from any lesson across all three modules — that most changed how you think about AI. (2) Name one specific behaviour you will change this week as a result. (3) Name one question you still have that these modules did not answer.",
+    cues: [
+      "The most valuable responses are specific and honest. 'The sycophancy training loop' is specific; 'AI can be wrong' is not.",
+      "Naming an unanswered question is not a failure — it is evidence that you have built a mental model good enough to know what it is missing.",
+    ],
+  },
+};
+
 export const AI_LITERACY_TEMPLATES: Record<string, LessonTemplate> = {
   "lesson-1": lesson1,
   "lesson-2": lesson2,
   "lesson-3": lesson3,
   "lesson-4": lesson4,
   "lesson-5": lesson5,
+  // Module 3
+  "m3-l1": lessonM3L1,
+  "m3-l2": lessonM3L2,
+  "m3-l3": lessonM3L3,
+  "m3-l4": lessonM3L4,
+  "m3-l5": lessonM3L5,
 };
