@@ -26,6 +26,7 @@ import {
   PenSquare,
   Sun,
   Moon,
+  Sparkles,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,6 +98,12 @@ const toolsLinks = [
     label: "AI Literacy Course",
     Icon: GraduationCap,
     desc: "Module 1 - Intro to AI",
+  },
+  {
+    href: "/ai-by-ai",
+    label: "AI by AI",
+    Icon: Sparkles,
+    desc: "A course about AI, written by AI",
   },
   {
     href: "/learn/my-profile",

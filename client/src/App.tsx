@@ -40,6 +40,7 @@ const Leaderboard  = lazy(() => import("./pages/Leaderboard"));
 const StudyBuddy   = lazy(() => import("./pages/StudyBuddy"));
 const Daily        = lazy(() => import("./pages/Daily"));
 const AILiteracy   = lazy(() => import("./pages/AILiteracy"));
+const AIByAI       = lazy(() => import("./pages/AIByAI"));
 const Lesson       = lazy(() => import("./pages/Lesson"));
 const Progress     = lazy(() => import("./pages/Progress"));
 const Profile      = lazy(() => import("./pages/Profile"));
@@ -132,6 +133,9 @@ function Router() {
           </Route>
           <Route path="/ai-literacy">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><AILiteracy /></Suspense></RequireAuth>
+          </Route>
+          <Route path="/ai-by-ai">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><AIByAI /></Suspense></RequireAuth>
           </Route>
           <Route path="/lesson/:lessonId">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Lesson /></Suspense></RequireAuth>

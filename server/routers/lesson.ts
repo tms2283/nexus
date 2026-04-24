@@ -6,6 +6,7 @@ import { publicProcedure, router } from "../_core/trpc";
 import { composeLessonSeed } from "../services/lessonSeedFactory";
 import { getLearnerProfile, getDefaultProfile } from "../services/learnerProfileService";
 import { AI_LITERACY_TEMPLATES } from "../../shared/content/aiLiteracy/lessonTemplates";
+import { AI_BY_AI_TEMPLATES } from "../../shared/content/aiByAI/lessonTemplates";
 import { callAI } from "./shared";
 import {
   addXP,
@@ -445,7 +446,7 @@ export const lessonRouter = router({
   getSeededLesson: publicProcedure
     .input(z.object({ lessonId: z.string().max(64), cookieId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
-      const template = AI_LITERACY_TEMPLATES[input.lessonId];
+      const template = AI_LITERACY_TEMPLATES[input.lessonId] ?? AI_BY_AI_TEMPLATES[input.lessonId];
       if (!template) {
         throw new TRPCError({ code: "NOT_FOUND", message: `No lesson template: ${input.lessonId}` });
       }
