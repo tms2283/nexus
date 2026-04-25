@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
@@ -56,11 +56,23 @@ interface NodeCardProps {
 
 function NodeCard({ node, pathId, cookieId }: NodeCardProps) {
   const [, navigate] = useLocation();
+  const [waitingForLesson, setWaitingForLesson] = useState(false);
   const advanceMutation = trpc.curriculum.advancePath.useMutation();
+
+  // Auto-navigate the moment this node's lesson becomes ready
+  useEffect(() => {
+    if (waitingForLesson && node.lessonStatus === "ready" && node.lessonKey) {
+      navigate(`/lesson/${node.lessonKey}`);
+    }
+  }, [waitingForLesson, node.lessonStatus, node.lessonKey, navigate]);
 
   const handleOpen = async () => {
     if (node.lessonStatus === "ready" && node.lessonKey) {
       navigate(`/lesson/${node.lessonKey}`);
+      return;
+    }
+    if (node.lessonStatus === "generating") {
+      setWaitingForLesson(true);
       return;
     }
     if (node.lessonStatus === "queued") {
@@ -69,15 +81,17 @@ function NodeCard({ node, pathId, cookieId }: NodeCardProps) {
         conceptId: node.conceptId,
         cookieId,
       });
-      if (result.status === "ready") {
+      if (result.status === "ready" && result.lessonKey) {
         navigate(`/lesson/${result.lessonKey}`);
+      } else {
+        setWaitingForLesson(true);
       }
     }
   };
 
   const masteryPercent = Math.round(node.masteryPKnown * 100);
   const isReady = node.lessonStatus === "ready";
-  const isGenerating = node.lessonStatus === "generating" || advanceMutation.isPending;
+  const isGenerating = node.lessonStatus === "generating" || advanceMutation.isPending || waitingForLesson;
   const isFailed = node.lessonStatus === "failed";
 
   return (
@@ -107,23 +121,25 @@ function NodeCard({ node, pathId, cookieId }: NodeCardProps) {
             {node.conceptSummary}
           </p>
 
-          {/* Mastery bar */}
-          <div className="mb-3">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-muted-foreground">Mastery</span>
-              <span className="text-xs text-muted-foreground">{masteryPercent}%</span>
+          {/* Mastery bar — only shown after at least one attempt */}
+          {node.masteryPKnown > 0 && (
+            <div className="mb-3">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-muted-foreground">Mastery</span>
+                <span className="text-xs text-muted-foreground">{masteryPercent}%</span>
+              </div>
+              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    node.mastered
+                      ? "bg-[oklch(0.7_0.2_145)]"
+                      : "bg-[oklch(0.65_0.22_200)]"
+                  }`}
+                  style={{ width: `${masteryPercent}%` }}
+                />
+              </div>
             </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${
-                  node.mastered
-                    ? "bg-[oklch(0.7_0.2_145)]"
-                    : "bg-[oklch(0.65_0.22_200)]"
-                }`}
-                style={{ width: `${masteryPercent}%` }}
-              />
-            </div>
-          </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -139,7 +155,7 @@ function NodeCard({ node, pathId, cookieId }: NodeCardProps) {
             ) : isGenerating ? (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Loader2 size={12} className="animate-spin" />
-                <span>Generating…</span>
+                <span>{waitingForLesson ? "Opening when ready…" : "Generating…"}</span>
               </div>
             ) : (
               <button
@@ -169,12 +185,14 @@ export default function PathView() {
     { enabled: !!pathId && !!cookieId, refetchInterval: false }
   );
 
-  // Poll while building
+  // Poll while building or while any node lesson is being generated
+  const hasGeneratingNode = path?.nodes.some((n: GoalPathNodeView) => n.lessonStatus === "generating") ?? false;
   useEffect(() => {
-    if (!path || path.status !== "building") return;
+    if (!path) return;
+    if (path.status !== "building" && !hasGeneratingNode) return;
     const id = setInterval(() => refetch(), 3000);
     return () => clearInterval(id);
-  }, [path?.status, refetch]);
+  }, [path?.status, hasGeneratingNode, refetch]);
 
   if (!pathId) return <div className="p-8 text-muted-foreground">Invalid path.</div>;
   if (isLoading || !path) return <BuildingSkeleton />;

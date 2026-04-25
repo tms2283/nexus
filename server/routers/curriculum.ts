@@ -143,7 +143,7 @@ export const curriculumRouter = router({
           estimatedMinutes: concept?.estimatedMinutes ?? 15,
           lessonStatus: n.lessonStatus as GoalPathNodeView["lessonStatus"],
           lessonKey: n.lessonKey ?? undefined,
-          masteryPKnown: mastery?.pKnown ?? 0.1,
+          masteryPKnown: mastery?.pKnown ?? 0,
           mastered: (mastery?.pKnown ?? 0) >= 0.85,
         };
       });
