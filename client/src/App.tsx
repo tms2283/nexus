@@ -54,6 +54,9 @@ const AdminAudit   = lazy(() => import("./pages/AdminAudit"));
 const AdminUsers   = lazy(() => import("./pages/AdminUsers"));
 const Studio       = lazy(() => import("./pages/Studio"));
 const MyLearnerProfile = lazy(() => import("./pages/MyLearnerProfile"));
+const PathView          = lazy(() => import("./pages/PathView"));
+const AdminConcepts     = lazy(() => import("./pages/AdminConcepts"));
+const MasteryDashboard  = lazy(() => import("./pages/MasteryDashboard"));
 
 function PageSkeleton() {
   return (
@@ -149,6 +152,9 @@ function Router() {
           <Route path="/learn/my-profile">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><MyLearnerProfile /></Suspense></RequireAuth>
           </Route>
+          <Route path="/path/:pathId">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><PathView /></Suspense></RequireAuth>
+          </Route>
           <Route path="/reading-list">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><ReadingList /></Suspense></RequireAuth>
           </Route>
@@ -172,6 +178,12 @@ function Router() {
           </Route>
           <Route path="/admin/users">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><AdminUsers /></Suspense></RequireAuth>
+          </Route>
+          <Route path="/admin/concepts">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><AdminConcepts /></Suspense></RequireAuth>
+          </Route>
+          <Route path="/dashboard/mastery">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><MasteryDashboard /></Suspense></RequireAuth>
           </Route>
           <Route path="/studio">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Studio /></Suspense></RequireAuth>

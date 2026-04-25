@@ -828,3 +828,173 @@ export const eventMetrics = mysqlTable("event_metrics", {
   metricTimeIdx: index("event_metrics_metric_time_idx").on(t.metric, t.measuredAt),
 }));
 export type EventMetric = typeof eventMetrics.$inferSelect;
+
+// ─── Adaptive Learning Platform ───────────────────────────────────────────────
+
+// Concept graph — atomic learnable ideas
+export const concepts = mysqlTable("concepts", {
+  id: varchar("id", { length: 96 }).primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  summary: text("summary").notNull(),
+  domain: varchar("domain", { length: 64 }).notNull(),
+  bloomLevel: mysqlEnum("bloomLevel", ["remember", "understand", "apply", "analyze", "evaluate", "create"]).notNull(),
+  estimatedMinutes: int("estimatedMinutes").default(15).notNull(),
+  misconceptions: json("misconceptions").$type<Array<{ id: string; misconception: string; reality: string; remediationConceptId?: string }>>(),
+  vocabKeys: json("vocabKeys").$type<string[]>(),
+  source: mysqlEnum("source", ["seeded", "llm-extracted", "admin-authored"]).default("llm-extracted").notNull(),
+  reviewStatus: mysqlEnum("reviewStatus", ["draft", "published", "deprecated"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  domainIdx: index("concepts_domain_idx").on(t.domain),
+  statusIdx: index("concepts_status_idx").on(t.reviewStatus),
+}));
+export type Concept = typeof concepts.$inferSelect;
+export type InsertConcept = typeof concepts.$inferInsert;
+
+// Directed prerequisite edges
+export const conceptPrerequisites = mysqlTable("concept_prerequisites", {
+  id: int("id").autoincrement().primaryKey(),
+  conceptId: varchar("conceptId", { length: 96 }).notNull(),
+  prerequisiteId: varchar("prerequisiteId", { length: 96 }).notNull(),
+  strength: mysqlEnum("strength", ["hard", "soft"]).default("hard").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  conceptIdx: index("concept_prereq_concept_idx").on(t.conceptId),
+  prereqIdx: index("concept_prereq_prereq_idx").on(t.prerequisiteId),
+  pairIdx: index("concept_prereq_pair_idx").on(t.conceptId, t.prerequisiteId),
+}));
+export type ConceptPrerequisite = typeof conceptPrerequisites.$inferSelect;
+export type InsertConceptPrerequisite = typeof conceptPrerequisites.$inferInsert;
+
+// Curated OER assets (Nexus catalog)
+export const learningAssets = mysqlTable("learning_assets", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 512 }).notNull(),
+  url: varchar("url", { length: 2048 }).notNull(),
+  sourcePlatform: varchar("sourcePlatform", { length: 128 }).notNull(),
+  contentType: mysqlEnum("contentType", [
+    "textbook", "article", "video", "simulation", "interactive", "problem-set", "lecture", "other"
+  ]).notNull(),
+  licenseName: varchar("licenseName", { length: 128 }).notNull(),
+  licenseUrl: varchar("licenseUrl", { length: 1024 }),
+  licenseCategory: mysqlEnum("licenseCategory", ["commercial_ok", "nc_only", "deep_link_only"]).notNull(),
+  difficultyLevel: mysqlEnum("difficultyLevel", ["intro", "core", "stretch"]).default("core").notNull(),
+  estimatedMinutes: int("estimatedMinutes").default(15).notNull(),
+  hasAssessment: boolean("hasAssessment").default(false).notNull(),
+  visualTags: json("visualTags").$type<string[]>(),
+  priority: int("priority").default(3).notNull(),
+  embeddable: boolean("embeddable"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  platformIdx: index("learning_assets_platform_idx").on(t.sourcePlatform),
+  licenseIdx: index("learning_assets_license_idx").on(t.licenseCategory),
+  priorityIdx: index("learning_assets_priority_idx").on(t.priority),
+}));
+export type LearningAsset = typeof learningAssets.$inferSelect;
+export type InsertLearningAsset = typeof learningAssets.$inferInsert;
+
+// M:N mapping between concepts and assets
+export const conceptAssets = mysqlTable("concept_assets", {
+  id: int("id").autoincrement().primaryKey(),
+  conceptId: varchar("conceptId", { length: 96 }).notNull(),
+  assetId: int("assetId").notNull(),
+  role: mysqlEnum("role", ["primary", "practice", "deep-dive", "alternate"]).default("primary").notNull(),
+  relevanceScore: float("relevanceScore").default(0.5),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  conceptIdx: index("concept_assets_concept_idx").on(t.conceptId),
+  assetIdx: index("concept_assets_asset_idx").on(t.assetId),
+}));
+export type ConceptAsset = typeof conceptAssets.$inferSelect;
+export type InsertConceptAsset = typeof conceptAssets.$inferInsert;
+
+// Goal paths — a learner's personalized sequence of concepts
+export const goalPaths = mysqlTable("goal_paths", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: int("userId"),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  goalText: varchar("goalText", { length: 1000 }).notNull(),
+  goalSummary: varchar("goalSummary", { length: 255 }),
+  pitch: text("pitch"),
+  estimatedTotalMinutes: int("estimatedTotalMinutes").default(0).notNull(),
+  status: mysqlEnum("status", ["building", "ready", "in_progress", "completed", "abandoned"]).default("building").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  cookieIdx: index("goal_paths_cookie_idx").on(t.cookieId),
+  userIdx: index("goal_paths_user_idx").on(t.userId),
+  statusIdx: index("goal_paths_status_idx").on(t.status),
+}));
+export type GoalPath = typeof goalPaths.$inferSelect;
+export type InsertGoalPath = typeof goalPaths.$inferInsert;
+
+// Ordered concepts within a goal path
+export const goalPathNodes = mysqlTable("goal_path_nodes", {
+  id: int("id").autoincrement().primaryKey(),
+  pathId: varchar("pathId", { length: 64 }).notNull(),
+  conceptId: varchar("conceptId", { length: 96 }).notNull(),
+  sequenceNumber: int("sequenceNumber").notNull(),
+  lessonKey: varchar("lessonKey", { length: 128 }),
+  lessonStatus: mysqlEnum("lessonStatus", ["queued", "generating", "ready", "failed"]).default("queued").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  pathSeqIdx: index("goal_path_nodes_path_seq_idx").on(t.pathId, t.sequenceNumber),
+  pathIdx: index("goal_path_nodes_path_idx").on(t.pathId),
+  conceptIdx: index("goal_path_nodes_concept_idx").on(t.conceptId),
+}));
+export type GoalPathNode = typeof goalPathNodes.$inferSelect;
+export type InsertGoalPathNode = typeof goalPathNodes.$inferInsert;
+
+// BKT-lite mastery tracking per (learner, concept)
+export const conceptMastery = mysqlTable("concept_mastery", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  conceptId: varchar("conceptId", { length: 96 }).notNull(),
+  pKnown: float("pKnown").default(0.1).notNull(),
+  attemptCount: int("attemptCount").default(0).notNull(),
+  correctCount: int("correctCount").default(0).notNull(),
+  masteredAt: timestamp("masteredAt"),
+  lastAttemptAt: timestamp("lastAttemptAt"),
+  lastCorrect: boolean("lastCorrect"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  cookieConceptIdx: index("concept_mastery_cookie_concept_idx").on(t.cookieId, t.conceptId),
+  userConceptIdx: index("concept_mastery_user_concept_idx").on(t.userId, t.conceptId),
+}));
+export type ConceptMastery = typeof conceptMastery.$inferSelect;
+export type InsertConceptMastery = typeof conceptMastery.$inferInsert;
+
+// Cached on-demand generated LessonTemplate shapes
+export const adaptiveLessonTemplates = mysqlTable("adaptive_lesson_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  lessonKey: varchar("lessonKey", { length: 128 }).notNull().unique(),
+  conceptId: varchar("conceptId", { length: 96 }).notNull(),
+  profileBucket: varchar("profileBucket", { length: 64 }).notNull(),
+  templateJson: json("templateJson").$type<Record<string, unknown>>().notNull(),
+  generatorModel: varchar("generatorModel", { length: 64 }),
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+}, (t) => ({
+  conceptBucketIdx: index("adaptive_templates_concept_bucket_idx").on(t.conceptId, t.profileBucket),
+}));
+export type AdaptiveLessonTemplate = typeof adaptiveLessonTemplates.$inferSelect;
+export type InsertAdaptiveLessonTemplate = typeof adaptiveLessonTemplates.$inferInsert;
+
+// Progress tracking for adaptive (string-keyed) lessons
+export const adaptiveLessonProgress = mysqlTable("adaptive_lesson_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  lessonKey: varchar("lessonKey", { length: 128 }).notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  timeSpentSeconds: int("timeSpentSeconds").default(0).notNull(),
+  attempts: int("attempts").default(1).notNull(),
+  lastAccessedAt: timestamp("lastAccessedAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieLessonIdx: index("adaptive_progress_cookie_lesson_idx").on(t.cookieId, t.lessonKey),
+}));
+export type AdaptiveLessonProgress = typeof adaptiveLessonProgress.$inferSelect;
+export type InsertAdaptiveLessonProgress = typeof adaptiveLessonProgress.$inferInsert;

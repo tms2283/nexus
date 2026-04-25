@@ -43,7 +43,10 @@ import {
   createFlashcardDeck,
   addScheduledFlashcardsToDeck,
 } from "../db";
-import { type InsertLesson, type InsertLessonSection } from "../../drizzle/schema";
+import { type InsertLesson, type InsertLessonSection, adaptiveLessonTemplates } from "../../drizzle/schema";
+import { getDb } from "../db";
+import { eq } from "drizzle-orm";
+import type { LessonTemplate } from "../../shared/types/lessonSeed";
 import { ENV } from "../_core/env";
 
 const sectionTypeSchema = z.enum([
@@ -446,7 +449,17 @@ export const lessonRouter = router({
   getSeededLesson: publicProcedure
     .input(z.object({ lessonId: z.string().max(64), cookieId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
-      const template = AI_LITERACY_TEMPLATES[input.lessonId] ?? AI_BY_AI_TEMPLATES[input.lessonId];
+      let template = AI_LITERACY_TEMPLATES[input.lessonId] ?? AI_BY_AI_TEMPLATES[input.lessonId] ?? null;
+      if (!template) {
+        // Fall back to adaptive template cache (for on-demand generated lessons)
+        const db = await getDb();
+        if (db) {
+          const cached = await db.select().from(adaptiveLessonTemplates)
+            .where(eq(adaptiveLessonTemplates.lessonKey, input.lessonId))
+            .limit(1);
+          if (cached[0]) template = cached[0].templateJson as unknown as LessonTemplate;
+        }
+      }
       if (!template) {
         throw new TRPCError({ code: "NOT_FOUND", message: `No lesson template: ${input.lessonId}` });
       }

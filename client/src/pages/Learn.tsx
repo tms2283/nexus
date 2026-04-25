@@ -6205,6 +6205,28 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
     });
   };
 
+  const startAdaptivePath = trpc.curriculum.startGoal.useMutation();
+  const [isStartingPath, setIsStartingPath] = useState(false);
+
+  const handleStartAdaptivePath = async () => {
+    if (!goal.trim()) { toast.error("Please enter your learning goal first."); return; }
+    if (!cookieId) { toast.error("Missing session cookie. Refresh and try again."); return; }
+    setIsStartingPath(true);
+    try {
+      const { pathId } = await startAdaptivePath.mutateAsync({
+        cookieId,
+        goalText: goal,
+        timeCommitment: "moderate",
+      });
+      addXP(25);
+      setLocation(`/path/${pathId}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to start path";
+      toast.error(msg);
+      setIsStartingPath(false);
+    }
+  };
+
   const typeColors: Record<string, string> = {
     lesson: "text-[oklch(0.75_0.18_55)] border-[oklch(0.75_0.18_55_/_0.3)] bg-[oklch(0.75_0.18_55_/_0.08)]",
     practice: "text-[oklch(0.65_0.22_200)] border-[oklch(0.65_0.22_200_/_0.3)] bg-[oklch(0.65_0.22_200_/_0.08)]",
@@ -6313,17 +6335,33 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
             </div>
           </div>
 
+          {/* Primary: Adaptive path (concept graph + BKT mastery) */}
+          <motion.button
+            onClick={handleStartAdaptivePath}
+            disabled={isStartingPath || !goal.trim()}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-[oklch(0.65_0.22_200)] to-[oklch(0.72_0.2_290)] text-white font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+          >
+            {isStartingPath ? (
+              <><Loader2 size={16} className="animate-spin" /> Building your adaptive path…</>
+            ) : (
+              <><Sparkles size={16} /> Build Adaptive Learning Path</>
+            )}
+          </motion.button>
+
+          {/* Secondary: legacy markdown curriculum generator */}
           <motion.button
             onClick={handleGenerate}
             disabled={isGenerating || !goal.trim()}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] text-black font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+            className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-muted-foreground font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:bg-white/10"
           >
             {isGenerating ? (
-              <><Loader2 size={16} className="animate-spin" /> Building your curriculum...</>
+              <><Loader2 size={14} className="animate-spin" /> Generating…</>
             ) : (
-              <><Sparkles size={16} /> Generate My Learning Path</>
+              <>Generate Outline (Legacy)</>
             )}
           </motion.button>
         </div>

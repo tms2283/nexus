@@ -5,6 +5,9 @@ import type { LessonSeed, LessonSection } from "@shared/types/lessonSeed";
 import { ProductiveFailureBlock } from "./ProductiveFailureBlock";
 import { RetrievalWithConfidence } from "./RetrievalWithConfidence";
 import { SpanSelectBlock } from "./SpanSelectBlock";
+import { EmbedBlock } from "./EmbedBlock";
+import { DiagramBlock } from "./DiagramBlock";
+import { ComputationBlock } from "./ComputationBlock";
 
 /**
  * Renders any LessonSeed by dispatching each section to the appropriate
@@ -98,6 +101,12 @@ function SectionBlock({ section, lessonId }: { section: LessonSection; lessonId:
           </p>
         </div>
       );
+    case "embed":
+      return <EmbedBlock block={section} />;
+    case "diagram":
+      return <DiagramBlock block={section} />;
+    case "computation":
+      return <ComputationBlock block={section} />;
     default:
       return null;
   }

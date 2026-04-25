@@ -15,7 +15,10 @@ export type LessonSectionKind =
   | "productive-failure"
   | "span-select"
   | "reflection"
-  | "rubric";
+  | "rubric"
+  | "embed"
+  | "diagram"
+  | "computation";
 
 export interface NarrativeBlock {
   kind: "narrative";
@@ -47,6 +50,10 @@ export interface RetrievalChoice {
   text: string;
   correct: boolean;
   rationale: string;
+  /** If this wrong choice represents a known misconception, tag it here. */
+  misconceptionTag?: string;
+  /** When learner picks this incorrect choice, suggest this concept for remediation. */
+  remediationConceptId?: string;
 }
 
 export interface RetrievalBlock {
@@ -96,6 +103,35 @@ export interface RubricBlock {
   gradingInstructions: string;
 }
 
+export interface EmbedBlock {
+  kind: "embed";
+  id: string;
+  title: string;
+  url: string;
+  displayMode: "iframe" | "link";
+  sourcePlatform: string;
+  licenseCategory: "commercial_ok" | "nc_only" | "deep_link_only";
+  beforePrompt?: string;
+  afterPrompt?: string;
+  estimatedMinutes?: number;
+}
+
+export interface DiagramBlock {
+  kind: "diagram";
+  id: string;
+  title?: string;
+  mermaid: string;
+  caption?: string;
+}
+
+export interface ComputationBlock {
+  kind: "computation";
+  id: string;
+  prompt: string;
+  wolframQuery: string;
+  takeaway: string;
+}
+
 export type LessonSection =
   | NarrativeBlock
   | AnalogyBlock
@@ -104,7 +140,10 @@ export type LessonSection =
   | ProductiveFailureBlock
   | SpanSelectBlock
   | ReflectionBlock
-  | RubricBlock;
+  | RubricBlock
+  | EmbedBlock
+  | DiagramBlock
+  | ComputationBlock;
 
 export interface LessonSeed {
   lessonId: string;

@@ -15,7 +15,9 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "foundation:assets": "tsx scripts/generate-foundation-assets.ts"
+    "foundation:assets": "tsx scripts/generate-foundation-assets.ts",
+    "ingest:nexus": "tsx scripts/ingest-nexus.ts",
+    "ingest:nexus-ed2": "tsx scripts/ingest-nexus-ed2.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",
@@ -101,6 +103,7 @@
     "add": "^2.0.6",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
+    "csv-parse": "^6.2.1",
     "drizzle-kit": "^0.31.4",
     "electron": "^35.1.5",
     "electron-builder": "^26.0.12",

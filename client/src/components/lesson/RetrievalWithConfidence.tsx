@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, XCircle, Gauge } from "lucide-react";
+import { CheckCircle2, XCircle, Gauge, Lightbulb, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import type { RetrievalBlock } from "@shared/types/lessonSeed";
@@ -20,9 +20,21 @@ export function RetrievalWithConfidence({
   const [confidence, setConfidence] = useState<number | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [remediationConceptId, setRemediationConceptId] = useState<string | null>(null);
+  const [remediationDismissed, setRemediationDismissed] = useState(false);
   const { cookieId } = usePersonalization();
   const recordSignalMutation = trpc.learner.recordRetrievalAttempt.useMutation();
   const recordAssessmentMutation = trpc.lesson.recordAssessment.useMutation();
+  const recordAttemptMutation = trpc.curriculum.recordAttempt.useMutation({
+    onSuccess: (data) => {
+      if (data.remediationConceptId) setRemediationConceptId(data.remediationConceptId);
+    },
+  });
+
+  const snippetQuery = trpc.curriculum.getConceptSnippet.useQuery(
+    { conceptId: remediationConceptId! },
+    { enabled: !!remediationConceptId && !remediationDismissed }
+  );
 
   const submit = () => {
     if (!picked || (block.requireConfidence && confidence == null)) return;
@@ -54,6 +66,18 @@ export function RetrievalWithConfidence({
         },
         { onError: () => {} }
       );
+      // Also update BKT mastery if this block has a concept tag
+      if (block.tags?.[0]) {
+        recordAttemptMutation.mutate({
+          cookieId,
+          conceptId: block.tags[0],
+          correct: choice.correct,
+          confidence: confidence ?? undefined,
+          itemId: block.id,
+          lessonKey: lessonId,
+          misconceptionTag: (!choice.correct && choice.misconceptionTag) ? choice.misconceptionTag : undefined,
+        });
+      }
     }
   };
 
@@ -149,6 +173,49 @@ export function RetrievalWithConfidence({
                   : ""}
               </p>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Misconception remediation card */}
+      <AnimatePresence>
+        {submitted && remediationConceptId && !remediationDismissed && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="mt-3 p-4 rounded-xl border border-[oklch(0.75_0.18_55_/_0.35)] bg-[oklch(0.75_0.18_55_/_0.06)]"
+          >
+            <div className="flex items-center gap-2 text-[oklch(0.75_0.18_55)] mb-2">
+              <Lightbulb size={14} />
+              <span className="text-xs font-semibold uppercase tracking-wide">Let's unpack that</span>
+            </div>
+            {snippetQuery.data ? (
+              <>
+                <p className="text-sm font-medium text-foreground mb-1">{snippetQuery.data.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                  {snippetQuery.data.summary}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground mb-3">
+                This mistake points to a specific gap — reviewing the underlying concept will help.
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRemediationDismissed(true)}
+                className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] hover:bg-[oklch(0.75_0.18_55_/_0.25)] transition-colors"
+              >
+                <ChevronRight size={12} /> Continue lesson
+              </button>
+              <button
+                onClick={() => setRemediationDismissed(true)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2"
+              >
+                Dismiss
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
