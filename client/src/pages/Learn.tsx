@@ -9,7 +9,10 @@ import {
   Eye, Info, Award, RefreshCw, Lightbulb, AlertTriangle,
   Scale, Search, FlaskConical, Flame, Users, TrendingUp,
   Heart, DollarSign, Palette, Fingerprint, Wifi, ShieldAlert,
-  BadgeCheck, Banknote, Brush, Database, Globe, Smartphone
+  BadgeCheck, Banknote, Brush, Database, Globe, Smartphone,
+  Sliders, Cpu, Link, Settings, Key, Terminal, Layers,
+  GitBranch, Wand2, SlidersHorizontal, Code2, Copy,
+  ThumbsUp, ThumbsDown, Repeat2, PenLine, Image as ImageIcon
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
@@ -42,8 +45,3221 @@ interface SocraticMessage {
   content: string;
 }
 
-// ─── AI Literacy Types & Data ────────────────────────────────────────────────
-type LessonId = 1 | 2 | 3 | 4 | 5;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI MASTERY COURSE — "From Zero to Power User"
+// 3 Modules · 15 Lessons · 1,100 XP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Shared Types ─────────────────────────────────────────────────────────────
+interface AIMasteryQuiz {
+  id: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+}
+
+// ─── Reusable Components ──────────────────────────────────────────────────────
+
+// Glowing badge for section types
+function SectionBadge({ label, color }: { label: string; color: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-widest mb-3"
+      style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.3)` }}>
+      {label}
+    </span>
+  );
+}
+
+// Collapsible "Learn More" expander powered by AI
+function AIExpander({ prompt, label = "Dig deeper with AI", color = "oklch(0.72_0.2_290)" }: { prompt: string; label?: string; color?: string }) {
+  const [open, setOpen] = useState(false);
+  const [result, setResult] = useState("");
+  const mut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => setResult(d.explanation),
+  });
+  const trigger = () => {
+    if (result) { setOpen(!open); return; }
+    setOpen(true);
+    mut.mutate({ concept: prompt, level: "student" });
+  };
+  return (
+    <div className="mt-3">
+      <button onClick={trigger}
+        className="flex items-center gap-2 text-xs font-semibold transition-all px-3 py-1.5 rounded-lg"
+        style={{ color, background: `oklch(from ${color} l c h / 0.08)`, border: `1px solid oklch(from ${color} l c h / 0.2)` }}>
+        <Brain size={11} /> {label}
+        <ChevronDown size={11} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mt-2">
+            <div className="p-4 rounded-xl glass border" style={{ borderColor: `oklch(from ${color} l c h / 0.25)` }}>
+              {mut.isPending ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 size={13} className="animate-spin" style={{ color }} /> Thinking…
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{result}</p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Quiz block — one question at a time with XP feedback
+function MasteryQuiz({ questions, color }: { questions: AIMasteryQuiz[]; color: string }) {
+  const [qi, setQi] = useState(0);
+  const [sel, setSel] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const { addXP } = usePersonalization();
+
+  const handleSelect = (i: number) => {
+    if (sel !== null) return;
+    setSel(i);
+    if (i === questions[qi].correct) setScore(s => s + 1);
+  };
+
+  const next = () => {
+    if (qi + 1 >= questions.length) {
+      const pct = Math.round(((score + (sel === questions[qi].correct ? 1 : 0)) / questions.length) * 100);
+      setDone(true);
+      const xp = pct >= 80 ? 20 : pct >= 60 ? 10 : 5;
+      addXP(xp);
+      toast.success(`+${xp} XP — ${pct}% on knowledge check!`);
+    } else {
+      setQi(q => q + 1);
+      setSel(null);
+    }
+  };
+
+  if (done) {
+    const finalScore = score + (sel === questions[qi]?.correct ? 1 : 0);
+    const pct = Math.round((finalScore / questions.length) * 100);
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+        className="p-5 rounded-2xl glass border text-center" style={{ borderColor: `oklch(from ${color} l c h / 0.35)` }}>
+        <div className="text-3xl font-black mb-1" style={{ color }}>{pct}%</div>
+        <div className="text-sm text-muted-foreground">{finalScore}/{questions.length} correct</div>
+        <div className="text-xs text-muted-foreground mt-2">
+          {pct >= 80 ? "Excellent — you've got this." : pct >= 60 ? "Good foundation — review the explanations." : "Revisit the lesson content, then try again."}
+        </div>
+        <button onClick={() => { setQi(0); setSel(null); setScore(0); setDone(false); }}
+          className="mt-3 px-4 py-1.5 rounded-lg text-xs font-medium glass border border-white/10 text-muted-foreground hover:text-foreground transition-colors">
+          Retry
+        </button>
+      </motion.div>
+    );
+  }
+
+  const q = questions[qi];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-muted-foreground">Question {qi + 1} of {questions.length}</span>
+        <div className="flex gap-1">
+          {questions.map((_, i) => (
+            <div key={i} className="w-6 h-1.5 rounded-full"
+              style={{ background: i < qi ? `oklch(from ${color} l c h / 0.6)` : i === qi ? color : "oklch(1 0 0 / 0.1)" }} />
+          ))}
+        </div>
+      </div>
+      <p className="font-semibold text-foreground leading-snug">{q.question}</p>
+      <div className="space-y-2">
+        {q.options.map((opt, i) => {
+          const isCorrect = i === q.correct;
+          const isSelected = i === sel;
+          let bg = "oklch(1 0 0 / 0.04)";
+          let border = "oklch(1 0 0 / 0.08)";
+          let textColor = "oklch(0.7 0 0)";
+          if (sel !== null) {
+            if (isCorrect) { bg = "oklch(0.72_0.18_150_/_0.15)"; border = "oklch(0.72_0.18_150_/_0.5)"; textColor = "oklch(0.82_0.18_150)"; }
+            else if (isSelected) { bg = "oklch(0.68_0.22_10_/_0.15)"; border = "oklch(0.68_0.22_10_/_0.5)"; textColor = "oklch(0.78_0.22_10)"; }
+          }
+          return (
+            <button key={i} onClick={() => handleSelect(i)}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3"
+              style={{ background: bg, border: `1px solid ${border}`, color: textColor }}>
+              {sel !== null && isCorrect && <CheckCircle2 size={14} className="shrink-0" />}
+              {sel !== null && isSelected && !isCorrect && <XCircle size={14} className="shrink-0" />}
+              {sel === null && <div className="w-5 h-5 rounded-full border border-white/20 shrink-0 text-[10px] flex items-center justify-center font-bold text-muted-foreground">{String.fromCharCode(65 + i)}</div>}
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+      <AnimatePresence>
+        {sel !== null && (
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+            className="p-3 rounded-xl glass border border-white/8">
+            <p className="text-xs text-muted-foreground leading-relaxed">{q.explanation}</p>
+            <button onClick={next} className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.35)` }}>
+              {qi + 1 >= questions.length ? "See results →" : "Next question →"}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Live AI prompt sandbox — type a prompt, get a real response
+function PromptSandbox({ placeholder, systemHint, color, label = "Try it live" }: {
+  placeholder: string; systemHint: string; color: string; label?: string;
+}) {
+  const [input, setInput] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const mut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setResponse(d.explanation); setLoading(false); },
+    onError: () => { toast.error("AI unavailable — try again"); setLoading(false); },
+  });
+  const submit = () => {
+    if (!input.trim()) { toast.error("Write a prompt first"); return; }
+    setLoading(true);
+    setResponse("");
+    mut.mutate({ concept: `${systemHint}\n\nUser prompt: ${input}`, level: "student" });
+  };
+  return (
+    <div className="space-y-3 p-4 rounded-2xl glass border" style={{ borderColor: `oklch(from ${color} l c h / 0.25)` }}>
+      <div className="flex items-center gap-2 mb-1">
+        <FlaskConical size={13} style={{ color }} />
+        <span className="text-xs font-bold tracking-wide" style={{ color }}>{label.toUpperCase()}</span>
+      </div>
+      <textarea value={input} onChange={e => setInput(e.target.value)}
+        placeholder={placeholder} rows={4}
+        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 font-mono" />
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">{input.length} chars</span>
+        <button onClick={submit} disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+          style={{ background: `oklch(from ${color} l c h / 0.2)`, color, border: `1px solid oklch(from ${color} l c h / 0.4)` }}>
+          {loading ? <><Loader2 size={13} className="animate-spin" />Running…</> : <><Send size={13} />Run Prompt</>}
+        </button>
+      </div>
+      <AnimatePresence>
+        {response && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="mt-2 p-4 rounded-xl border border-white/8 bg-white/3">
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+              <Sparkles size={10} /> AI RESPONSE
+            </div>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{response}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Narrator with Web Speech API
+function AIVoice({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false);
+  const speak = useCallback(() => {
+    window.speechSynthesis?.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.92; u.onend = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis?.speak(u);
+  }, [text]);
+  const stop = useCallback(() => { window.speechSynthesis?.cancel(); setSpeaking(false); }, []);
+  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
+  return (
+    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.07)] border border-[oklch(0.75_0.18_55_/_0.18)] mb-3">
+      {speaking ? (
+        <div className="flex items-end gap-0.5 h-3">
+          {[0, 1, 2, 3].map(i => (
+            <motion.div key={i} className="w-0.5 bg-[oklch(0.75_0.18_55)] rounded-full"
+              animate={{ height: ["3px", "12px", "3px"] }}
+              transition={{ repeat: Infinity, duration: 0.55, delay: i * 0.1 }} />
+          ))}
+        </div>
+      ) : <Volume2 size={11} className="text-[oklch(0.75_0.18_55)]" />}
+      <span className="text-xs text-muted-foreground flex-1 leading-snug">{text.slice(0, 80)}{text.length > 80 ? "…" : ""}</span>
+      {speaking
+        ? <button onClick={stop} className="px-2 py-0.5 rounded text-[10px] bg-white/10 text-muted-foreground"><Pause size={9} className="inline mr-0.5" />Stop</button>
+        : <button onClick={speak} className="px-2 py-0.5 rounded text-[10px] bg-[oklch(0.75_0.18_55_/_0.2)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)]"><Play size={9} className="inline mr-0.5" />Listen</button>
+      }
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE 1: "The AI Toolkit" — Understanding the tools you have access to
+// Lessons 1-5
+// ─────────────────────────────────────────────────────────────────────────────
+
+const M1_META = [
+  { id: 1, title: "The AI Landscape", subtitle: "A map of every major AI tool and what each is actually for", color: "oklch(0.72_0.2_290)", xp: 60, duration: "20 min" },
+  { id: 2, title: "Free vs Paid", subtitle: "What you get for free, what's behind the paywall, and whether it's worth it", color: "oklch(0.75_0.18_55)", xp: 65, duration: "20 min" },
+  { id: 3, title: "Context & Tokens", subtitle: "The hidden engine of every AI conversation — and why it matters", color: "oklch(0.68_0.22_10)", xp: 70, duration: "25 min" },
+  { id: 4, title: "Settings & Parameters", subtitle: "Temperature, model choice, and the dials that change everything", color: "oklch(0.68_0.20_140)", xp: 75, duration: "25 min" },
+  { id: 5, title: "Connecting & Uploading", subtitle: "Files, images, web search, and how to give AI real-world access", color: "oklch(0.72_0.18_150)", xp: 80, duration: "25 min" },
+];
+
+const M1_QUIZ_L1: AIMasteryQuiz[] = [
+  { id: "m1l1q1", question: "What does an LLM (Large Language Model) actually do at its core?", options: ["Searches the internet for information", "Predicts the most likely next word/token based on patterns in training data", "Understands and reasons like a human", "Retrieves pre-written answers from a database"], correct: 1, explanation: "LLMs are trained to predict the next token (word fragment) given everything that came before it. They don't 'look things up' — they generate text by following statistical patterns learned from billions of documents. This is why they can be fluent but wrong." },
+  { id: "m1l1q2", question: "Which AI tool is BEST suited for generating a realistic photo-quality image from a text description?", options: ["ChatGPT (text-only)", "DALL-E / Midjourney / Stable Diffusion", "GitHub Copilot", "Perplexity AI"], correct: 1, explanation: "Image generation models (DALL-E, Midjourney, Stable Diffusion) are trained specifically on image-text pairs. ChatGPT by itself only handles text — though some versions integrate DALL-E. Always match the tool to the modality." },
+  { id: "m1l1q3", question: "What separates a 'foundation model' from a specialized AI tool?", options: ["Foundation models are always larger", "Foundation models are general-purpose and can be fine-tuned or prompted for many tasks", "Specialized tools use more data", "There is no meaningful difference"], correct: 1, explanation: "Foundation models (GPT-4, Claude, Gemini) are trained broadly and can handle many tasks through prompting. Specialized tools (Harvey for law, Consensus for research) are often built ON foundation models but fine-tuned or constrained for specific domains." },
+  { id: "m1l1q4", question: "What is 'hallucination' in AI?", options: ["The AI becomes confused by your input", "The AI generates confident-sounding but factually incorrect information", "The AI refuses to answer", "A visual glitch in AI-generated images"], correct: 1, explanation: "Hallucination happens because LLMs optimize for plausibility, not accuracy. They generate text that 'sounds right' based on patterns — which can produce convincing fabrications including fake citations, statistics, and events. Verification is essential for any factual claim." },
+];
+
+const M1_QUIZ_L2: AIMasteryQuiz[] = [
+  { id: "m1l2q1", question: "What is the primary limitation of free AI tiers compared to paid?", options: ["Free models are always less accurate", "Free tiers typically have slower speeds, lower rate limits, and access to older/smaller models", "Free tiers don't allow image generation", "There is no meaningful difference"], correct: 1, explanation: "Paid tiers give you access to the latest, largest models; higher rate limits (more messages per hour); faster response times; and often additional features like longer context windows, image generation, and API access. The underlying technology difference varies by provider." },
+  { id: "m1l2q2", question: "What does 'API access' mean in practical terms for an AI user?", options: ["A way to access AI through a browser", "Programmatic access that lets you integrate AI into your own apps, scripts, or workflows", "A faster version of the chat interface", "Access to the AI's training data"], correct: 1, explanation: "An API (Application Programming Interface) lets you call AI from code, automation tools, or third-party apps — rather than only through the official chat UI. This enables workflows like automated report generation, custom chatbots, or integrating AI into spreadsheets." },
+  { id: "m1l2q3", question: "Claude Pro, ChatGPT Plus, and Gemini Advanced all cost ~$20/month. When is this worth it?", options: ["Never — free tiers are sufficient for all tasks", "When you use AI daily for professional work requiring the best models, highest limits, and advanced features", "Only for developers building apps", "Only when you need image generation"], correct: 1, explanation: "The paid tier pays off when you hit free tier limits regularly, need the best model quality for professional output, require advanced features (code interpreter, file analysis, web search), or build workflows that depend on consistent high-volume access." },
+];
+
+const M1_QUIZ_L3: AIMasteryQuiz[] = [
+  { id: "m1l3q1", question: "What is a 'token' in the context of LLMs?", options: ["A security credential", "A unit of text roughly equal to ¾ of a word that models process", "A single word", "A paragraph of text"], correct: 1, explanation: "Tokens are chunks of text — roughly ¾ of a word on average, though common words can be 1 token and rare words might be 2-3. LLMs process, generate, and are billed by token count. 'The quick brown fox' ≈ 4-5 tokens." },
+  { id: "m1l3q2", question: "What happens when a conversation exceeds the AI's context window?", options: ["The AI crashes", "The AI forgets earlier parts of the conversation — it can only 'see' what fits in the window", "The AI automatically summarizes the whole conversation", "The AI asks you to start over"], correct: 1, explanation: "Context windows are the AI's 'working memory.' Once your conversation exceeds the limit, the earliest messages fall off. This is why AI sometimes 'forgets' what you said at the start of a long conversation — it literally can't see that far back." },
+  { id: "m1l3q3", question: "Which strategy best manages context for a long working session?", options: ["Start a new conversation every few messages", "Periodically ask the AI to summarize the key points so far, then start fresh", "Use the longest context model available regardless of cost", "Avoid long tasks entirely"], correct: 1, explanation: "The best practice for long sessions: when you feel the conversation getting long, ask the AI to 'summarize the key decisions, goals, and context so far in a compact paragraph.' Then paste that summary into a fresh conversation as your opening context. This resets the window without losing important state." },
+];
+
+const M1_QUIZ_L4: AIMasteryQuiz[] = [
+  { id: "m1l4q1", question: "What does AI 'temperature' control?", options: ["How fast the AI responds", "The randomness/creativity of outputs — low = predictable, high = creative", "The length of responses", "The model's intelligence level"], correct: 1, explanation: "Temperature is a parameter (0–2, typically) controlling output randomness. Low temperature (0–0.3) produces consistent, predictable answers — good for factual tasks. High temperature (0.7–1.2) produces more varied, creative responses — better for brainstorming or creative writing. Most chat UIs hide this but it's fundamental." },
+  { id: "m1l4q2", question: "What's the practical difference between GPT-4o and GPT-4o mini?", options: ["Mini is for mobile devices only", "Mini is faster and cheaper with slightly lower capability — good for simpler tasks", "Mini cannot understand images", "There is no practical difference"], correct: 1, explanation: "Model variants (mini, turbo, etc.) represent speed/cost/capability tradeoffs. Mini/smaller models handle simple tasks fast and cheaply. Frontier models (4o, Claude Sonnet, Gemini Pro) deliver better reasoning for complex tasks but cost more and are slower. Choose based on task complexity, not habit." },
+  { id: "m1l4q3", question: "What does 'System Prompt' mean?", options: ["The first message you send", "A hidden instruction that shapes the AI's behavior before the user conversation begins", "The AI's default personality", "An error message"], correct: 1, explanation: "System prompts are pre-conversation instructions that establish the AI's persona, rules, constraints, and context. 'You are a professional copywriter who writes in a direct, Hemingway-style tone. Never use bullet points.' These instructions persist for the whole conversation and are the most powerful configuration tool available." },
+];
+
+const M1_QUIZ_L5: AIMasteryQuiz[] = [
+  { id: "m1l5q1", question: "When you upload a PDF to an AI, what actually happens?", options: ["The AI downloads and permanently stores the file", "The AI reads the extracted text content and includes it in your conversation context", "The AI searches the internet for related information", "The AI converts it to a different format"], correct: 1, explanation: "File upload extracts the text (or uses vision for images/PDFs) and feeds it into the context window. The AI doesn't permanently store your file — it reads it as part of the current conversation. This is why very large documents can hit context limits, and why sensitive files require careful consideration." },
+  { id: "m1l5q2", question: "What is RAG (Retrieval-Augmented Generation)?", options: ["A type of image generation technique", "A method where AI retrieves relevant documents first, then generates answers grounded in that retrieved content", "The process of training AI on new data", "A way to make AI responses longer"], correct: 1, explanation: "RAG combines a retrieval system (searching a document database) with a generative model. Instead of relying purely on training data, the AI first fetches relevant chunks from your documents, then generates an answer grounded in that content. This dramatically reduces hallucination for domain-specific questions." },
+  { id: "m1l5q3", question: "What is the main security risk when uploading sensitive files to public AI tools?", options: ["The AI might modify your file", "Your data may be used for training, stored on servers, or accessible to the company", "The file might corrupt the AI", "There are no real security risks"], correct: 1, explanation: "Most consumer AI tools store your conversations and uploads — and policies vary on training data use. For sensitive business, legal, or personal documents, check the privacy policy, consider using API with data retention disabled, or use enterprise tiers with data protection guarantees." },
+];
+
+// ─── M1 Lesson data structures ────────────────────────────────────────────────
+
+const AI_TOOL_CATEGORIES = [
+  {
+    category: "Conversational AI",
+    color: "oklch(0.72_0.2_290)",
+    tools: [
+      { name: "ChatGPT", maker: "OpenAI", strength: "Generalist — writing, code, analysis, image gen (with DALL-E)", bestFor: "Everyday tasks, writing, code help" },
+      { name: "Claude", maker: "Anthropic", strength: "Long context, nuanced reasoning, following complex instructions, safer outputs", bestFor: "Long documents, sensitive topics, precise task execution" },
+      { name: "Gemini", maker: "Google", strength: "Deep Google integration, real-time web, multimodal (text/image/video/audio)", bestFor: "Research with web access, Google Workspace tasks" },
+      { name: "Perplexity", maker: "Perplexity AI", strength: "Real-time web search with citations — designed for research", bestFor: "Factual research, current events, cited answers" },
+    ],
+  },
+  {
+    category: "Image Generation",
+    color: "oklch(0.68_0.22_10)",
+    tools: [
+      { name: "DALL-E 3", maker: "OpenAI", strength: "Integrated into ChatGPT; strong at following text descriptions precisely", bestFor: "Quick image gen from text, especially with ChatGPT Plus" },
+      { name: "Midjourney", maker: "Midjourney", strength: "Highest aesthetic quality; preferred by professional designers", bestFor: "High-quality artistic images, marketing assets" },
+      { name: "Stable Diffusion", maker: "Stability AI", strength: "Open-source; run locally; maximum control via settings", bestFor: "Privacy, fine-tuned control, free with own hardware" },
+      { name: "Adobe Firefly", maker: "Adobe", strength: "Commercially safe training data; integrates with Creative Cloud", bestFor: "Commercial use, Photoshop/Illustrator workflows" },
+    ],
+  },
+  {
+    category: "Code & Dev AI",
+    color: "oklch(0.72_0.18_150)",
+    tools: [
+      { name: "GitHub Copilot", maker: "GitHub/OpenAI", strength: "In-editor autocomplete; understands your codebase", bestFor: "Day-to-day coding, autocomplete, inline suggestions" },
+      { name: "Cursor", maker: "Cursor AI", strength: "Full AI-native IDE; chat with your entire codebase", bestFor: "Complex refactoring, codebase-wide changes" },
+      { name: "Replit AI", maker: "Replit", strength: "Build and run code in browser; great for beginners", bestFor: "Learning to code, quick prototypes" },
+    ],
+  },
+  {
+    category: "Specialized AI",
+    color: "oklch(0.75_0.18_55)",
+    tools: [
+      { name: "Otter.ai", maker: "Otter", strength: "Real-time meeting transcription and summaries", bestFor: "Meeting notes, interviews, lectures" },
+      { name: "ElevenLabs", maker: "ElevenLabs", strength: "Ultra-realistic voice cloning and text-to-speech", bestFor: "Voiceovers, podcasts, accessibility" },
+      { name: "Runway ML", maker: "Runway", strength: "Professional AI video generation and editing", bestFor: "Video production, creative video work" },
+      { name: "Consensus", maker: "Consensus", strength: "AI that searches and synthesizes academic papers with citations", bestFor: "Research, fact-checking, academic work" },
+    ],
+  },
+];
+
+const FREE_VS_PAID = [
+  {
+    provider: "ChatGPT",
+    free: { model: "GPT-4o mini", limits: "Limited GPT-4o msgs/day", features: "Basic chat, limited image gen" },
+    paid: { price: "$20/mo", model: "GPT-4o + o1", limits: "5× more messages, priority access", features: "DALL-E 3, code interpreter, file uploads, web search, custom GPTs" },
+    verdict: "Worth it if you use it daily for professional work",
+  },
+  {
+    provider: "Claude",
+    free: { model: "Claude 3.5 Haiku", limits: "~50 msgs/day", features: "Basic chat, limited file upload" },
+    paid: { price: "$20/mo", model: "Claude Sonnet/Opus", limits: "5× limits, priority", features: "Projects, 200K token context, artifacts, advanced analysis" },
+    verdict: "Best value for long documents and complex reasoning tasks",
+  },
+  {
+    provider: "Gemini",
+    free: { model: "Gemini 1.5 Flash", limits: "Standard limits", features: "Basic chat, Google search" },
+    paid: { price: "$20/mo (Google One AI Premium)", model: "Gemini 1.5 Pro / 2.0", limits: "Higher limits, faster", features: "Workspace integration, extended context, advanced reasoning, NotebookLM+" },
+    verdict: "Worth it if you live in Google Workspace",
+  },
+  {
+    provider: "Perplexity",
+    free: { model: "Standard search", limits: "5 Pro searches/day", features: "Web-grounded answers with citations" },
+    paid: { price: "$20/mo", model: "Pro search (GPT-4/Claude backend)", limits: "Unlimited Pro searches", features: "File uploads, image gen, longer answers, API access, multiple AI models" },
+    verdict: "Best subscription for research-heavy users",
+  },
+];
+
+const TOKEN_EXAMPLES = [
+  { text: "Hello", tokens: 1 },
+  { text: "The quick brown fox", tokens: 4 },
+  { text: "Artificial intelligence is transforming every industry.", tokens: 8 },
+  { text: "Please write a comprehensive 500-word marketing plan for a new coffee shop in Seattle targeting young professionals aged 25–35.", tokens: 27 },
+  { text: "pneumonoultramicroscopicsilicovolcanoconiosis", tokens: 14 },
+];
+
+const CONTEXT_WINDOW_SIZES = [
+  { model: "GPT-3.5 (2023)", tokens: 4096, pages: "~3 pages", color: "oklch(0.68_0.22_10)" },
+  { model: "GPT-4 (2023)", tokens: 8192, pages: "~6 pages", color: "oklch(0.72_0.18_40)" },
+  { model: "Claude 3 Sonnet", tokens: 200000, pages: "~150 pages", color: "oklch(0.72_0.2_290)" },
+  { model: "Gemini 1.5 Pro", tokens: 1000000, pages: "~750 pages", color: "oklch(0.72_0.18_150)" },
+  { model: "Claude 3.5 (latest)", tokens: 200000, pages: "~150 pages", color: "oklch(0.68_0.20_140)" },
+];
+
+// ─── Module 1 Component ───────────────────────────────────────────────────────
+function AILiteracyModule1({ onBack }: { onBack: () => void }) {
+  const { addXP } = usePersonalization();
+  const [activeLesson, setActiveLesson] = useState<number | null>(null);
+  const [completed, setCompleted] = useState<Set<number>>(new Set());
+
+  // L1 state
+  const [l1Category, setL1Category] = useState(0);
+  const [l1ToolIdx, setL1ToolIdx] = useState(0);
+  const [l1Revealed, setL1Revealed] = useState<Set<string>>(new Set());
+
+  // L2 state — Free vs Paid comparison
+  const [l2Row, setL2Row] = useState(0);
+  const [l2Tab, setL2Tab] = useState<"free" | "paid">("free");
+  const [l2FeatReveal, setL2FeatReveal] = useState<Set<number>>(new Set());
+
+  // L3 state — Token counter game
+  const [tokenInput, setTokenInput] = useState("");
+  const [tokenGuess, setTokenGuess] = useState("");
+  const [tokenRevealed, setTokenRevealed] = useState(false);
+  const [contextScroll, setContextScroll] = useState(0);
+
+  // L4 state — Temperature slider + settings explorer
+  const [temperature, setTemperature] = useState(0.7);
+  const [tempResult, setTempResult] = useState("");
+  const [tempLoading, setTempLoading] = useState(false);
+  const [settingTab, setSettingTab] = useState<"temperature" | "model" | "system">("temperature");
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [systemResult, setSystemResult] = useState("");
+  const [systemLoading, setSystemLoading] = useState(false);
+
+  // L5 state — File upload sim + RAG explainer
+  const [uploadStep, setUploadStep] = useState(0);
+  const [ragStep, setRagStep] = useState(0);
+
+  const tempMut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setTempResult(d.explanation); setTempLoading(false); },
+    onError: () => { toast.error("AI unavailable"); setTempLoading(false); },
+  });
+  const sysMut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setSystemResult(d.explanation); setSystemLoading(false); },
+    onError: () => { toast.error("AI unavailable"); setSystemLoading(false); },
+  });
+
+  const completeLesson = (id: number) => {
+    if (completed.has(id)) return;
+    const meta = M1_META.find(m => m.id === id)!;
+    setCompleted(prev => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson ${id} complete!`);
+  };
+
+  // Estimated token count (rough: ~0.75 tokens per word)
+  const estimateTokens = (text: string) => Math.ceil(text.trim().split(/\s+/).filter(Boolean).length * 1.33);
+
+  function LessonFrame({ id, children }: { id: number; children: React.ReactNode }) {
+    const meta = M1_META.find(m => m.id === id)!;
+    const done = completed.has(id);
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-1">
+          <button onClick={() => setActiveLesson(null)}
+            className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+            <ChevronLeft size={14} className="text-muted-foreground" />
+          </button>
+          <div className="flex-1">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-widest">Module 1 · Lesson {id}</div>
+            <h2 className="font-bold text-foreground text-lg leading-tight">{meta.title}</h2>
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} />{meta.duration}</span>
+            <span className="text-xs flex items-center gap-1 font-semibold" style={{ color: meta.color }}><Zap size={10} />+{meta.xp} XP</span>
+          </div>
+        </div>
+        {children}
+        <div className="pt-4 border-t border-white/8 flex items-center justify-between">
+          {done
+            ? <div className="flex items-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={14} />Lesson complete</div>
+            : <motion.button onClick={() => completeLesson(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-black"
+                style={{ background: `linear-gradient(135deg, ${meta.color}, oklch(0.65_0.22_200))` }}>
+                <CheckCircle2 size={14} />Mark Complete · +{meta.xp} XP
+              </motion.button>
+          }
+          {id < 5 && (
+            <button onClick={() => setActiveLesson(id + 1)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next <ChevronRight size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── LESSON 1: The AI Landscape ────────────────────────────────────────────
+  const Lesson1 = () => (
+    <LessonFrame id={1}>
+      <AIVoice text="Every major category of AI tool exists for a different reason. Understanding the map first means you'll never wonder 'which AI should I use for this?' again." />
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="THE LANDSCAPE" color="oklch(0.72_0.2_290)" />
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          There are now thousands of AI tools — but they fall into a small number of categories. Pick the right category first, then choose the tool within it.
+        </p>
+        {/* Category tabs */}
+        <div className="grid grid-cols-2 gap-1.5 mb-4">
+          {AI_TOOL_CATEGORIES.map((cat, i) => (
+            <button key={cat.category} onClick={() => { setL1Category(i); setL1ToolIdx(0); }}
+              className="py-2 px-3 rounded-xl text-xs font-semibold text-left transition-all"
+              style={{
+                background: l1Category === i ? `oklch(from ${cat.color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                color: l1Category === i ? cat.color : "oklch(0.6 0 0)",
+                border: `1px solid ${l1Category === i ? `oklch(from ${cat.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {cat.category}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div key={l1Category} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            {/* Tool selector within category */}
+            <div className="flex gap-1.5 flex-wrap mb-3">
+              {AI_TOOL_CATEGORIES[l1Category].tools.map((tool, i) => (
+                <button key={tool.name} onClick={() => setL1ToolIdx(i)}
+                  className="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                  style={{
+                    background: l1ToolIdx === i ? `oklch(from ${AI_TOOL_CATEGORIES[l1Category].color} l c h / 0.2)` : "oklch(1 0 0 / 0.04)",
+                    color: l1ToolIdx === i ? AI_TOOL_CATEGORIES[l1Category].color : "oklch(0.5 0 0)",
+                    border: `1px solid ${l1ToolIdx === i ? `oklch(from ${AI_TOOL_CATEGORIES[l1Category].color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+                  }}>
+                  {tool.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tool detail card */}
+            <motion.div key={`${l1Category}-${l1ToolIdx}`} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
+              className="rounded-2xl p-4 border" style={{ background: `oklch(from ${AI_TOOL_CATEGORIES[l1Category].color} l c h / 0.07)`, borderColor: `oklch(from ${AI_TOOL_CATEGORIES[l1Category].color} l c h / 0.25)` }}>
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <div className="font-bold text-foreground">{AI_TOOL_CATEGORIES[l1Category].tools[l1ToolIdx].name}</div>
+                  <div className="text-xs text-muted-foreground">by {AI_TOOL_CATEGORIES[l1Category].tools[l1ToolIdx].maker}</div>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: `oklch(from ${AI_TOOL_CATEGORIES[l1Category].color} l c h / 0.15)`, color: AI_TOOL_CATEGORIES[l1Category].color }}>
+                  {AI_TOOL_CATEGORIES[l1Category].category}
+                </span>
+              </div>
+              {[
+                { label: "What it does well", value: AI_TOOL_CATEGORIES[l1Category].tools[l1ToolIdx].strength },
+                { label: "Best for", value: AI_TOOL_CATEGORIES[l1Category].tools[l1ToolIdx].bestFor },
+              ].map(({ label, value }) => (
+                <div key={label} className="mt-2">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{label}</div>
+                  <p className="text-sm text-foreground leading-snug">{value}</p>
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+        <AIExpander prompt={`Explain the differences between ${AI_TOOL_CATEGORIES[l1Category].tools.map(t => t.name).join(", ")} in the ${AI_TOOL_CATEGORIES[l1Category].category} category. When would you pick one over another? Give concrete use-case examples.`} color="oklch(0.72_0.2_290)" />
+      </div>
+
+      {/* Quick-pick challenge */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="QUICK-PICK CHALLENGE" color="oklch(0.75_0.18_55)" />
+        <p className="text-sm font-medium text-foreground mb-4">For each task, tap the best tool category:</p>
+        {[
+          { task: "Transcribe a 90-minute interview recording", correct: "Specialized AI", options: ["Conversational AI", "Specialized AI", "Code AI", "Image Generation"] },
+          { task: "Create a product photo mockup from a text description", correct: "Image Generation", options: ["Conversational AI", "Code AI", "Image Generation", "Specialized AI"] },
+          { task: "Autocomplete code as you type in VS Code", correct: "Code & Dev AI", options: ["Conversational AI", "Image Generation", "Code & Dev AI", "Specialized AI"] },
+          { task: "Research a topic with cited sources from real websites", correct: "Conversational AI", options: ["Code & Dev AI", "Conversational AI", "Specialized AI", "Image Generation"] },
+        ].map((item, qi) => {
+          const [picked, setPicked] = useState<string | null>(null);
+          return (
+            <div key={qi} className={`mb-4 ${qi > 0 ? "pt-4 border-t border-white/8" : ""}`}>
+              <p className="text-sm text-muted-foreground mb-2">"{item.task}"</p>
+              <div className="flex flex-wrap gap-1.5">
+                {item.options.map(opt => {
+                  const isCorrect = opt === item.correct;
+                  const isPicked = opt === picked;
+                  return (
+                    <button key={opt} onClick={() => setPicked(opt)} disabled={picked !== null}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                      style={{
+                        background: picked === null ? "oklch(1 0 0 / 0.05)" : isCorrect ? "oklch(0.72_0.18_150_/_0.2)" : isPicked ? "oklch(0.68_0.22_10_/_0.2)" : "oklch(1 0 0 / 0.05)",
+                        color: picked === null ? "oklch(0.6 0 0)" : isCorrect ? "oklch(0.82_0.18_150)" : isPicked ? "oklch(0.78_0.22_10)" : "oklch(0.4 0 0)",
+                        border: `1px solid ${picked === null ? "oklch(1 0 0 / 0.08)" : isCorrect ? "oklch(0.72_0.18_150_/_0.4)" : isPicked ? "oklch(0.68_0.22_10_/_0.4)" : "oklch(1 0 0 / 0.05)"}`,
+                      }}>
+                      {isCorrect && picked !== null && <CheckCircle2 size={10} className="inline mr-1" />}
+                      {isPicked && !isCorrect && <XCircle size={10} className="inline mr-1" />}
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.72_0.2_290)" />
+        <MasteryQuiz questions={M1_QUIZ_L1} color="oklch(0.72_0.2_290)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 2: Free vs Paid ─────────────────────────────────────────────────
+  const Lesson2 = () => (
+    <LessonFrame id={2}>
+      <AIVoice text="The gap between free and paid AI has never been smaller — but for professional work, the difference still matters. Here's exactly what you're getting and what you're not." />
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="FREE VS PAID BREAKDOWN" color="oklch(0.75_0.18_55)" />
+        {/* Provider selector */}
+        <div className="flex gap-1.5 flex-wrap mb-4">
+          {FREE_VS_PAID.map((p, i) => (
+            <button key={p.provider} onClick={() => setL2Row(i)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+              style={{
+                background: l2Row === i ? "oklch(0.75_0.18_55_/_0.2)" : "oklch(1 0 0 / 0.04)",
+                color: l2Row === i ? "oklch(0.85_0.18_55)" : "oklch(0.5 0 0)",
+                border: `1px solid ${l2Row === i ? "oklch(0.75_0.18_55_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {p.provider}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div key={l2Row} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {(["free", "paid"] as const).map(tier => {
+                const data = FREE_VS_PAID[l2Row][tier];
+                return (
+                  <button key={tier} onClick={() => setL2Tab(tier)}
+                    className={`p-4 rounded-xl text-left transition-all border ${l2Tab === tier ? (tier === "free" ? "border-[oklch(0.72_0.18_150_/_0.4)] bg-[oklch(0.72_0.18_150_/_0.08)]" : "border-[oklch(0.75_0.18_55_/_0.4)] bg-[oklch(0.75_0.18_55_/_0.08)]") : "border-white/8 glass"}`}>
+                    <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${tier === "paid" ? "text-[oklch(0.85_0.18_55)]" : "text-[oklch(0.72_0.18_150)]"}`}>
+                      {tier === "free" ? "Free Tier" : `Paid · ${(data as { price: string; model: string; limits: string; features: string }).price}`}
+                    </div>
+                    <div className="text-xs text-muted-foreground"><strong className="text-foreground">Model:</strong> {data.model}</div>
+                    <div className="text-xs text-muted-foreground mt-1"><strong className="text-foreground">Limits:</strong> {data.limits}</div>
+                  </button>
+                );
+              })}
+            </div>
+            <motion.div key={l2Tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="p-4 rounded-xl glass border border-white/8">
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Features included:</div>
+              <p className="text-sm text-foreground leading-relaxed">{FREE_VS_PAID[l2Row][l2Tab].features}</p>
+            </motion.div>
+            <div className="mt-3 p-3 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)]">
+              <span className="text-xs font-semibold text-[oklch(0.85_0.18_55)]">VERDICT: </span>
+              <span className="text-xs text-muted-foreground">{FREE_VS_PAID[l2Row].verdict}</span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Feature reveal cards */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="WHAT EACH FEATURE ACTUALLY DOES" color="oklch(0.68_0.22_10)" />
+        <p className="text-sm text-muted-foreground mb-4">Tap each paid feature to understand what it's really for:</p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { feature: "Code Interpreter", what: "Runs real Python code in a sandbox — analyzes data, creates charts, solves math, processes files. It's a full analysis environment." },
+            { feature: "File Upload", what: "Feed AI your PDFs, spreadsheets, or docs. AI reads the content and can answer questions, summarize, or extract data from it." },
+            { feature: "Web Search", what: "Lets AI retrieve real-time information instead of relying on training data. Reduces hallucination for current events and facts." },
+            { feature: "Custom GPTs / Projects", what: "Pre-configured AI instances with custom system prompts, uploaded knowledge bases, and saved instructions for recurring tasks." },
+            { feature: "Extended Context", what: "Bigger context window = AI can read longer documents or maintain longer conversations without forgetting early content." },
+            { feature: "API Access", what: "Programmatic access so you (or tools you use) can call AI from code, Zapier, Make, spreadsheets, or custom apps." },
+          ].map((item, i) => (
+            <div key={item.feature}>
+              <button onClick={() => setL2FeatReveal(prev => {
+                const n = new Set(Array.from(prev));
+                n.has(i) ? n.delete(i) : n.add(i);
+                return n;
+              })}
+                className={`w-full text-left p-3 rounded-xl transition-all border ${l2FeatReveal.has(i) ? "border-[oklch(0.68_0.22_10_/_0.4)] bg-[oklch(0.68_0.22_10_/_0.08)]" : "glass border-white/8 hover:border-white/20"}`}>
+                <div className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  {item.feature}
+                  <ChevronDown size={11} className={`text-muted-foreground transition-transform ${l2FeatReveal.has(i) ? "rotate-180" : ""}`} />
+                </div>
+                <AnimatePresence>
+                  {l2FeatReveal.has(i) && (
+                    <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                      className="text-xs text-muted-foreground mt-2 leading-relaxed overflow-hidden">
+                      {item.what}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Decision guide */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="SHOULD YOU PAY?" color="oklch(0.72_0.2_290)" />
+        <p className="text-sm text-muted-foreground mb-3">Answer these questions honestly:</p>
+        {[
+          "Do you use AI at least once per day for work tasks?",
+          "Do you regularly hit message limits on the free tier?",
+          "Do you need to analyze documents, run data, or generate images?",
+          "Would better AI output quality meaningfully improve your work?",
+        ].map((q, i) => {
+          const [ans, setAns] = useState<boolean | null>(null);
+          return (
+            <div key={i} className="flex items-start gap-3 mb-3 p-3 rounded-xl glass border border-white/8">
+              <p className="text-sm text-muted-foreground flex-1">{q}</p>
+              <div className="flex gap-1.5 shrink-0">
+                {[true, false].map(val => (
+                  <button key={String(val)} onClick={() => setAns(val)}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                    style={{
+                      background: ans === val ? (val ? "oklch(0.72_0.18_150_/_0.2)" : "oklch(0.68_0.22_10_/_0.2)") : "oklch(1 0 0 / 0.04)",
+                      color: ans === val ? (val ? "oklch(0.82_0.18_150)" : "oklch(0.78_0.22_10)") : "oklch(0.5 0 0)",
+                      border: `1px solid ${ans === val ? (val ? "oklch(0.72_0.18_150_/_0.4)" : "oklch(0.68_0.22_10_/_0.4)") : "oklch(1 0 0 / 0.08)"}`,
+                    }}>
+                    {val ? "Yes" : "No"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <div className="p-3 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)] text-xs text-muted-foreground">
+          <strong className="text-foreground">Rule of thumb:</strong> If you answered Yes to 2 or more, a paid tier will likely pay for itself in time saved within the first week.
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.75_0.18_55)" />
+        <MasteryQuiz questions={M1_QUIZ_L2} color="oklch(0.75_0.18_55)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 3: Context & Tokens ─────────────────────────────────────────────
+  const Lesson3 = () => (
+    <LessonFrame id={3}>
+      <AIVoice text="Tokens are AI's unit of currency — they determine what the AI can read, what it costs, and how much of your conversation it can remember. Understanding tokens makes you a dramatically better AI user." />
+
+      {/* Token counter game */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="TOKEN COUNTER — GUESS THE TOKENS" color="oklch(0.68_0.22_10)" />
+        <p className="text-sm text-muted-foreground mb-4">
+          Tokens aren't words — they're chunks. A token ≈ ¾ of a word. Common words = 1 token. Rare words can = 2–4 tokens.
+        </p>
+
+        {/* Example tokens visual */}
+        <div className="space-y-3 mb-5">
+          {TOKEN_EXAMPLES.map(ex => (
+            <div key={ex.text} className="flex items-center gap-3 p-3 rounded-xl glass border border-white/8">
+              <p className="text-sm text-foreground font-mono flex-1">"{ex.text}"</p>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: Math.min(ex.tokens, 14) }).map((_, i) => (
+                    <div key={i} className="w-2.5 h-4 rounded-sm" style={{ background: `oklch(0.68_0.22_10_/_${0.4 + (i / ex.tokens) * 0.5})` }} />
+                  ))}
+                  {ex.tokens > 14 && <span className="text-[10px] text-muted-foreground ml-1">+{ex.tokens - 14}</span>}
+                </div>
+                <span className="text-xs font-bold" style={{ color: "oklch(0.78_0.22_10)" }}>{ex.tokens} tokens</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Live token estimator */}
+        <div className="border-t border-white/8 pt-4">
+          <p className="text-sm font-semibold text-foreground mb-2">Estimate the tokens in your own text:</p>
+          <textarea value={tokenInput} onChange={e => { setTokenInput(e.target.value); setTokenRevealed(false); setTokenGuess(""); }}
+            placeholder="Type or paste anything…" rows={3}
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 font-mono mb-3" />
+          {tokenInput.trim() && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <input value={tokenGuess} onChange={e => setTokenGuess(e.target.value)}
+                  placeholder="Your guess…" type="number"
+                  className="w-24 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-white/25" />
+                <button onClick={() => setTokenRevealed(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[oklch(0.68_0.22_10_/_0.15)] text-[oklch(0.78_0.22_10)] border border-[oklch(0.68_0.22_10_/_0.35)] hover:bg-[oklch(0.68_0.22_10_/_0.25)] transition-all">
+                  Reveal
+                </button>
+              </div>
+              {tokenRevealed && (
+                <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-xl bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.25)]">
+                  <p className="text-sm"><span className="text-foreground font-bold">~{estimateTokens(tokenInput)} tokens</span> estimated
+                    {tokenGuess && ` · Your guess: ${tokenGuess} (${Math.abs(parseInt(tokenGuess) - estimateTokens(tokenInput))} off)`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">≈ ${(estimateTokens(tokenInput) * 0.000003).toFixed(5)} at GPT-4o pricing · {Math.round(tokenInput.length / 4)} words</p>
+                </motion.div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Context window visualizer */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="CONTEXT WINDOW COMPARISON" color="oklch(0.72_0.2_290)" />
+        <p className="text-sm text-muted-foreground mb-4">
+          The context window is the AI's working memory — everything it can "see" at once.
+          Larger = more document, longer conversation history.
+        </p>
+        <div className="space-y-3">
+          {CONTEXT_WINDOW_SIZES.map(cw => (
+            <div key={cw.model} className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-foreground font-medium">{cw.model}</span>
+                <span className="text-muted-foreground">{cw.tokens.toLocaleString()} tokens · {cw.pages}</span>
+              </div>
+              <div className="h-4 rounded-full bg-white/5 overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min((cw.tokens / 1000000) * 100, 100)}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="h-full rounded-full" style={{ background: cw.color, minWidth: "4px" }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 p-3 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)]">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">Practical impact:</strong> A 200K token window can hold the entire text of three average novels. A 4K window holds about 3 pages. When the window fills up, the model starts forgetting your earlier conversation — it can't "scroll up."
+          </p>
+        </div>
+        <AIExpander prompt="Explain context windows in AI in plain language. What happens when you exceed them? What are the practical strategies for managing context effectively in long AI conversations? What does 'token pricing' mean for API users?" color="oklch(0.72_0.2_290)" />
+      </div>
+
+      {/* Context management strategies */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="CONTEXT MANAGEMENT STRATEGIES" color="oklch(0.72_0.18_150)" />
+        <div className="space-y-3">
+          {[
+            { strategy: "Start fresh for new topics", desc: "Don't drag unrelated conversation history into a new task. Open a new chat so the model starts with a clean, focused window.", icon: <RotateCcw size={14} /> },
+            { strategy: "Compress with periodic summaries", desc: 'Midway through a long session: "Summarize everything we\'ve covered so far in 3 sentences." Paste that into a new chat as your context opener.', icon: <MessageSquare size={14} /> },
+            { strategy: "Front-load the important stuff", desc: "Whatever matters most — your goal, constraints, persona — put it at the START of the conversation, not buried later. Early tokens get more attention.", icon: <Target size={14} /> },
+            { strategy: "Use system prompts for persistent context", desc: "In tools that support it, system prompts are always visible regardless of conversation length. Put your standing instructions there.", icon: <Shield size={14} /> },
+          ].map(({ strategy, desc, icon }) => (
+            <div key={strategy} className="flex items-start gap-3 p-3 rounded-xl glass border border-white/8">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)] text-[oklch(0.82_0.18_150)]">
+                {icon}
+              </div>
+              <div>
+                <div className="font-semibold text-sm text-foreground mb-0.5">{strategy}</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.68_0.22_10)" />
+        <MasteryQuiz questions={M1_QUIZ_L3} color="oklch(0.68_0.22_10)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 4: Settings & Parameters ───────────────────────────────────────
+  const Lesson4 = () => (
+    <LessonFrame id={4}>
+      <AIVoice text="Temperature, model selection, and system prompts are the three levers that most users never touch — and it's costing them half the power of AI. Let's fix that." />
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="flex gap-1.5 mb-4">
+          {(["temperature", "model", "system"] as const).map(tab => (
+            <button key={tab} onClick={() => setSettingTab(tab)}
+              className="flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-all"
+              style={{
+                background: settingTab === tab ? "oklch(0.68_0.20_140_/_0.2)" : "oklch(1 0 0 / 0.04)",
+                color: settingTab === tab ? "oklch(0.80_0.20_140)" : "oklch(0.5 0 0)",
+                border: `1px solid ${settingTab === tab ? "oklch(0.68_0.20_140_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {tab === "temperature" ? "Temperature" : tab === "model" ? "Model Choice" : "System Prompt"}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {settingTab === "temperature" && (
+            <motion.div key="temp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="TEMPERATURE SLIDER" color="oklch(0.68_0.20_140)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Temperature controls randomness. <strong className="text-foreground">Low (0–0.3)</strong>: predictable, consistent, factual. <strong className="text-foreground">High (0.8–1.5)</strong>: creative, varied, surprising — but less reliable.
+              </p>
+
+              {/* Visual slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[oklch(0.72_0.18_150)]">0 — Deterministic</span>
+                  <span className="text-[oklch(0.85_0.18_55)] font-bold text-base">{temperature.toFixed(1)}</span>
+                  <span className="text-[oklch(0.68_0.22_10)]">2.0 — Chaotic</span>
+                </div>
+                <input type="range" min={0} max={2} step={0.1} value={temperature}
+                  onChange={e => setTemperature(parseFloat(e.target.value))}
+                  className="w-full accent-[oklch(0.75_0.18_55)]" />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>Factual QA · Code · Data extraction</span>
+                  <span>Brainstorming · Creative writing · Poetry</span>
+                </div>
+              </div>
+
+              {/* Temperature presets */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Precise", val: 0.1, use: "Math, facts, code", color: "oklch(0.72_0.18_150)" },
+                  { label: "Balanced", val: 0.7, use: "General use", color: "oklch(0.75_0.18_55)" },
+                  { label: "Creative", val: 1.2, use: "Stories, ideas", color: "oklch(0.68_0.22_10)" },
+                ].map(p => (
+                  <button key={p.label} onClick={() => setTemperature(p.val)}
+                    className="p-3 rounded-xl text-left transition-all border"
+                    style={{
+                      background: Math.abs(temperature - p.val) < 0.15 ? `oklch(from ${p.color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                      borderColor: Math.abs(temperature - p.val) < 0.15 ? `oklch(from ${p.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)",
+                    }}>
+                    <div className="text-xs font-bold text-foreground">{p.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.val} · {p.use}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Live temperature comparison */}
+              <div className="border-t border-white/8 pt-4">
+                <p className="text-sm font-semibold text-foreground mb-2">See temperature in action:</p>
+                <p className="text-xs text-muted-foreground mb-3">The prompt below will run at your selected temperature ({temperature.toFixed(1)}). Try it at 0.1, then again at 1.5 and compare.</p>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 font-mono text-sm text-muted-foreground mb-3">
+                  "Give me 3 creative names for a productivity app. Be inventive."
+                </div>
+                <button disabled={tempLoading} onClick={() => {
+                  setTempLoading(true); setTempResult("");
+                  const prefix = temperature < 0.3 ? "Be very consistent and predictable. Give exactly 3 safe, professional names." :
+                    temperature > 1 ? "Be wildly creative, unexpected, poetic. Surprise me. No clichés." :
+                    "Balance creativity and practicality.";
+                  tempMut.mutate({ concept: `${prefix} Give me 3 creative names for a productivity app. Be inventive. [Temperature simulation: ${temperature.toFixed(1)}]`, level: "student" });
+                }}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 bg-[oklch(0.68_0.20_140_/_0.15)] text-[oklch(0.80_0.20_140)] border border-[oklch(0.68_0.20_140_/_0.35)] hover:bg-[oklch(0.68_0.20_140_/_0.25)]">
+                  {tempLoading ? <><Loader2 size={13} className="animate-spin" />Running at temp {temperature.toFixed(1)}…</> : <><Zap size={13} />Run at Temperature {temperature.toFixed(1)}</>}
+                </button>
+                {tempResult && (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 p-4 rounded-xl glass border border-white/8">
+                    <div className="text-[10px] font-bold text-muted-foreground mb-2">AI RESPONSE @ temp {temperature.toFixed(1)}</div>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{tempResult}</p>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {settingTab === "model" && (
+            <motion.div key="model" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="MODEL SELECTION GUIDE" color="oklch(0.72_0.2_290)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">Bigger model ≠ always better. Match the model to the task for speed and cost efficiency.</p>
+              <div className="space-y-2">
+                {[
+                  { tier: "Frontier / Largest", examples: "GPT-4o, Claude Sonnet 3.5, Gemini 1.5 Pro", use: "Complex reasoning, nuanced writing, multi-step analysis, code debugging", speed: "Slower", cost: "High", color: "oklch(0.72_0.2_290)" },
+                  { tier: "Mid-tier", examples: "GPT-4o mini, Claude Haiku, Gemini Flash", use: "Summarization, Q&A, drafting, most everyday tasks", speed: "Fast", cost: "Low", color: "oklch(0.75_0.18_55)" },
+                  { tier: "Reasoning Specialists", examples: "o1, o3, Claude 3.7 Sonnet thinking", use: "Math proofs, logic puzzles, code architecture, scientific reasoning", speed: "Very slow", cost: "Very high", color: "oklch(0.68_0.22_10)" },
+                ].map(m => (
+                  <div key={m.tier} className="p-4 rounded-xl border transition-all glass border-white/8">
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="font-semibold text-sm text-foreground">{m.tier}</div>
+                      <div className="flex gap-1.5">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: `oklch(from ${m.color} l c h / 0.15)`, color: m.color }}>{m.speed}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: `oklch(from ${m.color} l c h / 0.15)`, color: m.color }}>{m.cost} cost</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-1">{m.examples}</p>
+                    <p className="text-xs text-foreground">{m.use}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="p-3 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)]">
+                <p className="text-xs text-muted-foreground"><strong className="text-foreground">Decision rule:</strong> Use the smallest model that can reliably do the task. Save frontier models for tasks where quality gap is clear. For rapid iteration, draft with a fast model, then polish with a frontier model.</p>
+              </div>
+            </motion.div>
+          )}
+
+          {settingTab === "system" && (
+            <motion.div key="system" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="SYSTEM PROMPT LAB" color="oklch(0.75_0.18_55)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                A system prompt is a hidden instruction that shapes everything the AI says before your first message. It's the most powerful configuration tool available.
+              </p>
+              <div className="space-y-2 mb-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">STARTER TEMPLATES — click to load:</p>
+                {[
+                  { label: "Expert Copywriter", prompt: "You are a senior copywriter who writes in a direct, punchy style — no fluff, no jargon, no passive voice. Every sentence must earn its place. When asked to write anything, you produce 2 versions: one safe, one bolder." },
+                  { label: "Tough-Love Editor", prompt: "You are a ruthless editor. When I share writing, you first identify the single most damaging flaw — the thing that most undermines the piece — before anything else. Be blunt. Then offer specific rewrites, not vague suggestions." },
+                  { label: "Rubber Duck Debugger", prompt: "You are a patient programming tutor. When I share code or an error, first make me explain what I think is happening before you correct me. Ask exactly one clarifying question at a time. Never give the answer before I've tried once." },
+                ].map(t => (
+                  <button key={t.label} onClick={() => setSystemPrompt(t.prompt)}
+                    className="w-full text-left p-3 rounded-xl glass border border-white/8 hover:border-white/20 transition-all">
+                    <div className="text-xs font-semibold text-foreground">{t.label}</div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{t.prompt}</p>
+                  </button>
+                ))}
+              </div>
+              <textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)}
+                placeholder="Write your own system prompt…" rows={4}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 font-mono" />
+              <p className="text-xs text-muted-foreground">Now test it — send a simple message and see how the system prompt changes the response:</p>
+              <PromptSandbox
+                placeholder={`Type a message to test your system prompt:\n"${systemPrompt.slice(0, 60)}${systemPrompt.length > 60 ? "…" : ""}"`}
+                systemHint={systemPrompt || "You are a helpful assistant."}
+                color="oklch(0.75_0.18_55)"
+                label="Test System Prompt" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.68_0.20_140)" />
+        <MasteryQuiz questions={M1_QUIZ_L4} color="oklch(0.68_0.20_140)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 5: Connecting & Uploading ──────────────────────────────────────
+  const Lesson5 = () => (
+    <LessonFrame id={5}>
+      <AIVoice text="Uploading a file, granting web access, or connecting a tool transforms AI from a conversation into a workflow. This is where AI becomes genuinely powerful for real work." />
+
+      {/* Upload walkthrough */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="WHAT HAPPENS WHEN YOU UPLOAD A FILE" color="oklch(0.72_0.18_150)" />
+        <p className="text-sm text-muted-foreground mb-4">Step through what actually happens behind the scenes:</p>
+
+        <div className="flex gap-1.5 mb-4 flex-wrap">
+          {["You upload", "Text extracted", "Chunked", "Into context", "AI reads"].map((step, i) => (
+            <button key={step} onClick={() => setUploadStep(i)}
+              className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all min-w-[60px]"
+              style={{
+                background: uploadStep === i ? "oklch(0.72_0.18_150_/_0.2)" : uploadStep > i ? "oklch(0.72_0.18_150_/_0.08)" : "oklch(1 0 0 / 0.04)",
+                color: uploadStep === i ? "oklch(0.82_0.18_150)" : uploadStep > i ? "oklch(0.62_0.18_150)" : "oklch(0.5 0 0)",
+                border: `1px solid ${uploadStep === i ? "oklch(0.72_0.18_150_/_0.4)" : uploadStep > i ? "oklch(0.72_0.18_150_/_0.2)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {i + 1}. {step}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div key={uploadStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="p-4 rounded-2xl glass border border-white/8">
+            {[
+              { title: "You select a file", body: "You choose a PDF, DOCX, spreadsheet, image, or other supported file type. The file is uploaded to the AI provider's server — it is NOT stored permanently in most cases, but check privacy policies for sensitive documents.", note: "Supported: PDF, DOCX, TXT, CSV, XLSX, PNG, JPG, MP4 (varies by tool)" },
+              { title: "Text is extracted", body: "For documents: a parser extracts the raw text (or OCR extracts text from images/scanned PDFs). For images: the vision model reads pixels directly. For spreadsheets: data is converted to structured text representation.", note: "Gotcha: Scanned PDFs with bad OCR will produce garbled text — the AI only sees what the extractor could read" },
+              { title: "Content is chunked", body: "Large documents are broken into chunks (typically 512–4000 tokens each) to fit into the context window. In some systems (RAG-enabled), these chunks are indexed separately for later retrieval.", note: "This is why very long documents may get summarized rather than fully read — they literally may not fit" },
+              { title: "Chunks enter the context window", body: "The extracted content is inserted into your conversation context — like pasting the document text in yourself, but automated. This competes for space with your conversation history, instructions, and the AI's response.", note: "A 100-page PDF ≈ 75,000 tokens — which exceeds many models' context windows. Use models with large contexts for big documents." },
+              { title: "AI reads and responds", body: "The model now has the document content as part of its 'current view.' It can answer questions about it, extract data, summarize, find patterns, or compare with other content — all within the scope of what fits in context.", note: "The AI doesn't 'learn' from your file — it only has access for this conversation session" },
+            ][uploadStep] as { title: string; body: string; note: string } |undefined ? (() => {
+              const items = [
+                { title: "You select a file", body: "You choose a PDF, DOCX, spreadsheet, image, or other supported file type. The file is uploaded to the AI provider's server — it is NOT stored permanently in most cases, but check privacy policies for sensitive documents.", note: "Supported: PDF, DOCX, TXT, CSV, XLSX, PNG, JPG, MP4 (varies by tool)" },
+                { title: "Text is extracted", body: "For documents: a parser extracts the raw text (or OCR extracts text from images/scanned PDFs). For images: the vision model reads pixels directly. For spreadsheets: data is converted to structured text representation.", note: "Gotcha: Scanned PDFs with bad OCR will produce garbled text — the AI only sees what the extractor could read" },
+                { title: "Content is chunked", body: "Large documents are broken into chunks (typically 512–4000 tokens each) to fit into the context window. In some systems (RAG-enabled), these chunks are indexed separately for later retrieval.", note: "This is why very long documents may get summarized rather than fully read — they literally may not fit" },
+                { title: "Chunks enter the context window", body: "The extracted content is inserted into your conversation context — like pasting the document text in yourself, but automated. This competes for space with your conversation history, instructions, and the AI's response.", note: "A 100-page PDF ≈ 75,000 tokens — which exceeds many models' context windows. Use models with large contexts for big documents." },
+                { title: "AI reads and responds", body: "The model now has the document content as part of its 'current view.' It can answer questions about it, extract data, summarize, find patterns, or compare with other content — all within the scope of what fits in context.", note: "The AI doesn't 'learn' from your file — it only has access for this conversation session" },
+              ];
+              const item = items[uploadStep];
+              return (
+                <>
+                  <div className="font-semibold text-foreground mb-2">{item.title}</div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">{item.body}</p>
+                  <div className="p-2.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)] text-xs text-muted-foreground">
+                    <strong className="text-[oklch(0.85_0.18_55)]">Note: </strong>{item.note}
+                  </div>
+                </>
+              );
+            })() : null}
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="flex justify-between mt-3">
+          <button onClick={() => setUploadStep(s => Math.max(0, s - 1))} disabled={uploadStep === 0}
+            className="px-3 py-1.5 rounded-lg text-xs glass border border-white/8 text-muted-foreground disabled:opacity-30">
+            ← Back
+          </button>
+          <button onClick={() => setUploadStep(s => Math.min(4, s + 1))} disabled={uploadStep === 4}
+            className="px-3 py-1.5 rounded-lg text-xs glass border border-white/8 text-muted-foreground disabled:opacity-30">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      {/* RAG explainer */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="RAG — RETRIEVAL AUGMENTED GENERATION" color="oklch(0.68_0.20_140)" />
+        <p className="text-sm text-muted-foreground mb-4">RAG is how AI tools like Perplexity, NotebookLM, and enterprise chatbots give grounded, accurate answers from your documents.</p>
+
+        <div className="flex gap-1.5 mb-4">
+          {["Ask", "Search", "Retrieve", "Generate"].map((step, i) => (
+            <button key={step} onClick={() => setRagStep(i)}
+              className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+              style={{
+                background: ragStep === i ? "oklch(0.68_0.20_140_/_0.2)" : ragStep > i ? "oklch(0.68_0.20_140_/_0.08)" : "oklch(1 0 0 / 0.04)",
+                color: ragStep === i ? "oklch(0.80_0.20_140)" : "oklch(0.5 0 0)",
+                border: `1px solid ${ragStep === i ? "oklch(0.68_0.20_140_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {i + 1}. {step}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div key={ragStep} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+            className="p-4 rounded-2xl glass border border-white/8">
+            {[
+              { title: "You ask a question", icon: <MessageSquare size={20} />, body: "You type a question: 'What does the contract say about termination clauses?' The system needs to find the relevant part of your document — it doesn't load the whole thing every time.", color: "oklch(0.72_0.2_290)" },
+              { title: "Vector search over your documents", icon: <Search size={20} />, body: "Your query is converted into a 'vector' (a list of numbers representing meaning). The system searches your document database for chunks with the closest meaning — not just keyword matches, but semantic similarity.", color: "oklch(0.68_0.22_10)" },
+              { title: "Relevant chunks retrieved", icon: <Database size={20} />, body: "The 3–10 most relevant chunks from your documents are pulled out and assembled. These might be from different pages or even different files. Only the relevant sections are included — not the whole document.", color: "oklch(0.72_0.18_150)" },
+              { title: "Answer generated with grounding", icon: <Sparkles size={20} />, body: "The AI generates an answer using those retrieved chunks as its evidence base. This dramatically reduces hallucination — the AI is constrained to reason from your actual documents rather than its training data.", color: "oklch(0.68_0.20_140)" },
+            ][ragStep] as { title: string; icon: React.ReactNode; body: string; color: string } | undefined ? (() => {
+              const items = [
+                { title: "You ask a question", icon: <MessageSquare size={20} />, body: "You type a question: 'What does the contract say about termination clauses?' The system needs to find the relevant part of your document — it doesn't load the whole thing every time.", color: "oklch(0.72_0.2_290)" },
+                { title: "Vector search over your documents", icon: <Search size={20} />, body: "Your query is converted into a 'vector' (a list of numbers representing meaning). The system searches your document database for chunks with the closest meaning — not just keyword matches, but semantic similarity.", color: "oklch(0.68_0.22_10)" },
+                { title: "Relevant chunks retrieved", icon: <Database size={20} />, body: "The 3–10 most relevant chunks from your documents are pulled out and assembled. These might be from different pages or even different files. Only the relevant sections are included — not the whole document.", color: "oklch(0.72_0.18_150)" },
+                { title: "Answer generated with grounding", icon: <Sparkles size={20} />, body: "The AI generates an answer using those retrieved chunks as its evidence base. This dramatically reduces hallucination — the AI is constrained to reason from your actual documents rather than its training data.", color: "oklch(0.68_0.20_140)" },
+              ];
+              const item = items[ragStep];
+              return (
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `oklch(from ${item.color} l c h / 0.15)`, color: item.color }}>{item.icon}</div>
+                  <div>
+                    <div className="font-semibold text-foreground mb-2">{item.title}</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
+                  </div>
+                </div>
+              );
+            })() : null}
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="mt-3 p-3 rounded-xl bg-[oklch(0.68_0.20_140_/_0.08)] border border-[oklch(0.68_0.20_140_/_0.2)]">
+          <p className="text-xs text-muted-foreground"><strong className="text-foreground">Tools using RAG:</strong> Perplexity (web), NotebookLM (your docs), ChatGPT with files (hybrid), Claude Projects (persistent docs), enterprise chatbots built on your company knowledge base.</p>
+        </div>
+      </div>
+
+      {/* Connectors overview */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="CONNECTORS & INTEGRATIONS" color="oklch(0.72_0.18_150)" />
+        <p className="text-sm text-muted-foreground mb-4">Connectors let AI interact with real-world data and services — not just your typed text.</p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { name: "Web Search", desc: "Real-time internet access — facts, news, prices, documentation", icon: <Globe size={14} />, color: "oklch(0.72_0.2_290)" },
+            { name: "Code Execution", desc: "Run Python scripts — analyze data, create charts, do math", icon: <Cpu size={14} />, color: "oklch(0.68_0.22_10)" },
+            { name: "Calendar/Email", desc: "Read scheduling data, draft emails, summarize threads", icon: <MessageSquare size={14} />, color: "oklch(0.75_0.18_55)" },
+            { name: "Image Generation", desc: "Create images mid-conversation based on your description", icon: <Palette size={14} />, color: "oklch(0.72_0.18_40)" },
+            { name: "GitHub/Git", desc: "Read code, open PRs, analyze codebases, suggest fixes", icon: <Shield size={14} />, color: "oklch(0.72_0.18_150)" },
+            { name: "Zapier / Make", desc: "Connect AI to 5,000+ apps via no-code automation workflows", icon: <Zap size={14} />, color: "oklch(0.68_0.20_140)" },
+          ].map(c => (
+            <div key={c.name} className="p-3 rounded-xl glass border border-white/8 flex items-start gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `oklch(from ${c.color} l c h / 0.15)`, color: c.color, border: `1px solid oklch(from ${c.color} l c h / 0.3)` }}>
+                {c.icon}
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-foreground">{c.name}</div>
+                <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{c.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.72_0.18_150)" />
+        <MasteryQuiz questions={M1_QUIZ_L5} color="oklch(0.72_0.18_150)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── Overview / Lesson list ─────────────────────────────────────────────────
+  const Overview = () => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 mb-1">
+        <button onClick={onBack} className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+          <ChevronLeft size={14} className="text-muted-foreground" />
+        </button>
+        <div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-widest">AI Mastery · Module 1</div>
+          <div className="font-bold text-lg text-foreground">The AI Toolkit</div>
+          <div className="text-xs text-muted-foreground">Understanding the landscape, controls, and inputs</div>
+        </div>
+      </div>
+
+      {completed.size > 0 && (
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-2 rounded-full bg-white/8">
+            <motion.div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.72_0.2_290)] to-[oklch(0.72_0.18_150)]"
+              animate={{ width: `${(completed.size / M1_META.length) * 100}%` }} />
+          </div>
+          <span className="text-xs text-muted-foreground shrink-0">{completed.size}/{M1_META.length} lessons</span>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {M1_META.map((lesson, i) => {
+          const done = completed.has(lesson.id);
+          const locked = i > 0 && !completed.has(M1_META[i - 1].id);
+          return (
+            <motion.button key={lesson.id} onClick={() => !locked && setActiveLesson(lesson.id)}
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              whileHover={!locked ? { x: 4 } : undefined}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all border ${done ? "border-[oklch(0.72_0.18_150_/_0.3)] bg-[oklch(0.72_0.18_150_/_0.04)]" : locked ? "border-white/5 opacity-50 cursor-not-allowed" : "border-white/8 glass hover:border-white/15"}`}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-sm font-black"
+                style={{ background: done ? "oklch(0.72_0.18_150_/_0.15)" : `oklch(from ${lesson.color} l c h / 0.12)`, color: done ? "oklch(0.72_0.18_150)" : lesson.color, border: `1px solid ${done ? "oklch(0.72_0.18_150_/_0.3)" : `oklch(from ${lesson.color} l c h / 0.3)`}` }}>
+                {locked ? <Lock size={16} /> : done ? <CheckCircle2 size={18} /> : lesson.id}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-foreground">{lesson.title}</div>
+                <p className="text-xs text-muted-foreground truncate">{lesson.subtitle}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={9} />{lesson.duration}</span>
+                <span className="text-xs font-semibold flex items-center gap-1" style={{ color: lesson.color }}><Zap size={9} />+{lesson.xp} XP</span>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const lessonMap: Record<number, React.ReactNode> = { 1: <Lesson1 />, 2: <Lesson2 />, 3: <Lesson3 />, 4: <Lesson4 />, 5: <Lesson5 /> };
+
+  return (
+    <AnimatePresence mode="wait">
+      {activeLesson !== null
+        ? <motion.div key={activeLesson} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            {lessonMap[activeLesson]}
+          </motion.div>
+        : <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <Overview />
+          </motion.div>
+      }
+    </AnimatePresence>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODULE 2: "Prompting Mastery" — Every technique, from beginner to expert
+// Lessons 6–10
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const M2_META = [
+  { id: 6, title: "Anatomy of a Great Prompt", subtitle: "The components every effective prompt must have", color: "oklch(0.72_0.2_290)", xp: 70, duration: "25 min" },
+  { id: 7, title: "Advanced Techniques", subtitle: "Chain-of-thought, few-shot, role-play, iterative refinement", color: "oklch(0.68_0.22_10)", xp: 80, duration: "30 min" },
+  { id: 8, title: "The Prompt Lab", subtitle: "10 live exercises across real use cases — build your repertoire", color: "oklch(0.75_0.18_55)", xp: 90, duration: "40 min" },
+  { id: 9, title: "Prompt Fixer", subtitle: "Debug broken prompts — identify why they fail and fix them", color: "oklch(0.68_0.20_140)", xp: 85, duration: "30 min" },
+  { id: 10, title: "Agents & Instructions", subtitle: "Custom GPTs, Projects, persistent instructions, and AI workflows", color: "oklch(0.72_0.18_150)", xp: 95, duration: "30 min" },
+];
+
+const M2_QUIZ_L6: AIMasteryQuiz[] = [
+  { id: "m2l6q1", question: "What is the single most important element of any prompt?", options: ["Length — longer is always better", "Clarity of the desired output — the AI needs to know what 'done' looks like", "Politeness — saying please improves outputs", "Technical vocabulary — domain terms signal expertise"], correct: 1, explanation: "The AI needs to know what success looks like. A vague desired output ('write something about marketing') produces mediocre results. A specific desired output ('write a 3-paragraph email introducing a new product to existing customers, with a clear call to action in the last paragraph') gives the model a target to aim for." },
+  { id: "m2l6q2", question: "What does a 'persona' instruction in a prompt do?", options: ["Makes the AI pretend to be human", "Activates a specific behavior mode — giving the AI a role that shapes its vocabulary, tone, and knowledge emphasis", "Lets you role-play as a character", "Has no significant effect on output"], correct: 1, explanation: "A persona instruction ('You are a senior product manager with 15 years of B2B SaaS experience') tells the model which areas of its training to emphasize, which vocabulary register to use, and what assumptions to make about the audience. It's one of the highest-impact prompt elements." },
+  { id: "m2l6q3", question: "Why is specifying the FORMAT of output so important?", options: ["AI struggles to produce any formatted output by default", "Format determines how the output is used — an email, a table, and a bullet list are all different tools requiring different writing choices", "Formatting always makes outputs longer and more detailed", "Only relevant for technical tasks"], correct: 1, explanation: "Format shapes how the AI organizes its thinking. 'Give me a markdown table with three columns: Task, Priority, Estimated time' produces something entirely different from 'Summarize those tasks' — even from the same underlying request. Specifying format is specifying the tool, not just the content." },
+  { id: "m2l6q4", question: "What's the purpose of providing 'negative constraints' (what NOT to do)?", options: ["Negative constraints confuse the AI", "They prevent the model from defaulting to its generic patterns — explicitly ruling out common but unwanted approaches", "They always make outputs shorter", "Only necessary for creative tasks"], correct: 1, explanation: "LLMs have strong default behaviors — they tend to use bullet points, hedging language, broad overviews, and generic examples. Negative constraints break these defaults: 'No bullet points. No hedging language like might or could. No generic examples — use real company names.'" },
+];
+
+const M2_QUIZ_L7: AIMasteryQuiz[] = [
+  { id: "m2l7q1", question: "Why does 'Think step by step' improve AI reasoning?", options: ["It makes the AI work harder", "Generating intermediate reasoning steps forces the model to 'show its work,' reducing errors that compound when jumping to conclusions", "It makes responses longer and therefore better", "It activates a special reasoning mode"], correct: 1, explanation: "Chain-of-thought (CoT) prompting works because LLMs generate text left-to-right. If the model writes out its reasoning ('First, I need to identify... then I calculate... therefore...'), each step becomes context for the next. Without CoT, the model jumps to the answer — which can amplify early errors." },
+  { id: "m2l7q2", question: "What is 'few-shot prompting'?", options: ["Asking the AI for only a few examples", "Providing 2-5 examples of input-output pairs in your prompt to show the model exactly what you want", "A technique for reducing token usage", "Asking multiple AI models simultaneously"], correct: 1, explanation: "Few-shot prompting demonstrates the task through examples rather than describing it through instructions. Input: 'Berlin → Germany, Paris → France, Tokyo →' Output: 'Japan.' The examples are the instruction — the model infers the pattern. This is especially powerful for classification, formatting, and stylistic consistency tasks." },
+  { id: "m2l7q3", question: "When should you use iterative refinement rather than trying to write the perfect prompt upfront?", options: ["Never — always get it right on the first try", "Always — iteration is always better", "When the task is complex, subjective, or when you need to adjust tone/format/depth after seeing the first output", "Only for creative writing tasks"], correct: 2, explanation: "Perfect prompts on the first try are rare for complex tasks. Professional AI users treat the first response as a rough draft — then refine with specific follow-ups: 'Make this more concise,' 'The tone is too formal — loosen it up,' 'The second paragraph is strongest — expand that and cut the others.'" },
+];
+
+const M2_QUIZ_L9: AIMasteryQuiz[] = [
+  { id: "m2l9q1", question: "You ask AI to 'summarize my report' and get a generic 3-sentence overview. What's the most likely cause?", options: ["The AI is incapable of better summaries", "The prompt lacks specificity about length, audience, purpose, and which aspects matter most", "You need a better AI model", "Summaries are inherently simple outputs"], correct: 1, explanation: "A broken summary usually means the AI defaulted to its most generic interpretation of 'summarize.' Fix: 'Summarize this report in 5 bullet points for a non-technical executive audience. Each bullet should capture a key finding, not a process step. Flag the most surprising statistic.'" },
+  { id: "m2l9q2", question: "An AI keeps adding disclaimers and hedges ('it's important to note that...', 'however, results may vary...'). How do you stop this?", options: ["Switch to a different AI model", "Accept it as unavoidable AI behavior", "Add explicit negative constraints: 'No disclaimers, caveats, or hedging language. State conclusions directly and confidently.'", "Make your prompts shorter"], correct: 2, explanation: "Excessive hedging is a default LLM behavior from safety training. It's fully suppressible with a direct negative constraint. Be specific: 'Do not add any disclaimers, qualifications, or 'it depends' statements. I need direct assertions, not hedged ones.'" },
+  { id: "m2l9q3", question: "The AI gives you a very long, comprehensive answer when you wanted a brief, punchy one. What's the most effective fix?", options: ["Say 'shorter please' in a follow-up", "In the original prompt, specify exact length constraints: '3 sentences maximum' or 'under 100 words'", "Ask for a summary of its answer", "Start a new conversation"], correct: 1, explanation: "LLMs are trained to be thorough. The only reliable fix is hard length constraints in the original prompt — not requests to shorten after the fact (which often still produce long responses). '3 sentences maximum' or 'under 80 words — every word must earn its place' works far better than 'be brief.'" },
+];
+
+const M2_QUIZ_L10: AIMasteryQuiz[] = [
+  { id: "m2l10q1", question: "What is the core purpose of a 'Custom GPT' or 'Claude Project'?", options: ["A more powerful AI model", "A pre-configured AI instance with persistent system prompts, uploaded knowledge, and saved behavior — reusable across sessions", "An AI trained specifically on your data", "A team collaboration tool"], correct: 1, explanation: "Custom GPTs and Projects are not different models — they're configurations. You set a system prompt once, upload reference documents once, and save behaviors once. Then every conversation in that context starts with that full setup — no re-explaining yourself every time." },
+  { id: "m2l10q2", question: "What are 'persistent instructions' / 'memory' features in AI tools?", options: ["A way to make the AI remember everything forever", "User-defined facts and preferences the AI applies across all conversations by default, without the user having to repeat them", "Technical training of the model on new data", "A premium feature that costs extra"], correct: 1, explanation: "Persistent instructions (ChatGPT's 'Memory,' Claude's 'Profile,' etc.) let you tell the AI standing facts about yourself once: 'I prefer direct, no-fluff communication,' 'I work in B2B SaaS,' 'Always suggest three options, not one.' These apply to every future conversation by default." },
+  { id: "m2l10q3", question: "What distinguishes an AI 'agent' from a regular chatbot?", options: ["Agents are always autonomous — no human involvement", "Agents can take sequences of actions, use tools, and work toward goals across multiple steps — not just respond to single messages", "Agents are more expensive models", "There is no meaningful difference"], correct: 1, explanation: "A chatbot responds. An agent acts. An AI agent can: search the web, read files, run code, call APIs, make decisions based on results, and chain these actions together across multiple steps to complete a complex goal. The key property is autonomous multi-step action — not just generating text." },
+];
+
+const PROMPT_LAB_EXERCISES = [
+  {
+    id: "pl1", category: "Writing", title: "Email Writer",
+    scenario: "You need to decline a meeting invitation professionally without giving a reason.",
+    challenge: "Write a prompt that will produce a polished, warm, 3-sentence email declining the meeting — without excuses or over-explanation.",
+    hint: "Include: tone (professional but warm), length (3 sentences max), what to NOT say (no excuse, no 'unfortunately'), and a brief offer for an alternative.",
+    exampleGood: "You are a senior executive with excellent professional communication skills. Write a 3-sentence email declining a meeting invitation. Tone: warm but firm. Do NOT include an excuse or reason. Do NOT say 'unfortunately.' End with a brief, genuine offer to connect another time.",
+    color: "oklch(0.72_0.2_290)",
+  },
+  {
+    id: "pl2", category: "Analysis", title: "Data Interpreter",
+    scenario: "You have a list of monthly sales numbers and want AI to spot trends and anomalies.",
+    challenge: "Craft a prompt that produces a structured analysis: key trend, biggest anomaly, and one recommendation — not just a description.",
+    hint: "Give it sample data. Tell it the output format exactly. Specify that you want a conclusion, not just observations. Forbid vague language.",
+    exampleGood: "Analyze these monthly sales figures: [Jan: $42k, Feb: $38k, Mar: $51k, Apr: $49k, May: $65k, Jun: $41k]. Produce exactly: 1) The main trend in 1 sentence. 2) The biggest anomaly and why it stands out. 3) One specific, actionable recommendation. No vague language. State conclusions directly.",
+    color: "oklch(0.68_0.22_10)",
+  },
+  {
+    id: "pl3", category: "Brainstorming", title: "Idea Generator",
+    scenario: "You need 10 unique marketing campaign ideas for a local bakery — none of the typical 'social media post' suggestions.",
+    challenge: "Write a prompt that forces genuinely creative, specific ideas rather than generic advice.",
+    hint: "Specify quantity and uniqueness. Tell it what you DON'T want (no social media tips). Give context about the bakery. Ask for a brief reason per idea.",
+    exampleGood: "Generate 10 creative marketing campaign ideas for a neighborhood sourdough bakery — small, artisan, community-focused. Ideas must be specific and unconventional. DO NOT suggest: social media posts, loyalty cards, or discount coupons — these are already in place. Each idea should include: the campaign concept (1 sentence) + why it would work for this type of bakery (1 sentence).",
+    color: "oklch(0.72_0.18_150)",
+  },
+  {
+    id: "pl4", category: "Learning", title: "Concept Explainer",
+    scenario: "You want to understand a technical concept but you keep getting overly complex explanations.",
+    challenge: "Write a prompt that guarantees a clear, concrete, jargon-free explanation with a real-world analogy — for any complex topic.",
+    hint: "Specify your background (non-expert), require an analogy, set a reading level, limit jargon, and ask it to check you understood by posing one question at the end.",
+    exampleGood: "Explain [concept] to someone who has no technical background. Requirements: 1) Start with a concrete real-world analogy. 2) Explain the core mechanism in plain language. 3) Give one example of where this matters in everyday life. 4) No jargon — if you must use a technical term, define it immediately. 5) End with one question to check I understood correctly.",
+    color: "oklch(0.75_0.18_55)",
+  },
+  {
+    id: "pl5", category: "Code", title: "Code Reviewer",
+    scenario: "You wrote a Python function and want substantive feedback — not just 'looks good' or basic syntax checks.",
+    challenge: "Write a prompt that produces a structured code review covering efficiency, edge cases, readability, and a rewritten version.",
+    hint: "Tell it your experience level. Ask for specific categories of feedback. Request a rewrite. Tell it to be direct, not polite.",
+    exampleGood: "You are a senior Python developer doing a code review. Review the following function for: 1) Logic errors or edge cases I missed. 2) Performance issues. 3) Readability — is naming clear? 4) Pythonic style — am I doing this the Python way? Be direct and specific. Do not praise good parts — focus only on improvements. End with a rewritten version incorporating your suggestions. [paste code here]",
+    color: "oklch(0.68_0.20_140)",
+  },
+];
+
+const BROKEN_PROMPTS = [
+  {
+    id: "bp1",
+    broken: "Write something about AI for my presentation.",
+    problems: ["No audience specified", "No length or format", "No specific topic within AI", "'Something' is not a deliverable"],
+    fixed: "Write a 3-slide talking point outline for a 5-minute executive presentation on how AI will affect our customer support team over the next 2 years. Audience: non-technical C-suite. Tone: confident, balanced (both opportunities and risks). Each slide: 3 bullet points maximum.",
+    category: "Too Vague",
+    color: "oklch(0.68_0.22_10)",
+  },
+  {
+    id: "bp2",
+    broken: "Explain quantum computing and also write me a cover letter and what are the best restaurants in my city.",
+    problems: ["Three completely different tasks in one prompt", "Context switching confuses output quality", "No focused goal for any of the three"],
+    fixed: "Split into three separate conversations, each with full context. One prompt per task produces dramatically better results than combining unrelated requests.",
+    category: "Too Many Tasks",
+    color: "oklch(0.72_0.2_290)",
+  },
+  {
+    id: "bp3",
+    broken: "Make this better.",
+    problems: ["'Better' is undefined — better how?", "No original content to improve provided", "No criteria for what success looks like"],
+    fixed: "Rewrite the following paragraph to be 30% shorter without losing any key information. Improve clarity by using active voice throughout. Replace any abstract statements with a concrete example. [paste original]",
+    category: "No Criteria",
+    color: "oklch(0.72_0.18_150)",
+  },
+  {
+    id: "bp4",
+    broken: "Don't use AI-sounding language and be natural and not robotic and avoid clichés and write conversationally.",
+    problems: ["Stacked negative constraints only — no positive direction", "No example of what 'natural' sounds like to you", "No format or length specified", "No topic or content given"],
+    fixed: "Write in a conversational, direct style — as if explaining this to a smart friend over coffee. Sentence length: varied, 8–20 words. Use: contractions, rhetorical questions, and concrete examples. Avoid: jargon, passive voice, and corporate buzzwords like 'leverage' or 'synergy'. [then state the topic]",
+    category: "Only Negatives",
+    color: "oklch(0.75_0.18_55)",
+  },
+];
+
+// ─── Module 2 Component ───────────────────────────────────────────────────────
+function AILiteracyModule2({ onBack }: { onBack: () => void }) {
+  const { addXP } = usePersonalization();
+  const [activeLesson, setActiveLesson] = useState<number | null>(null);
+  const [completed, setCompleted] = useState<Set<number>>(new Set());
+
+  // L6 state — prompt builder
+  const [pbParts, setPbParts] = useState({ persona: "", task: "", format: "", constraints: "", audience: "" });
+  const [pbResult, setPbResult] = useState("");
+  const [pbLoading, setPbLoading] = useState(false);
+
+  // L7 state — technique explorer
+  const [techTab, setTechTab] = useState<"cot" | "fewshot" | "roleplay" | "iterative">("cot");
+  const [cotInput, setCotInput] = useState("");
+  const [cotResult, setCotResult] = useState("");
+  const [cotLoading, setCotLoading] = useState(false);
+  const [fewshotInput, setFewshotInput] = useState("");
+  const [fewshotResult, setFewshotResult] = useState("");
+  const [fewshotLoading, setFewshotLoading] = useState(false);
+
+  // L8 state — prompt lab
+  const [labIdx, setLabIdx] = useState(0);
+  const [labInput, setLabInput] = useState("");
+  const [labResult, setLabResult] = useState("");
+  const [labLoading, setLabLoading] = useState(false);
+  const [labShowExample, setLabShowExample] = useState(false);
+  const [labCompleted, setLabCompleted] = useState<Set<string>>(new Set());
+
+  // L9 state — prompt fixer
+  const [fixerIdx, setFixerIdx] = useState(0);
+  const [fixerReveal, setFixerReveal] = useState(false);
+  const [fixerUserFix, setFixerUserFix] = useState("");
+  const [fixerResult, setFixerResult] = useState("");
+  const [fixerLoading, setFixerLoading] = useState(false);
+
+  // L10 state — agents & instructions
+  const [agentTab, setAgentTab] = useState<"memory" | "custom" | "agent">("memory");
+  const [memInstructions, setMemInstructions] = useState("");
+  const [memResult, setMemResult] = useState("");
+  const [memLoading, setMemLoading] = useState(false);
+
+  const cotMut = trpc.ai.explainConcept.useMutation({ onSuccess: d => { setCotResult(d.explanation); setCotLoading(false); }, onError: () => setCotLoading(false) });
+  const fewshotMut = trpc.ai.explainConcept.useMutation({ onSuccess: d => { setFewshotResult(d.explanation); setFewshotLoading(false); }, onError: () => setFewshotLoading(false) });
+  const pbMut = trpc.ai.explainConcept.useMutation({ onSuccess: d => { setPbResult(d.explanation); setPbLoading(false); }, onError: () => setPbLoading(false) });
+  const labMut = trpc.ai.explainConcept.useMutation({ onSuccess: d => { setLabResult(d.explanation); setLabLoading(false); if (!labCompleted.has(PROMPT_LAB_EXERCISES[labIdx].id)) { setLabCompleted(prev => new Set(Array.from(prev).concat(PROMPT_LAB_EXERCISES[labIdx].id))); addXP(10); toast.success("+10 XP — lab completed!"); } }, onError: () => setLabLoading(false) });
+  const fixerMut = trpc.ai.explainConcept.useMutation({ onSuccess: d => { setFixerResult(d.explanation); setFixerLoading(false); }, onError: () => setFixerLoading(false) });
+  const memMut = trpc.ai.explainConcept.useMutation({ onSuccess: d => { setMemResult(d.explanation); setMemLoading(false); }, onError: () => setMemLoading(false) });
+
+  const completeLesson = (id: number) => {
+    if (completed.has(id)) return;
+    const meta = M2_META.find(m => m.id === id)!;
+    setCompleted(prev => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson ${id} complete!`);
+  };
+
+  function LessonFrame({ id, children }: { id: number; children: React.ReactNode }) {
+    const meta = M2_META.find(m => m.id === id)!;
+    const done = completed.has(id);
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-1">
+          <button onClick={() => setActiveLesson(null)} className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+            <ChevronLeft size={14} className="text-muted-foreground" />
+          </button>
+          <div className="flex-1">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-widest">Module 2 · Lesson {id}</div>
+            <h2 className="font-bold text-foreground text-lg leading-tight">{meta.title}</h2>
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} />{meta.duration}</span>
+            <span className="text-xs flex items-center gap-1 font-semibold" style={{ color: meta.color }}><Zap size={10} />+{meta.xp} XP</span>
+          </div>
+        </div>
+        {children}
+        <div className="pt-4 border-t border-white/8 flex items-center justify-between">
+          {done
+            ? <div className="flex items-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={14} />Lesson complete</div>
+            : <motion.button onClick={() => completeLesson(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-black"
+                style={{ background: `linear-gradient(135deg, ${meta.color}, oklch(0.65_0.22_200))` }}>
+                <CheckCircle2 size={14} />Mark Complete · +{meta.xp} XP
+              </motion.button>
+          }
+          {id < 10 && (
+            <button onClick={() => setActiveLesson(id + 1)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next <ChevronRight size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── LESSON 6: Anatomy of a Great Prompt ───────────────────────────────────
+  const Lesson6 = () => (
+    <LessonFrame id={6}>
+      <AIVoice text="Every great prompt has the same DNA. Once you see it, you'll never write a vague prompt again — and you'll immediately recognize why a prompt failed." />
+
+      {/* Prompt anatomy explainer */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="THE 6 COMPONENTS" color="oklch(0.72_0.2_290)" />
+        <div className="space-y-3">
+          {[
+            { component: "ROLE / PERSONA", example: '"You are a senior UX researcher specializing in B2B SaaS"', why: "Activates the right vocabulary, knowledge depth, and perspective. Without a role, the AI defaults to a generic helpful assistant — which is mediocre for specialized work.", color: "oklch(0.72_0.2_290)", required: true },
+            { component: "TASK", example: '"Analyze the following user interview transcripts and identify the 3 most critical pain points"', why: "The specific action the AI must perform. Verbs matter: 'analyze' ≠ 'summarize' ≠ 'explain' ≠ 'critique'. Use the exact verb for what you need.", color: "oklch(0.68_0.22_10)", required: true },
+            { component: "CONTEXT / INPUT", example: '"Transcripts from 8 customer interviews, all enterprise clients in manufacturing"', why: "Background the AI needs that it couldn't know otherwise. Include: who the audience is, what the document is, what the goal is, what constraints exist.", color: "oklch(0.72_0.18_150)", required: true },
+            { component: "FORMAT", example: '"Output: numbered list, max 3 items, each with: pain point title (bold) + 2-sentence explanation + severity rating (1-5)"', why: "Specifying format determines how the AI structures its reasoning. A bullet list produces different thinking than a table or a narrative paragraph.", color: "oklch(0.68_0.20_140)", required: false },
+            { component: "CONSTRAINTS", example: '"No jargon. No generic UX platitudes like \'users want easy to use\'. Cite the specific interview where each pain point appeared."', why: "What NOT to do breaks the AI's default patterns. LLMs have strong defaults (vague language, hedges, generic examples) — constraints are how you override them.", color: "oklch(0.75_0.18_55)", required: false },
+            { component: "EXAMPLES (Few-shot)", example: '"Pain point format: [Title]: Users struggle to X because Y. Severity: 4/5. Evidence: Interviewee 3 said: \'quote\'"', why: "Showing beats telling. One good example eliminates ambiguity about format, tone, and depth better than a paragraph of instructions.", color: "oklch(0.72_0.18_40)", required: false },
+          ].map(c => (
+            <div key={c.component} className="p-4 rounded-xl border transition-all" style={{ borderColor: `oklch(from ${c.color} l c h / 0.25)`, background: `oklch(from ${c.color} l c h / 0.05)` }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded" style={{ background: `oklch(from ${c.color} l c h / 0.2)`, color: c.color }}>{c.component}</span>
+                {c.required && <span className="text-[10px] text-[oklch(0.78_0.22_10)] font-semibold">Required</span>}
+              </div>
+              <div className="font-mono text-xs text-muted-foreground bg-white/5 p-2 rounded-lg mb-2 leading-relaxed">{c.example}</div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{c.why}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Interactive prompt builder */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="PROMPT BUILDER — ASSEMBLE & FIRE" color="oklch(0.75_0.18_55)" />
+        <p className="text-sm text-muted-foreground mb-4">Fill in the components. The builder assembles them into a structured prompt and runs it live.</p>
+        <div className="space-y-3 mb-4">
+          {[
+            { key: "persona" as const, label: "Role / Persona", placeholder: "e.g., You are a seasoned marketing strategist with 10 years of B2C experience…" },
+            { key: "task" as const, label: "Task", placeholder: "e.g., Write / Analyze / Create / Explain / Compare…" },
+            { key: "format" as const, label: "Output Format", placeholder: "e.g., 3-paragraph essay / numbered list / table with 3 columns / bullet points…" },
+            { key: "constraints" as const, label: "Constraints (what NOT to do)", placeholder: "e.g., No jargon, no hedging language, no generic advice…" },
+            { key: "audience" as const, label: "Audience / Context", placeholder: "e.g., For a non-technical executive audience. Context: Q4 planning meeting…" },
+          ].map(field => (
+            <div key={field.key}>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1">{field.label}</label>
+              <textarea value={pbParts[field.key]} onChange={e => setPbParts(p => ({ ...p, [field.key]: e.target.value }))}
+                placeholder={field.placeholder} rows={2}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25" />
+            </div>
+          ))}
+        </div>
+
+        {/* Assembled prompt preview */}
+        {Object.values(pbParts).some(v => v.trim()) && (
+          <div className="mb-3 p-4 rounded-xl bg-white/4 border border-white/10">
+            <div className="text-[10px] font-bold text-muted-foreground mb-2 tracking-widest">ASSEMBLED PROMPT PREVIEW:</div>
+            <p className="text-xs font-mono text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {[pbParts.persona, pbParts.task, pbParts.audience && `Context: ${pbParts.audience}`, pbParts.format && `Format: ${pbParts.format}`, pbParts.constraints && `Constraints: ${pbParts.constraints}`].filter(Boolean).join("\n\n")}
+            </p>
+          </div>
+        )}
+
+        <button disabled={pbLoading || !Object.values(pbParts).some(v => v.trim())} onClick={() => {
+          setPbLoading(true); setPbResult("");
+          const assembled = [pbParts.persona, pbParts.task, pbParts.audience && `Context: ${pbParts.audience}`, pbParts.format && `Format: ${pbParts.format}`, pbParts.constraints && `Constraints: ${pbParts.constraints}`].filter(Boolean).join("\n\n");
+          pbMut.mutate({ concept: assembled || "Say hello", level: "student" });
+        }}
+          className="w-full py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-40 text-black"
+          style={{ background: "linear-gradient(135deg, oklch(0.72_0.2_290), oklch(0.68_0.22_10))" }}>
+          {pbLoading ? <><Loader2 size={14} className="animate-spin" />Running assembled prompt…</> : <><Zap size={14} />Run Assembled Prompt</>}
+        </button>
+
+        {pbResult && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="mt-3 p-4 rounded-xl glass border border-white/8">
+            <div className="text-[10px] font-bold text-muted-foreground mb-2">AI RESPONSE</div>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{pbResult}</p>
+          </motion.div>
+        )}
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.72_0.2_290)" />
+        <MasteryQuiz questions={M2_QUIZ_L6} color="oklch(0.72_0.2_290)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 7: Advanced Techniques ─────────────────────────────────────────
+  const Lesson7 = () => (
+    <LessonFrame id={7}>
+      <AIVoice text="These four techniques are what separate casual AI users from power users. Chain-of-thought alone can double the accuracy of complex reasoning tasks." />
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="grid grid-cols-2 gap-1.5 mb-4">
+          {([
+            { key: "cot" as const, label: "Chain of Thought", short: "CoT" },
+            { key: "fewshot" as const, label: "Few-Shot", short: "FS" },
+            { key: "roleplay" as const, label: "Role-Play", short: "RP" },
+            { key: "iterative" as const, label: "Iterative", short: "IT" },
+          ]).map(t => (
+            <button key={t.key} onClick={() => setTechTab(t.key)}
+              className="py-2.5 rounded-xl text-xs font-bold transition-all"
+              style={{
+                background: techTab === t.key ? "oklch(0.68_0.22_10_/_0.2)" : "oklch(1 0 0 / 0.04)",
+                color: techTab === t.key ? "oklch(0.80_0.22_10)" : "oklch(0.5 0 0)",
+                border: `1px solid ${techTab === t.key ? "oklch(0.68_0.22_10_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {techTab === "cot" && (
+            <motion.div key="cot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="CHAIN OF THOUGHT" color="oklch(0.68_0.22_10)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Adding <strong className="text-foreground">"Think step by step"</strong> or <strong className="text-foreground">"Show your reasoning before answering"</strong> forces the model to generate intermediate steps before concluding — dramatically improving accuracy on math, logic, and multi-step problems.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.25)]">
+                  <div className="text-[10px] font-bold text-[oklch(0.78_0.22_10)] mb-2">WITHOUT CoT</div>
+                  <p className="text-xs font-mono text-muted-foreground">"What's 15% of 847?"</p>
+                  <p className="text-xs text-muted-foreground mt-2">Model jumps to answer — more error-prone</p>
+                </div>
+                <div className="p-3 rounded-xl bg-[oklch(0.72_0.18_150_/_0.08)] border border-[oklch(0.72_0.18_150_/_0.25)]">
+                  <div className="text-[10px] font-bold text-[oklch(0.82_0.18_150)] mb-2">WITH CoT</div>
+                  <p className="text-xs font-mono text-muted-foreground">"What's 15% of 847? Think step by step."</p>
+                  <p className="text-xs text-muted-foreground mt-2">Model shows work → answer from correct reasoning</p>
+                </div>
+              </div>
+
+              {/* Live CoT demo */}
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">Try it — compare with and without CoT:</p>
+                <textarea value={cotInput} onChange={e => setCotInput(e.target.value)}
+                  placeholder="Enter any problem requiring reasoning: math, logic, analysis, decisions…" rows={3}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 font-mono" />
+                <div className="grid grid-cols-2 gap-2">
+                  <button disabled={cotLoading || !cotInput.trim()} onClick={() => {
+                    setCotLoading(true); setCotResult("");
+                    cotMut.mutate({ concept: cotInput, level: "student" });
+                  }}
+                    className="py-2 rounded-xl text-xs font-semibold disabled:opacity-40 bg-[oklch(0.68_0.22_10_/_0.15)] text-[oklch(0.80_0.22_10)] border border-[oklch(0.68_0.22_10_/_0.35)]">
+                    Direct answer
+                  </button>
+                  <button disabled={cotLoading || !cotInput.trim()} onClick={() => {
+                    setCotLoading(true); setCotResult("");
+                    cotMut.mutate({ concept: `${cotInput}\n\nThink through this step by step. Show all reasoning before giving the final answer.`, level: "student" });
+                  }}
+                    className="py-2 rounded-xl text-xs font-semibold disabled:opacity-40 bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.35)]">
+                    + Chain of Thought
+                  </button>
+                </div>
+                {cotResult && (
+                  <div className="p-4 rounded-xl glass border border-white/8">
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{cotResult}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {techTab === "fewshot" && (
+            <motion.div key="fewshot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="FEW-SHOT PROMPTING" color="oklch(0.72_0.2_290)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Instead of describing what you want, <strong className="text-foreground">show it</strong>. 2–5 examples in your prompt define the pattern far better than instructions. Especially powerful for classification, consistent formatting, and stylistic tasks.
+              </p>
+              <div className="p-4 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)]">
+                <div className="text-[10px] font-bold text-[oklch(0.82_0.2_290)] mb-2">EXAMPLE: Sentiment classifier via few-shot</div>
+                <pre className="text-xs font-mono text-muted-foreground leading-relaxed whitespace-pre-wrap">{`Classify the sentiment:
+"This product is amazing!" → Positive
+"Delivery was 3 days late." → Negative  
+"It works as expected." → Neutral
+"I can't believe how bad the support was." → ?`}</pre>
+              </div>
+              <p className="text-sm text-muted-foreground">The model infers the classification task from examples — no explicit instructions needed. Now try building your own:</p>
+              <textarea value={fewshotInput} onChange={e => setFewshotInput(e.target.value)}
+                placeholder={`Write 3 input → output examples, then leave the last one incomplete:\n\nExample 1 → Output 1\nExample 2 → Output 2\nExample 3 → Output 3\nYour new input → ?`}
+                rows={8}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25" />
+              <button disabled={fewshotLoading || !fewshotInput.trim()} onClick={() => {
+                setFewshotLoading(true); setFewshotResult("");
+                fewshotMut.mutate({ concept: fewshotInput, level: "student" });
+              }}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 bg-[oklch(0.72_0.2_290_/_0.15)] text-[oklch(0.82_0.2_290)] border border-[oklch(0.72_0.2_290_/_0.35)] flex items-center justify-center gap-2">
+                {fewshotLoading ? <><Loader2 size={13} className="animate-spin" />Running…</> : <><Zap size={13} />Complete the pattern</>}
+              </button>
+              {fewshotResult && (
+                <div className="p-4 rounded-xl glass border border-white/8">
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{fewshotResult}</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {techTab === "roleplay" && (
+            <motion.div key="roleplay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="ROLE-PLAY PROMPTING" color="oklch(0.72_0.18_150)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Role-play goes deeper than a persona instruction — you construct an entire scenario the AI inhabits. The model reasons from inside the scenario, which produces richer, more coherent outputs for simulation, debate preparation, and creative tasks.
+              </p>
+              <div className="space-y-3">
+                {[
+                  { title: "Devil's Advocate", prompt: "Argue the strongest possible case AGAINST my position on [topic]. You are a brilliant, good-faith opponent. Don't hold back — find every real weakness.", use: "Stress-test your arguments before a presentation or debate" },
+                  { title: "Rubber Duck (for coders)", prompt: "I'm going to explain my code to you. Don't help me — just ask clarifying questions when what I say doesn't make sense. I'll figure out the bug by explaining it.", use: "Surfaces logic errors through articulation" },
+                  { title: "Hostile Interviewer", prompt: "Interview me for [role]. Be challenging — ask follow-up questions, push back on vague answers, and flag weak responses. After 5 questions, give me honest feedback on my performance.", use: "Interview prep, pitch practice, public speaking" },
+                  { title: "Future User", prompt: "You are a skeptical potential customer. I'm going to pitch you my product. Respond as a real person would — ask real objections, express doubts, and only be convinced by good answers.", use: "Stress-test product pitches and messaging" },
+                ].map(r => (
+                  <div key={r.title} className="p-4 rounded-xl glass border border-white/8">
+                    <div className="font-semibold text-sm text-foreground mb-1">{r.title}</div>
+                    <div className="font-mono text-xs text-muted-foreground bg-white/5 p-2.5 rounded-lg mb-2">{r.prompt}</div>
+                    <p className="text-xs text-muted-foreground"><strong className="text-foreground">Best for:</strong> {r.use}</p>
+                  </div>
+                ))}
+              </div>
+              <PromptSandbox placeholder={"Try a role-play prompt:\n\n\"You are a skeptical investor. I'm going to pitch you my startup idea. Push back on anything that sounds hand-wavy. [Then describe your idea].\""} systemHint="You are a skilled AI assistant who can take on any role described in the prompt. Inhabit the role fully and maintain it throughout your response." color="oklch(0.72_0.18_150)" label="Try Role-Play Live" />
+            </motion.div>
+          )}
+
+          {techTab === "iterative" && (
+            <motion.div key="iterative" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="ITERATIVE REFINEMENT" color="oklch(0.75_0.18_55)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Professional AI users rarely try to write the perfect prompt on the first attempt. They treat the first response as a rough draft and refine with targeted follow-ups. The <strong className="text-foreground">3-pass technique</strong> consistently produces much better results.
+              </p>
+              <div className="space-y-2">
+                {[
+                  { pass: "Pass 1 — Generate", instruction: "Broad initial prompt: get something on paper. Don't over-specify. See what the model defaults to.", color: "oklch(0.72_0.2_290)" },
+                  { pass: "Pass 2 — Critique", instruction: "Ask the AI to critique its own output: 'What are the 3 weakest parts of what you just wrote? What's missing? What's too generic?'", color: "oklch(0.68_0.22_10)" },
+                  { pass: "Pass 3 — Targeted Fix", instruction: "Give specific, targeted revision instructions based on Pass 2: 'Expand the second point. Cut the third — it's redundant. Make the conclusion more concrete.'", color: "oklch(0.72_0.18_150)" },
+                ].map(p => (
+                  <div key={p.pass} className="p-4 rounded-xl border transition-all" style={{ borderColor: `oklch(from ${p.color} l c h / 0.3)`, background: `oklch(from ${p.color} l c h / 0.06)` }}>
+                    <div className="font-bold text-sm mb-1" style={{ color: p.color }}>{p.pass}</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{p.instruction}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)]">
+                <p className="text-xs font-semibold text-[oklch(0.85_0.18_55)] mb-1">HIGH-VALUE REFINEMENT PHRASES:</p>
+                <div className="grid grid-cols-2 gap-1 text-xs font-mono text-muted-foreground">
+                  {["Make this 30% shorter", "Add a concrete example to [part]", "The tone is too formal — loosen it", "Cut [specific section] — it's weak", "Lead with the most important point", "This is vague — be specific"].map(p => (
+                    <div key={p} className="py-1 px-2 rounded bg-white/5">{p}</div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.68_0.22_10)" />
+        <MasteryQuiz questions={M2_QUIZ_L7} color="oklch(0.68_0.22_10)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 8: The Prompt Lab ───────────────────────────────────────────────
+  const Lesson8 = () => (
+    <LessonFrame id={8}>
+      <AIVoice text="This is where you build real skill. Five live exercises, real AI responses. Write your own prompt for each scenario, then compare with the expert example. The gap between your first attempt and the expert prompt is where learning happens." />
+
+      <div className="glass rounded-2xl p-2 border border-white/8 mb-1">
+        <div className="flex gap-1 flex-wrap">
+          {PROMPT_LAB_EXERCISES.map((ex, i) => (
+            <button key={ex.id} onClick={() => { setLabIdx(i); setLabInput(""); setLabResult(""); setLabShowExample(false); }}
+              className="flex-1 py-2.5 rounded-xl text-xs font-semibold min-w-[80px] transition-all"
+              style={{
+                background: labIdx === i ? `oklch(from ${ex.color} l c h / 0.2)` : labCompleted.has(ex.id) ? "oklch(0.72_0.18_150_/_0.1)" : "oklch(1 0 0 / 0.03)",
+                color: labIdx === i ? ex.color : labCompleted.has(ex.id) ? "oklch(0.72_0.18_150)" : "oklch(0.5 0 0)",
+                border: `1px solid ${labIdx === i ? `oklch(from ${ex.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {labCompleted.has(ex.id) && <CheckCircle2 size={10} className="inline mr-1" />}
+              {ex.category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={labIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+          className="glass rounded-2xl p-5 border border-white/8 space-y-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded" style={{ background: `oklch(from ${PROMPT_LAB_EXERCISES[labIdx].color} l c h / 0.15)`, color: PROMPT_LAB_EXERCISES[labIdx].color }}>LAB {labIdx + 1} — {PROMPT_LAB_EXERCISES[labIdx].category.toUpperCase()}</span>
+            </div>
+            <h3 className="font-bold text-foreground">{PROMPT_LAB_EXERCISES[labIdx].title}</h3>
+          </div>
+
+          <div className="p-4 rounded-xl glass border border-white/8">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-2">SCENARIO</div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{PROMPT_LAB_EXERCISES[labIdx].scenario}</p>
+          </div>
+
+          <div className="p-4 rounded-xl" style={{ background: `oklch(from ${PROMPT_LAB_EXERCISES[labIdx].color} l c h / 0.07)`, border: `1px solid oklch(from ${PROMPT_LAB_EXERCISES[labIdx].color} l c h / 0.25)` }}>
+            <div className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: PROMPT_LAB_EXERCISES[labIdx].color }}>YOUR CHALLENGE</div>
+            <p className="text-sm text-foreground font-semibold leading-snug">{PROMPT_LAB_EXERCISES[labIdx].challenge}</p>
+          </div>
+
+          {!labShowExample && (
+            <button onClick={() => setLabShowExample(true)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+              <Eye size={11} /> Show hint
+            </button>
+          )}
+          {labShowExample && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-3 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)]">
+              <div className="text-[10px] font-bold text-[oklch(0.85_0.18_55)] mb-1">HINT</div>
+              <p className="text-xs text-muted-foreground">{PROMPT_LAB_EXERCISES[labIdx].hint}</p>
+            </motion.div>
+          )}
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground block mb-2">YOUR PROMPT:</label>
+            <textarea value={labInput} onChange={e => setLabInput(e.target.value)}
+              placeholder="Write your best prompt for this scenario…" rows={6}
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25" />
+          </div>
+
+          <button disabled={labLoading || !labInput.trim()} onClick={() => { setLabLoading(true); setLabResult(""); labMut.mutate({ concept: labInput, level: "student" }); }}
+            className="w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40"
+            style={{ background: `linear-gradient(135deg, ${PROMPT_LAB_EXERCISES[labIdx].color}, oklch(0.65_0.22_200))`, color: "black" }}>
+            {labLoading ? <><Loader2 size={14} className="animate-spin text-black" />Running your prompt…</> : <><FlaskConical size={14} />Run My Prompt</>}
+          </button>
+
+          {labResult && (
+            <div className="space-y-3">
+              <div className="p-4 rounded-xl glass border border-white/8">
+                <div className="text-[10px] font-bold text-muted-foreground mb-2">YOUR RESULT</div>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{labResult}</p>
+              </div>
+              <div className="p-4 rounded-xl border" style={{ background: `oklch(from ${PROMPT_LAB_EXERCISES[labIdx].color} l c h / 0.07)`, borderColor: `oklch(from ${PROMPT_LAB_EXERCISES[labIdx].color} l c h / 0.3)` }}>
+                <div className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: PROMPT_LAB_EXERCISES[labIdx].color }}>EXPERT EXAMPLE PROMPT</div>
+                <p className="text-xs font-mono text-muted-foreground leading-relaxed">{PROMPT_LAB_EXERCISES[labIdx].exampleGood}</p>
+                <p className="text-xs text-muted-foreground mt-3"><strong className="text-foreground">Compare:</strong> What did the expert prompt include that yours didn't? The differences are your learning opportunities.</p>
+              </div>
+              {labIdx < PROMPT_LAB_EXERCISES.length - 1 && (
+                <button onClick={() => { setLabIdx(labIdx + 1); setLabInput(""); setLabResult(""); setLabShowExample(false); }}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold glass border border-white/10 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2">
+                  Next lab exercise <ChevronRight size={13} />
+                </button>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="glass rounded-2xl p-4 border border-white/8 text-center">
+        <div className="text-sm font-semibold text-foreground mb-1">Lab Progress</div>
+        <div className="flex gap-2 justify-center">
+          {PROMPT_LAB_EXERCISES.map(ex => (
+            <div key={ex.id} className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{
+                background: labCompleted.has(ex.id) ? `oklch(from ${ex.color} l c h / 0.2)` : "oklch(1 0 0 / 0.05)",
+                color: labCompleted.has(ex.id) ? ex.color : "oklch(0.4 0 0)",
+                border: `1px solid ${labCompleted.has(ex.id) ? `oklch(from ${ex.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {labCompleted.has(ex.id) ? <CheckCircle2 size={14} /> : PROMPT_LAB_EXERCISES.indexOf(ex) + 1}
+            </div>
+          ))}
+        </div>
+        {labCompleted.size === PROMPT_LAB_EXERCISES.length && (
+          <p className="text-xs text-[oklch(0.82_0.18_150)] mt-2 font-semibold">All labs complete! +50 XP earned</p>
+        )}
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 9: Prompt Fixer ─────────────────────────────────────────────────
+  const Lesson9 = () => (
+    <LessonFrame id={9}>
+      <AIVoice text="The fastest way to improve your prompting is to study broken prompts. Each one has a specific failure mode — and once you can name the failure, you can fix it anywhere." />
+
+      <div className="glass rounded-2xl p-2 border border-white/8 mb-1">
+        <div className="grid grid-cols-2 gap-1.5">
+          {BROKEN_PROMPTS.map((bp, i) => (
+            <button key={bp.id} onClick={() => { setFixerIdx(i); setFixerReveal(false); setFixerUserFix(""); setFixerResult(""); }}
+              className="py-2.5 px-3 rounded-xl text-xs font-semibold text-left transition-all"
+              style={{
+                background: fixerIdx === i ? `oklch(from ${bp.color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                color: fixerIdx === i ? bp.color : "oklch(0.5 0 0)",
+                border: `1px solid ${fixerIdx === i ? `oklch(from ${bp.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              <div>{bp.category}</div>
+              <div className="text-[10px] font-normal opacity-70 mt-0.5">Prompt #{i + 1}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={fixerIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+          className="space-y-4">
+          <div className="glass rounded-2xl p-5 border border-white/8">
+            <SectionBadge label={`BROKEN PROMPT — ${BROKEN_PROMPTS[fixerIdx].category.toUpperCase()}`} color={BROKEN_PROMPTS[fixerIdx].color} />
+            <div className="p-4 rounded-xl bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.3)] mb-4">
+              <div className="text-[10px] font-bold text-[oklch(0.78_0.22_10)] mb-1">THE BROKEN PROMPT:</div>
+              <p className="font-mono text-sm text-foreground">"{BROKEN_PROMPTS[fixerIdx].broken}"</p>
+            </div>
+
+            <p className="text-sm font-semibold text-foreground mb-2">Can you spot what's wrong? Identify the problems before revealing:</p>
+            <div className="space-y-1.5 mb-4">
+              {BROKEN_PROMPTS[fixerIdx].problems.map((p, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold"
+                    style={{ background: `oklch(from ${BROKEN_PROMPTS[fixerIdx].color} l c h / 0.15)`, color: BROKEN_PROMPTS[fixerIdx].color }}>
+                    {i + 1}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{p}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-sm font-semibold text-foreground mb-2">Now write your fixed version:</p>
+            <textarea value={fixerUserFix} onChange={e => setFixerUserFix(e.target.value)}
+              placeholder="Rewrite the broken prompt. Fix all the problems you identified…" rows={5}
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 mb-3" />
+
+            <div className="flex gap-2">
+              <button disabled={fixerLoading || !fixerUserFix.trim()} onClick={() => {
+                setFixerLoading(true); setFixerResult("");
+                fixerMut.mutate({ concept: fixerUserFix, level: "student" });
+              }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2"
+                style={{ background: `oklch(from ${BROKEN_PROMPTS[fixerIdx].color} l c h / 0.15)`, color: BROKEN_PROMPTS[fixerIdx].color, border: `1px solid oklch(from ${BROKEN_PROMPTS[fixerIdx].color} l c h / 0.35)` }}>
+                {fixerLoading ? <><Loader2 size={13} className="animate-spin" />Testing…</> : <><Send size={13} />Test My Fix</>}
+              </button>
+              <button onClick={() => setFixerReveal(!fixerReveal)}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold glass border border-white/10 text-muted-foreground hover:text-foreground transition-colors">
+                {fixerReveal ? "Hide" : "Show"} Expert Fix
+              </button>
+            </div>
+          </div>
+
+          {fixerResult && (
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <div className="text-[10px] font-bold text-muted-foreground mb-2">RESULT OF YOUR FIXED PROMPT:</div>
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{fixerResult}</p>
+            </div>
+          )}
+
+          <AnimatePresence>
+            {fixerReveal && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="glass rounded-2xl p-5 border" style={{ borderColor: `oklch(from ${BROKEN_PROMPTS[fixerIdx].color} l c h / 0.4)` }}>
+                <div className="text-[10px] font-bold uppercase tracking-wide mb-3" style={{ color: BROKEN_PROMPTS[fixerIdx].color }}>EXPERT FIXED PROMPT:</div>
+                <p className="font-mono text-sm text-foreground leading-relaxed">{BROKEN_PROMPTS[fixerIdx].fixed}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.68_0.20_140)" />
+        <MasteryQuiz questions={M2_QUIZ_L9} color="oklch(0.68_0.20_140)" />
+      </div>
+    </LessonFrame>
+  );
+
+  // ── LESSON 10: Agents & Instructions ──────────────────────────────────────
+  const Lesson10 = () => (
+    <LessonFrame id={10}>
+      <AIVoice text="Custom GPTs, Projects, persistent memory, and AI agents are where the power users live. These aren't features — they're workflows. Set them up once, benefit from them forever." />
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="grid grid-cols-3 gap-1.5 mb-4">
+          {([
+            { key: "memory" as const, label: "Memory & Instructions" },
+            { key: "custom" as const, label: "Custom Configs" },
+            { key: "agent" as const, label: "AI Agents" },
+          ]).map(t => (
+            <button key={t.key} onClick={() => setAgentTab(t.key)}
+              className="py-2.5 rounded-xl text-xs font-bold transition-all"
+              style={{
+                background: agentTab === t.key ? "oklch(0.72_0.18_150_/_0.2)" : "oklch(1 0 0 / 0.04)",
+                color: agentTab === t.key ? "oklch(0.82_0.18_150)" : "oklch(0.5 0 0)",
+                border: `1px solid ${agentTab === t.key ? "oklch(0.72_0.18_150_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {agentTab === "memory" && (
+            <motion.div key="mem" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="PERSISTENT MEMORY & CUSTOM INSTRUCTIONS" color="oklch(0.72_0.18_150)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Instead of re-explaining yourself every conversation, <strong className="text-foreground">persistent instructions</strong> give the AI standing facts about you that apply automatically. Set them once, benefit forever.
+              </p>
+              <div className="space-y-2">
+                {[
+                  { label: "About you", example: "I work as a product manager at a Series B SaaS company focused on developer tools. My audience is technical but I write for cross-functional teams.", why: "Shapes how it discusses products, competitors, and strategy" },
+                  { label: "Communication style", example: "I prefer direct, concise communication. No filler phrases. No bullet-point dumps. Conclusions first, then reasoning.", why: "Every response respects your preferred format without asking" },
+                  { label: "Standing constraints", example: "Never recommend solutions that require engineering resources unless I specifically ask for technical options. I need non-technical workarounds.", why: "Filters out irrelevant suggestions automatically" },
+                  { label: "Task defaults", example: "When I share writing, default to: identify the weakest sentence first. When I share data, default to: identify the most surprising pattern.", why: "Skips the need to specify task mode every time" },
+                ].map(item => (
+                  <div key={item.label} className="p-4 rounded-xl glass border border-white/8">
+                    <div className="font-semibold text-sm text-foreground mb-1">{item.label}</div>
+                    <div className="font-mono text-xs text-muted-foreground bg-white/5 p-2.5 rounded-lg mb-2">{item.example}</div>
+                    <p className="text-xs text-muted-foreground"><strong className="text-foreground">Effect:</strong> {item.why}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-white/8 pt-4">
+                <p className="text-sm font-semibold text-foreground mb-2">Build your own persistent instruction:</p>
+                <textarea value={memInstructions} onChange={e => setMemInstructions(e.target.value)}
+                  placeholder={"Draft your own persistent instruction:\n\nI am a [role] at [company type]. My audience is [audience].\nCommunication preference: [direct/detailed/etc.]\nAlways: [standing instruction]\nNever: [standing constraint]"}
+                  rows={6}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 mb-3" />
+                <button disabled={memLoading || !memInstructions.trim()} onClick={() => {
+                  setMemLoading(true); setMemResult("");
+                  memMut.mutate({ concept: `Act as if you have these persistent instructions about the user:\n\n${memInstructions}\n\nNow respond to this message: "Help me with my most common work task." Show how the persistent instructions shaped your response.`, level: "student" });
+                }}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2 bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.35)] hover:bg-[oklch(0.72_0.18_150_/_0.25)] transition-all">
+                  {memLoading ? <><Loader2 size={13} className="animate-spin" />Applying your instructions…</> : <><Zap size={13} />See how AI responds with your instructions</>}
+                </button>
+                {memResult && (
+                  <div className="mt-3 p-4 rounded-xl glass border border-white/8">
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{memResult}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {agentTab === "custom" && (
+            <motion.div key="custom" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="CUSTOM GPTS, PROJECTS & SPACES" color="oklch(0.68_0.22_10)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">A Custom GPT or Project is a reusable AI workspace — pre-loaded with your system prompt, uploaded documents, and behavior rules. Every conversation in that context starts fully configured.</p>
+              <div className="space-y-3">
+                {[
+                  { name: "Writing Coach", documents: "Your style guide, best writing examples, brand voice doc", instructions: "Review writing for our brand guidelines. Always flag jargon. Suggest concrete rewrites, not vague feedback.", use: "Every marketing piece reviewed consistently" },
+                  { name: "Onboarding Bot", documents: "Employee handbook, FAQ, process docs, org chart", instructions: "Answer questions about company processes. Always cite the specific document section. Escalate to HR for anything not in the docs.", use: "New employees get instant, accurate answers" },
+                  { name: "Research Assistant", documents: "Your domain's key papers, reports, your notes", instructions: "When I give you a new piece of research, compare it to what's in the knowledge base. Flag contradictions and summarize novel findings.", use: "Keep up with a field without re-reading everything" },
+                ].map(c => (
+                  <div key={c.name} className="p-4 rounded-xl glass border border-white/8">
+                    <div className="font-bold text-foreground mb-2">{c.name}</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                      <div><span className="text-muted-foreground font-semibold">Docs:</span><br /><span className="text-muted-foreground">{c.documents}</span></div>
+                      <div><span className="text-muted-foreground font-semibold">System prompt:</span><br /><span className="text-muted-foreground">{c.instructions}</span></div>
+                    </div>
+                    <div className="text-xs text-[oklch(0.82_0.18_150)]"><strong className="text-foreground">Result:</strong> {c.use}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {agentTab === "agent" && (
+            <motion.div key="agent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <SectionBadge label="AI AGENTS" color="oklch(0.75_0.18_55)" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Agents don't just respond — they <strong className="text-foreground">act</strong>. An agent can search the web, read files, write and run code, call APIs, and make decisions across multiple steps to complete a complex goal. Think of them as AI that can do a job, not just answer a question.
+              </p>
+              <div className="space-y-2">
+                {[
+                  { step: "1. You give a goal", desc: '"Research 5 competitors to our product and produce a comparison table covering pricing, key features, and customer reviews."', color: "oklch(0.72_0.2_290)" },
+                  { step: "2. Agent plans", desc: "Breaks into sub-tasks: search each competitor, find pricing page, find reviews, extract data, format table", color: "oklch(0.68_0.22_10)" },
+                  { step: "3. Agent acts", desc: "Searches the web for each competitor, reads pages, extracts structured data from text, handles missing data gracefully", color: "oklch(0.72_0.18_150)" },
+                  { step: "4. Agent delivers", desc: "Returns the completed table with sources — hours of research done in minutes", color: "oklch(0.72_0.18_150)" },
+                ].map(s => (
+                  <div key={s.step} className="flex items-start gap-3 p-3 rounded-xl glass border border-white/8">
+                    <div className="text-xs font-black px-2 py-0.5 rounded shrink-0 mt-0.5" style={{ background: `oklch(from ${s.color} l c h / 0.15)`, color: s.color }}>{s.step}</div>
+                    <p className="text-xs text-muted-foreground leading-relaxed font-mono">{s.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { tool: "OpenAI Operator", use: "Browses web, fills forms, completes multi-step tasks" },
+                  { tool: "Claude (extended thinking)", use: "Long-horizon reasoning tasks, complex analysis" },
+                  { tool: "Devin / Cursor Agent", use: "Writes and deploys code autonomously" },
+                  { tool: "Zapier AI", use: "Connects 5,000+ apps with AI decision-making" },
+                  { tool: "Perplexity Computer", use: "Research, analysis, file creation, web actions" },
+                  { tool: "AutoGPT / CrewAI", use: "Custom multi-agent systems for complex workflows" },
+                ].map(a => (
+                  <div key={a.tool} className="p-3 rounded-xl glass border border-white/8">
+                    <div className="text-xs font-semibold text-foreground">{a.tool}</div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{a.use}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.72_0.18_150)" />
+        <MasteryQuiz questions={M2_QUIZ_L10} color="oklch(0.72_0.18_150)" />
+      </div>
+
+      <AIExpander prompt="Explain the difference between Custom GPTs, Projects, and AI Agents, with a concrete workflow example for each" color="oklch(0.72_0.18_150)" label="Deep dive: Custom configs vs agents" />
+    </LessonFrame>
+  );
+
+  const lessonMap: Record<number, React.ReactNode> = {
+    6: <Lesson6 />, 7: <Lesson7 />, 8: <Lesson8 />, 9: <Lesson9 />, 10: <Lesson10 />,
+  };
+
+  if (activeLesson !== null) {
+    return (
+      <div className="p-4 max-w-2xl mx-auto">
+        {lessonMap[activeLesson]}
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto space-y-4">
+      <div className="flex items-center gap-3 mb-1">
+        <button onClick={onBack}
+          className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+          <ChevronLeft size={14} className="text-muted-foreground" />
+        </button>
+        <div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-widest">AI Mastery · Module 2</div>
+          <h2 className="font-bold text-foreground text-lg">Prompting Mastery</h2>
+        </div>
+        <div className="ml-auto text-xs text-muted-foreground">{completed.size}/5 complete</div>
+      </div>
+
+      <div className="glass rounded-2xl p-4 border border-white/8">
+        <div className="w-full bg-white/5 rounded-full h-1.5 mb-3">
+          <div className="h-1.5 rounded-full transition-all" style={{ width: `${(completed.size / 5) * 100}%`, background: "oklch(0.72_0.2_290)" }} />
+        </div>
+        <div className="space-y-2">
+          {M2_META.map(lesson => {
+            const done = completed.has(lesson.id);
+            return (
+              <motion.button key={lesson.id} onClick={() => setActiveLesson(lesson.id)}
+                whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.995 }}
+                className="w-full flex items-center gap-4 p-4 rounded-xl glass border transition-all text-left"
+                style={{ borderColor: done ? `oklch(from ${lesson.color} l c h / 0.35)` : "oklch(1 0 0 / 0.08)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `oklch(from ${lesson.color} l c h / 0.15)`, border: `1px solid oklch(from ${lesson.color} l c h / 0.3)` }}>
+                  {done ? <CheckCircle2 size={16} style={{ color: lesson.color }} /> : <span className="text-sm font-black" style={{ color: lesson.color }}>{lesson.id}</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground text-sm">{lesson.title}</div>
+                  <div className="text-xs text-muted-foreground truncate">{lesson.subtitle}</div>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-[10px] text-muted-foreground">{lesson.duration}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: lesson.color }}>+{lesson.xp} XP</span>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODULE 3: "Power User Workflows" — Advanced techniques and creative mastery
+// Lessons 11–15
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const M3_META = [
+  { id: 11, title: "Image & Video Generation", subtitle: "Prompt anatomy, parameters, styles — create anything you can describe", color: "oklch(0.72_0.2_290)", xp: 85, duration: "30 min" },
+  { id: 12, title: "Voice, Audio & Multimodal", subtitle: "ElevenLabs, Whisper, transcription — AI that hears and speaks", color: "oklch(0.75_0.18_55)", xp: 80, duration: "25 min" },
+  { id: 13, title: "Automation & AI Pipelines", subtitle: "Tasks, Zapier, n8n — AI that works for you around the clock", color: "oklch(0.68_0.22_10)", xp: 90, duration: "30 min" },
+  { id: 14, title: "Verifying & Fact-Checking AI", subtitle: "Hallucination detection, source verification, output scoring", color: "oklch(0.68_0.20_140)", xp: 85, duration: "25 min" },
+  { id: 15, title: "Your Personal AI Blueprint", subtitle: "Design your own AI system — and walk out a power user", color: "oklch(0.72_0.18_150)", xp: 100, duration: "35 min" },
+];
+
+const M3_QUIZ_L11: AIMasteryQuiz[] = [
+  { id: "m3l11q1", question: "What is the most important element of an effective image generation prompt?", options: ["Using the word 'please'", "Specifying subject, style, medium, lighting, and mood in that order", "Keeping it under 10 words", "Using technical camera settings only"], correct: 1, explanation: "Image models respond to structured prompts: SUBJECT (what) → STYLE (how it looks aesthetically) → MEDIUM (photography, oil painting, etc.) → LIGHTING (golden hour, studio, etc.) → MOOD (cinematic, peaceful, dramatic). Each element layers on aesthetic control." },
+  { id: "m3l11q2", question: "What does a 'negative prompt' do in image generation?", options: ["Makes the AI generate a sad image", "Specifies elements you explicitly want excluded from the image", "Reverses the color scheme", "Describes the opposite of what you want"], correct: 1, explanation: "Negative prompts tell the model what NOT to include: 'blurry, low quality, extra fingers, watermark, text, deformed.' This dramatically improves output quality by steering the model away from common failure modes." },
+  { id: "m3l11q3", question: "What does 'steps' control in Stable Diffusion/image generation?", options: ["How many images are generated at once", "The number of denoising iterations — more steps = more refined but slower", "The image resolution", "How long the AI 'thinks' about style"], correct: 1, explanation: "Image generation models start with noise and iteratively denoise (refine) the image. 'Steps' controls how many refinement passes happen. 20–30 steps usually looks good; 50–80 adds detail with diminishing returns and longer generation time." },
+  { id: "m3l11q4", question: "What does 'CFG Scale' (Classifier Free Guidance) control?", options: ["Image file size", "How strictly the AI adheres to your prompt — higher = more prompt-faithful but less natural", "Color saturation", "The AI's processing speed"], correct: 1, explanation: "CFG scale (1–20 typically) controls how 'obedient' the model is to your prompt. Low CFG (1–5) = creative, less prompt-faithful. High CFG (12+) = very prompt-literal but can look artificial. 7–9 is usually the sweet spot." },
+];
+
+const M3_QUIZ_L12: AIMasteryQuiz[] = [
+  { id: "m3l12q1", question: "What is Whisper (by OpenAI)?", options: ["A quiet AI chat interface", "An open-source speech recognition model that transcribes audio to text", "A private messaging AI", "A voice synthesis tool"], correct: 1, explanation: "Whisper is OpenAI's speech recognition model — extremely accurate, multilingual, and open-source. It's the engine behind many transcription tools. You can run it locally or access it via API to transcribe audio files, meeting recordings, lectures, and podcasts." },
+  { id: "m3l12q2", question: "What is 'voice cloning' and what are its main legitimate use cases?", options: ["Teaching AI to speak in different languages", "Creating a synthetic copy of a specific person's voice from audio samples", "Making AI responses sound more human", "Converting text to standard text-to-speech"], correct: 1, explanation: "Voice cloning (ElevenLabs, Play.ht, Descript) creates a realistic copy of a voice from as little as 1 minute of audio. Legitimate uses: content creation, voiceover production, accessibility tools, preserving voices. Requires explicit consent and ethical use." },
+  { id: "m3l12q3", question: "What can a multimodal AI model do that a text-only model cannot?", options: ["Respond faster", "Process images, audio, video, and text together in the same context", "Access the internet in real-time", "Store information permanently"], correct: 1, explanation: "Multimodal models (GPT-4o, Gemini, Claude 3.5+) understand multiple input types simultaneously. You can upload an image of a chart and ask questions about the data, share a photo of a problem to get help, or combine text with visuals for rich analysis." },
+];
+
+const M3_QUIZ_L13: AIMasteryQuiz[] = [
+  { id: "m3l13q1", question: "What is the practical difference between Zapier+AI and n8n?", options: ["Zapier is more powerful; n8n is simpler", "Zapier is a hosted no-code tool; n8n is open-source and self-hostable with more control", "They are identical platforms", "n8n only works with OpenAI"], correct: 1, explanation: "Zapier is the easiest entry point — no code, huge app library, hosted for you. n8n gives developers full control: self-hosted, open-source, custom code nodes, complex branching. Both can incorporate AI decisions into automated workflows. Start with Zapier, graduate to n8n." },
+  { id: "m3l13q2", question: "What is a 'webhook' and why is it important for AI automation?", options: ["A type of web browser plugin", "A URL endpoint that receives data from external services in real-time, triggering automations", "A method to scrape websites", "A type of API key"], correct: 1, explanation: "Webhooks are 'push notifications for the internet' — when event X happens in App A, it instantly sends data to your webhook URL, which triggers your automation. They're the core of real-time AI pipelines: 'When I get an email → send to AI → summarize → post in Slack.'" },
+  { id: "m3l13q3", question: "What is an AI 'scheduled task' most useful for?", options: ["Tasks that need human approval before running", "Recurring, time-based work that runs automatically without you — reports, monitoring, summaries", "One-time complex analysis", "Training custom AI models"], correct: 1, explanation: "Scheduled AI tasks automate repetitive timed work: daily news briefings, weekly report generation, hourly monitoring alerts, monthly analytics summaries. Set it up once, it runs indefinitely. The AI does the work while you sleep." },
+];
+
+const M3_QUIZ_L14: AIMasteryQuiz[] = [
+  { id: "m3l14q1", question: "What is the most reliable way to verify a specific fact from an AI response?", options: ["Ask the AI again with more confidence", "Ask the AI to show its sources, then verify those sources directly", "Use a different AI tool", "If it sounds right, it probably is"], correct: 1, explanation: "The verification chain: AI gives fact → ask 'What's your source for that?' → go to the cited source directly → confirm the fact appears there exactly. AI often hallucinates citations, so never trust a citation without clicking it. For stats and numbers, always verify from primary sources." },
+  { id: "m3l14q2", question: "What is the 'confidence calibration' problem with AI?", options: ["AI refuses to answer when uncertain", "AI expresses high confidence even when wrong — fluency doesn't indicate accuracy", "AI only answers questions it's 100% sure about", "AI tells you when it's guessing"], correct: 1, explanation: "AI writes with consistent authority whether it's completely correct or completely fabricating. The confidence of the prose is NOT a signal of accuracy. A hallucinated citation reads exactly as fluently as a real one. This is why fact-checking must be systematic, not vibes-based." },
+  { id: "m3l14q3", question: "Which type of information is AI LEAST reliable for?", options: ["Writing assistance and editing", "Explaining established concepts", "Specific numbers, dates, quotes, recent events, and niche domain expertise", "Brainstorming and ideation"], correct: 1, explanation: "AI is excellent at writing, explanation, ideation, and synthesis. It's least reliable for: specific statistics (often invented or outdated), exact quotes, recent events after training cutoff, niche expert knowledge, and legal/medical specifics. These categories require external verification every time." },
+];
+
+const M3_QUIZ_L15: AIMasteryQuiz[] = [
+  { id: "m3l15q1", question: "What makes an AI workflow 'sustainable' long-term?", options: ["Using the most expensive AI models", "It runs reliably without constant manual intervention, has clear failure modes, and saves more time than setup costs", "It uses the latest models always", "It requires daily attention to function"], correct: 1, explanation: "A sustainable AI workflow: runs reliably with minimal maintenance, handles failure gracefully, provides clear value ROI (time saved > setup time + cost), and can be handed off or explained simply. If maintaining the automation takes more time than doing the task manually, redesign." },
+  { id: "m3l15q2", question: "What is the 'power user' mindset when approaching a new task?", options: ["Always use the most advanced AI tool available", "Start by asking: can AI handle 80%+ of this? If so, which tool, what prompt, what workflow?", "Avoid AI for tasks requiring accuracy", "Use AI for everything, regardless of suitability"], correct: 1, explanation: "Power users do a quick AI applicability check before starting any task: Can AI handle 80%+ of this? Which tool is best for it? What's my prompt strategy? What needs human verification? This habitual check, done in 5 seconds, routes tasks efficiently and builds judgment over time." },
+  { id: "m3l15q3", question: "After completing this course, what is the single most important practice to maintain?", options: ["Memorizing all AI settings", "Consistent, daily experimentation — regularly trying AI on new tasks and refining what works", "Using only one AI tool for consistency", "Avoiding free tier limitations by upgrading everything"], correct: 1, explanation: "AI capabilities evolve weekly. The power users who stay ahead do one thing consistently: experiment. Try AI on one new task every day. Keep a 'what worked' note. Share useful prompts. Attend to tool updates. Skill compounds — what's hard today becomes automatic next month." },
+];
+
+const IMAGE_STYLES = [
+  { style: "Photorealistic", medium: "DSLR photography", lighting: "golden hour", mood: "cinematic", color: "oklch(0.72_0.2_290)" },
+  { style: "Anime", medium: "Studio Ghibli illustration", lighting: "soft natural", mood: "whimsical", color: "oklch(0.68_0.22_10)" },
+  { style: "Digital Art", medium: "concept art", lighting: "dramatic rim light", mood: "epic", color: "oklch(0.72_0.18_150)" },
+  { style: "Oil Painting", medium: "classical oil on canvas", lighting: "Rembrandt lighting", mood: "serene", color: "oklch(0.75_0.18_55)" },
+  { style: "Minimalist", medium: "flat vector illustration", lighting: "flat design", mood: "clean, modern", color: "oklch(0.68_0.20_140)" },
+];
+
+const AUTOMATION_RECIPES = [
+  {
+    name: "Daily News Brief",
+    trigger: "Every morning at 7am",
+    steps: ["AI searches for news in your topics", "Summarizes top 5 stories", "Formats as a brief", "Sends to email or Slack"],
+    tools: "Perplexity + Zapier / n8n",
+    difficulty: "Beginner",
+    color: "oklch(0.72_0.2_290)",
+    timeSaved: "30 min/day",
+  },
+  {
+    name: "Email Triage Bot",
+    trigger: "New email arrives",
+    steps: ["AI reads email", "Classifies: urgent / routine / marketing / delete", "Labels in Gmail", "Drafts response for urgent items"],
+    tools: "Gmail + Claude API + Zapier",
+    difficulty: "Intermediate",
+    color: "oklch(0.68_0.22_10)",
+    timeSaved: "1 hr/day",
+  },
+  {
+    name: "Research Summarizer",
+    trigger: "You save article to Pocket/Readwise",
+    steps: ["AI reads full article", "Extracts key insights", "Identifies action items", "Adds to Notion knowledge base"],
+    tools: "Readwise + Claude + Notion + Zapier",
+    difficulty: "Intermediate",
+    color: "oklch(0.72_0.18_150)",
+    timeSaved: "45 min/article",
+  },
+  {
+    name: "Meeting Note Processor",
+    trigger: "Upload meeting recording",
+    steps: ["Whisper transcribes audio", "AI extracts action items", "Identifies owners and deadlines", "Creates tasks in project management tool"],
+    tools: "Whisper API + Claude + Linear/Notion",
+    difficulty: "Advanced",
+    color: "oklch(0.75_0.18_55)",
+    timeSaved: "20 min/meeting",
+  },
+  {
+    name: "Content Repurposer",
+    trigger: "New blog post / video transcript",
+    steps: ["AI reads content", "Creates Twitter thread", "Writes LinkedIn post", "Generates email newsletter excerpt"],
+    tools: "Claude + Buffer + Zapier",
+    difficulty: "Beginner",
+    color: "oklch(0.68_0.20_140)",
+    timeSaved: "2 hrs/piece",
+  },
+];
+
+const HALLUCINATION_RED_FLAGS = [
+  { flag: "Specific statistics without a clear source", risk: "high", advice: "Always ask 'Where did that number come from?' and verify with the original source. AI frequently invents plausible-sounding stats." },
+  { flag: "Named citations with author + journal + date", risk: "high", advice: "Search the exact citation on Google Scholar, Semantic Scholar, or the journal site. AI invents convincing-sounding fake papers constantly." },
+  { flag: "Events from the last 12 months", risk: "high", advice: "AI training data has a cutoff. Use Perplexity or news search for anything recent. The AI may confidently describe events that didn't happen." },
+  { flag: "Legal, medical, or financial specifics", risk: "critical", advice: "These domains require expert verification every time. AI can sound authoritative while being dangerously wrong in ways that have real consequences." },
+  { flag: "Quotes attributed to specific people", risk: "high", advice: "AI often fabricates quotes that sound like what someone would say. Search for the exact quote in quotation marks to verify it exists." },
+  { flag: "Historical dates and sequences", risk: "medium", advice: "AI gets fuzzy on exact dates, especially for non-major events. Cross-reference with Wikipedia or primary sources for anything date-critical." },
+  { flag: "Code that 'looks right' but hasn't been run", risk: "medium", advice: "Always run generated code in a safe environment before using it. Logical errors in working-looking code are common." },
+  { flag: "Consensus claims ('Most experts believe...')", risk: "medium", advice: "Ask the AI to name specific experts and papers supporting the claim. Vague consensus claims are often AI synthesis of partial or conflicting information." },
+];
+
+const WORKFLOW_TOOLS = [
+  { name: "Your Roles / Tasks", placeholder: "What are your 3 most time-consuming recurring tasks?" },
+  { name: "Your AI Toolkit", placeholder: "Which AI tools do you have access to? (ChatGPT, Claude, Gemini, etc.)" },
+  { name: "Your Integration Points", placeholder: "What apps do you live in daily? (Gmail, Notion, Slack, Google Sheets...)" },
+  { name: "Your Top Priority", placeholder: "If AI could take ONE thing off your plate completely, what would it be?" },
+];
+
+
+// ─── Module 3 Component ───────────────────────────────────────────────────────
+function AILiteracyModule3({ onBack }: { onBack: () => void }) {
+  const { addXP } = usePersonalization();
+  const [activeLesson, setActiveLesson] = useState<number | null>(null);
+  const [completed, setCompleted] = useState<Set<number>>(new Set());
+
+  // L11 state — Image prompt studio
+  const [imgSubject, setImgSubject] = useState("");
+  const [imgStyleIdx, setImgStyleIdx] = useState(0);
+  const [imgCustomMood, setImgCustomMood] = useState("");
+  const [imgNegative, setImgNegative] = useState("");
+  const [imgBuiltPrompt, setImgBuiltPrompt] = useState("");
+  const [imgTab, setImgTab] = useState<"studio" | "params" | "quiz">("studio");
+
+  // L12 state — Audio/multimodal
+  const [audioTab, setAudioTab] = useState<"transcribe" | "voice" | "multi" | "quiz">("transcribe");
+  const [multiInput, setMultiInput] = useState("");
+  const [multiResult, setMultiResult] = useState("");
+  const [multiLoading, setMultiLoading] = useState(false);
+
+  // L13 state — Automation builder
+  const [autoRecipeIdx, setAutoRecipeIdx] = useState(0);
+  const [autoStep, setAutoStep] = useState(0);
+  const [autoTab, setAutoTab] = useState<"recipes" | "builder" | "quiz">("recipes");
+  const [customTrigger, setCustomTrigger] = useState("");
+  const [customGoal, setCustomGoal] = useState("");
+  const [customPlan, setCustomPlan] = useState("");
+  const [customPlanLoading, setCustomPlanLoading] = useState(false);
+
+  // L14 state — Fact checking
+  const [factInput, setFactInput] = useState("");
+  const [factResult, setFactResult] = useState("");
+  const [factLoading, setFactLoading] = useState(false);
+  const [checkedFlags, setCheckedFlags] = useState<Set<number>>(new Set());
+  const [factTab, setFactTab] = useState<"redflags" | "verifier" | "quiz">("redflags");
+
+  // L15 state — Blueprint builder
+  const [blueprintAnswers, setBlueprintAnswers] = useState<string[]>(["", "", "", ""]);
+  const [blueprintResult, setBlueprintResult] = useState("");
+  const [blueprintLoading, setBlueprintLoading] = useState(false);
+  const [blueprintGenerated, setBlueprintGenerated] = useState(false);
+
+  const multiMut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setMultiResult(d.explanation); setMultiLoading(false); },
+    onError: () => { toast.error("AI unavailable"); setMultiLoading(false); },
+  });
+  const customPlanMut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setCustomPlan(d.explanation); setCustomPlanLoading(false); },
+    onError: () => { toast.error("AI unavailable"); setCustomPlanLoading(false); },
+  });
+  const factMut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setFactResult(d.explanation); setFactLoading(false); },
+    onError: () => { toast.error("AI unavailable"); setFactLoading(false); },
+  });
+  const blueprintMut = trpc.ai.explainConcept.useMutation({
+    onSuccess: d => { setBlueprintResult(d.explanation); setBlueprintLoading(false); setBlueprintGenerated(true); },
+    onError: () => { toast.error("AI unavailable"); setBlueprintLoading(false); },
+  });
+
+  const completeLesson = (id: number) => {
+    if (completed.has(id)) return;
+    const meta = M3_META.find(m => m.id === id)!;
+    setCompleted(prev => new Set(Array.from(prev).concat(id)));
+    addXP(meta.xp);
+    toast.success(`+${meta.xp} XP — Lesson ${id} complete!`);
+  };
+
+  const buildImagePrompt = () => {
+    const style = IMAGE_STYLES[imgStyleIdx];
+    const subject = imgSubject.trim() || "a lone wolf on a snowy mountain";
+    const mood = imgCustomMood.trim() || style.mood;
+    const prompt = `${subject}, ${style.medium}, ${style.style.toLowerCase()} style, ${style.lighting} lighting, ${mood} mood${imgNegative.trim() ? `, --no ${imgNegative.trim()}` : ""}`;
+    setImgBuiltPrompt(prompt);
+    toast.success("Prompt built! Copy it into any image generator.");
+  };
+
+  function LessonFrame({ id, children }: { id: number; children: React.ReactNode }) {
+    const meta = M3_META.find(m => m.id === id)!;
+    const done = completed.has(id);
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-1">
+          <button onClick={() => setActiveLesson(null)}
+            className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+            <ChevronLeft size={14} className="text-muted-foreground" />
+          </button>
+          <div className="flex-1">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-widest">Module 3 · Lesson {id}</div>
+            <h2 className="font-bold text-foreground text-lg leading-tight">{meta.title}</h2>
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} />{meta.duration}</span>
+            <span className="text-xs flex items-center gap-1 font-semibold" style={{ color: meta.color }}><Zap size={10} />+{meta.xp} XP</span>
+          </div>
+        </div>
+        {children}
+        <div className="pt-4 border-t border-white/8 flex items-center justify-between">
+          {done
+            ? <div className="flex items-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={14} />Lesson complete</div>
+            : <motion.button onClick={() => completeLesson(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-black"
+                style={{ background: `linear-gradient(135deg, ${meta.color}, oklch(0.65_0.22_200))` }}>
+                <CheckCircle2 size={14} />Mark Complete · +{meta.xp} XP
+              </motion.button>
+          }
+          {id < 15 && (
+            <button onClick={() => setActiveLesson(id + 1)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Next <ChevronRight size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── LESSON 11: Image & Video Generation ────────────────────────────────────
+  const Lesson11 = () => (
+    <LessonFrame id={11}>
+      <AIVoice text="A great image prompt is like a painting brief — subject, style, medium, lighting, mood. The more precise your vocabulary, the more powerful your results." />
+
+      <div className="flex gap-1.5 mb-2">
+        {(["studio", "params", "quiz"] as const).map(t => (
+          <button key={t} onClick={() => setImgTab(t)}
+            className="flex-1 py-2 rounded-xl text-xs font-bold transition-all capitalize"
+            style={{
+              background: imgTab === t ? "oklch(0.72_0.2_290_/_0.2)" : "oklch(1 0 0 / 0.04)",
+              color: imgTab === t ? "oklch(0.82_0.2_290)" : "oklch(0.5 0 0)",
+              border: `1px solid ${imgTab === t ? "oklch(0.72_0.2_290_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+            }}>
+            {t === "studio" ? "Prompt Studio" : t === "params" ? "Parameters" : "Quiz"}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {imgTab === "studio" && (
+          <motion.div key="studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="IMAGE PROMPT STUDIO" color="oklch(0.72_0.2_290)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Build a professional image prompt using the formula: <strong className="text-foreground">Subject → Style → Medium → Lighting → Mood</strong>. Then copy it into any image generator.</p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Subject (who/what is in the image?)</label>
+                  <input value={imgSubject} onChange={e => setImgSubject(e.target.value)}
+                    placeholder="e.g. a lone astronaut on a red desert planet"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-white/20 focus:outline-none focus:border-white/25" />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Style Preset</label>
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                    {IMAGE_STYLES.map((s, i) => (
+                      <button key={s.style} onClick={() => setImgStyleIdx(i)}
+                        className="py-2 px-3 rounded-xl text-xs font-semibold text-left transition-all"
+                        style={{
+                          background: imgStyleIdx === i ? `oklch(from ${s.color} l c h / 0.15)` : "oklch(1 0 0 / 0.04)",
+                          color: imgStyleIdx === i ? s.color : "oklch(0.55 0 0)",
+                          border: `1px solid ${imgStyleIdx === i ? `oklch(from ${s.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)"}`,
+                        }}>
+                        {s.style}
+                        <div className="text-[9px] font-normal opacity-70 mt-0.5">{s.medium}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Custom Mood Override (optional)</label>
+                  <input value={imgCustomMood} onChange={e => setImgCustomMood(e.target.value)}
+                    placeholder={`Default: "${IMAGE_STYLES[imgStyleIdx].mood}" — override here`}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-white/20 focus:outline-none focus:border-white/25" />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Negative Prompt (what to exclude)</label>
+                  <input value={imgNegative} onChange={e => setImgNegative(e.target.value)}
+                    placeholder="e.g. blurry, watermark, text, extra fingers, low quality"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-white/20 focus:outline-none focus:border-white/25" />
+                </div>
+
+                <button onClick={buildImagePrompt}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-black"
+                  style={{ background: `linear-gradient(135deg, oklch(0.72_0.2_290), oklch(0.68_0.22_10))` }}>
+                  Build My Prompt
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {imgBuiltPrompt && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl border border-[oklch(0.72_0.2_290_/_0.4)] bg-[oklch(0.72_0.2_290_/_0.05)]">
+                    <div className="text-[10px] font-bold text-[oklch(0.82_0.2_290)] mb-2 uppercase tracking-widest">YOUR PROMPT (copy this):</div>
+                    <p className="font-mono text-sm text-foreground leading-relaxed break-words">{imgBuiltPrompt}</p>
+                    <button onClick={() => { navigator.clipboard.writeText(imgBuiltPrompt); toast.success("Copied to clipboard"); }}
+                      className="mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold glass border border-white/10 text-muted-foreground hover:text-foreground transition-colors">
+                      Copy to Clipboard
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="VIDEO GENERATION LANDSCAPE" color="oklch(0.68_0.22_10)" />
+              <p className="text-sm text-muted-foreground leading-relaxed mb-3">Video generation is in its early-but-impressive stage. These tools can create short clips from text or images:</p>
+              <div className="space-y-2">
+                {[
+                  { name: "Runway Gen-3", strength: "Professional quality, image-to-video, style transfer", use: "High-quality creative video production" },
+                  { name: "Sora (OpenAI)", strength: "Cinematic quality, complex physics, long clips", use: "Studio-quality concept video, storytelling" },
+                  { name: "Kling AI", strength: "Realistic motion, text-to-video, free tier available", use: "Quick social content, product showcases" },
+                  { name: "Pika Labs", strength: "Fast, animate images, great for short clips", use: "Turning still images into moving content" },
+                ].map(v => (
+                  <div key={v.name} className="flex gap-3 p-3 rounded-xl glass border border-white/8">
+                    <div className="text-xs font-bold text-foreground w-24 shrink-0">{v.name}</div>
+                    <div className="flex-1">
+                      <div className="text-xs text-muted-foreground">{v.strength}</div>
+                      <div className="text-[10px] text-[oklch(0.82_0.18_150)] mt-0.5">{v.use}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <AIExpander prompt="What are the most effective techniques for generating consistent character appearances across multiple AI images?" color="oklch(0.72_0.2_290)" label="Depth Engine: Character consistency" />
+          </motion.div>
+        )}
+
+        {imgTab === "params" && (
+          <motion.div key="params" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="IMAGE GENERATION PARAMETERS" color="oklch(0.68_0.20_140)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Understanding these settings separates the people who get lucky from the people who get what they want every time.</p>
+              <div className="space-y-3">
+                {[
+                  { param: "Steps", range: "20–80", effect: "Refinement iterations. 20–30 = fast & good; 50+ = detailed but slow. Diminishing returns after 40.", example: "--steps 30" },
+                  { param: "CFG Scale", range: "1–20", effect: "Prompt adherence. 7–9 = natural. 12+ = very literal. 3 = dreamy/interpretive.", example: "--cfg 7.5" },
+                  { param: "Seed", range: "Any integer", effect: "Reproducibility. Same seed + same prompt = same image. Use to iterate on a good result.", example: "--seed 42" },
+                  { param: "Sampler", range: "Euler, DPM++, DDIM", effect: "The algorithm used. Euler Ancestral = creative. DPM++ 2M = detailed. DDIM = fast.", example: "--sampler dpm++" },
+                  { param: "Aspect Ratio", range: "16:9, 1:1, 9:16", effect: "Output format. Use 9:16 for mobile/social, 16:9 for presentations, 1:1 for profiles.", example: "--ar 16:9" },
+                  { param: "Style Weight", range: "0–1 (Midjourney --stylize)", effect: "How much aesthetic interpretation the AI adds. 0 = literal; 1000 = maximum artistic freedom.", example: "--stylize 750" },
+                ].map(p => (
+                  <div key={p.param} className="p-4 rounded-xl glass border border-white/8">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-foreground text-sm">{p.param}</span>
+                      <code className="text-[10px] text-muted-foreground bg-white/5 px-2 py-0.5 rounded">{p.example}</code>
+                    </div>
+                    <div className="text-xs text-[oklch(0.68_0.22_10)] mb-1 font-medium">Range: {p.range}</div>
+                    <p className="text-xs text-muted-foreground">{p.effect}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <AIExpander prompt="Walk me through a step-by-step workflow for generating a consistent product photo series using AI image generation tools" color="oklch(0.68_0.20_140)" label="Depth Engine: Pro product photo workflow" />
+          </motion.div>
+        )}
+
+        {imgTab === "quiz" && (
+          <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.72_0.2_290)" />
+              <MasteryQuiz questions={M3_QUIZ_L11} color="oklch(0.72_0.2_290)" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </LessonFrame>
+  );
+
+  // ── LESSON 12: Voice, Audio & Multimodal ───────────────────────────────────
+  const Lesson12 = () => (
+    <LessonFrame id={12}>
+      <AIVoice text="AI can now hear, see, and speak. Multimodal means you're no longer limited to text — you can show AI a photo, play it audio, and get rich intelligent responses across all those modalities." />
+
+      <div className="flex gap-1.5 mb-2">
+        {(["transcribe", "voice", "multi", "quiz"] as const).map(t => (
+          <button key={t} onClick={() => setAudioTab(t)}
+            className="flex-1 py-2 rounded-xl text-[10px] font-bold transition-all capitalize"
+            style={{
+              background: audioTab === t ? "oklch(0.75_0.18_55_/_0.2)" : "oklch(1 0 0 / 0.04)",
+              color: audioTab === t ? "oklch(0.85_0.18_55)" : "oklch(0.5 0 0)",
+              border: `1px solid ${audioTab === t ? "oklch(0.75_0.18_55_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+            }}>
+            {t === "transcribe" ? "Transcription" : t === "voice" ? "Voice Cloning" : t === "multi" ? "Multimodal Lab" : "Quiz"}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {audioTab === "transcribe" && (
+          <motion.div key="trans" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="AI TRANSCRIPTION" color="oklch(0.75_0.18_55)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                <strong className="text-foreground">Whisper</strong> (OpenAI, open-source) can transcribe audio in 99 languages with near-human accuracy. It's built into many tools and can be run locally for privacy.
+              </p>
+              <div className="space-y-3">
+                {[
+                  { tool: "Otter.ai", use: "Real-time meeting transcription with speaker identification", access: "Free tier: 300 min/month; Pro: $17/mo", icon: "microphone" },
+                  { tool: "Whisper (API)", use: "Programmatic transcription of audio files via OpenAI API", access: "$0.006/min — extremely cheap for high volume", icon: "code" },
+                  { tool: "Descript", use: "Audio/video editor with AI transcription + overdub", access: "Free to Pro: $12–24/mo", icon: "video" },
+                  { tool: "Riverside.fm", use: "High-quality podcast/interview recording + AI transcription", access: "Free tier available; plans from $15/mo", icon: "podcast" },
+                  { tool: "MacWhisper / Local Whisper", use: "Run Whisper on your own machine — fully private, free", access: "Free (requires your compute); MacWhisper app is paid", icon: "lock" },
+                ].map(t => (
+                  <div key={t.tool} className="flex gap-3 p-4 rounded-xl glass border border-white/8">
+                    <div className="flex-1">
+                      <div className="font-semibold text-foreground text-sm mb-1">{t.tool}</div>
+                      <div className="text-xs text-muted-foreground mb-1">{t.use}</div>
+                      <div className="text-[10px] text-[oklch(0.85_0.18_55)]">{t.access}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.25)]">
+                <div className="text-xs font-bold text-[oklch(0.85_0.18_55)] mb-2">POWER WORKFLOW: Meeting-to-Action in 3 steps</div>
+                <div className="space-y-1.5">
+                  {["Record meeting in Otter / Riverside (free)", "After meeting, paste transcript into Claude: 'Extract action items, owners, and deadlines from this transcript'", "Copy structured output into Notion, Linear, or email to team"].map((step, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <div className="w-5 h-5 rounded-full bg-[oklch(0.75_0.18_55_/_0.2)] text-[oklch(0.85_0.18_55)] text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</div>
+                      <p className="text-xs text-muted-foreground">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <AIExpander prompt="What is the best workflow for transcribing a 2-hour lecture, cleaning it up, and turning it into a structured study guide?" color="oklch(0.75_0.18_55)" label="Depth Engine: Lecture-to-study-guide workflow" />
+          </motion.div>
+        )}
+
+        {audioTab === "voice" && (
+          <motion.div key="voice" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="VOICE SYNTHESIS & CLONING" color="oklch(0.68_0.22_10)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Modern voice AI can clone a voice from just 1 minute of audio and produce speech indistinguishable from the original. This creates powerful tools — and serious ethical responsibilities.</p>
+              <div className="space-y-3 mb-4">
+                {[
+                  { tool: "ElevenLabs", strength: "Best voice cloning quality; instant voice library; 29 languages", use: "Voiceovers, audiobooks, content creation", tier: "Free: 10k chars/mo · Creator: $22/mo" },
+                  { tool: "Play.ht", strength: "Ultra-realistic TTS; 900+ voices; API-first", use: "Podcasts, apps, customer service bots", tier: "Free tier · Starter: $31/mo" },
+                  { tool: "Murf.ai", strength: "Team collaboration; 120 voices; branded voice creation", use: "Professional voiceovers for videos and presentations", tier: "Free: 10 min · Starter: $19/mo" },
+                  { tool: "OpenAI TTS", strength: "6 high-quality voices; fast; cheap API pricing", use: "Apps, automation, reading content aloud", tier: "$0.015/1000 chars via API" },
+                ].map(t => (
+                  <div key={t.tool} className="p-4 rounded-xl glass border border-white/8">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold text-foreground text-sm">{t.tool}</span>
+                      <span className="text-[10px] text-[oklch(0.68_0.22_10)]">{t.tier}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-1">{t.strength}</div>
+                    <div className="text-[10px] text-[oklch(0.82_0.18_150)]">Best for: {t.use}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 rounded-xl bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.3)]">
+                <div className="text-xs font-bold text-[oklch(0.78_0.22_10)] mb-2">ETHICAL RULES — Non-negotiable</div>
+                <div className="space-y-1">
+                  {["Always get explicit consent before cloning anyone's voice", "Never use voice cloning to impersonate people without their permission", "Disclose when audio is AI-generated in public-facing content", "Never use for fraud, deception, or creating non-consensual content"].map((r, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Shield size={10} className="text-[oklch(0.78_0.22_10)] shrink-0" />
+                      <p className="text-xs text-muted-foreground">{r}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <AIExpander prompt="Walk me through creating a professional-quality podcast episode using AI tools from script to final audio" color="oklch(0.68_0.22_10)" label="Depth Engine: AI podcast production workflow" />
+          </motion.div>
+        )}
+
+        {audioTab === "multi" && (
+          <motion.div key="multi" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="MULTIMODAL LAB" color="oklch(0.72_0.18_150)" />
+              <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                Multimodal AI models (GPT-4o, Gemini, Claude 3.5) can understand text AND images in the same message. Describe what you'd show the AI — then ask your question.
+              </p>
+              <div className="space-y-2 mb-4">
+                {[
+                  { scenario: "Photo of a cluttered desk", question: "What's the most efficient way to organize this? Give me a specific system." },
+                  { scenario: "Screenshot of an error message", question: "What's causing this error and how do I fix it?" },
+                  { scenario: "Image of a graph/chart", question: "What story does this data tell? What should I pay attention to?" },
+                  { scenario: "Photo of a meal/ingredients", question: "What recipe can I make with these? Give me step-by-step instructions." },
+                ].map((ex, i) => (
+                  <button key={i} onClick={() => setMultiInput(`I'm looking at: ${ex.scenario}\n\nMy question: ${ex.question}`)}
+                    className="w-full text-left p-3 rounded-xl glass border border-white/8 hover:border-white/20 transition-all">
+                    <div className="text-xs font-semibold text-foreground">{ex.scenario}</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">"{ex.question}"</div>
+                  </button>
+                ))}
+              </div>
+              <textarea value={multiInput} onChange={e => setMultiInput(e.target.value)}
+                placeholder={"Describe what you'd show an AI:\n\n'I'm looking at [describe image]. My question is: [your question]'\n\nThe AI will respond as if it's seeing the image."}
+                rows={5}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 font-mono mb-3" />
+              <button disabled={multiLoading || !multiInput.trim()} onClick={() => {
+                setMultiLoading(true); setMultiResult("");
+                multiMut.mutate({ concept: `You are a multimodal AI assistant. The user is describing an image to you and asking a question about it. Respond helpfully as if you can see the image they described.\n\n${multiInput}`, level: "student" });
+              }}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2 bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.35)]">
+                {multiLoading ? <><Loader2 size={13} className="animate-spin" />Analyzing…</> : <><Sparkles size={13} />Simulate Multimodal Response</>}
+              </button>
+              {multiResult && (
+                <div className="mt-3 p-4 rounded-xl glass border border-white/8">
+                  <div className="text-[10px] font-bold text-muted-foreground mb-2">AI RESPONSE (as if seeing your image):</div>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{multiResult}</p>
+                </div>
+              )}
+            </div>
+            <AIExpander prompt="What are the most creative and practical ways people are using multimodal AI in education, healthcare, and business right now?" color="oklch(0.72_0.18_150)" label="Depth Engine: Real-world multimodal AI applications" />
+          </motion.div>
+        )}
+
+        {audioTab === "quiz" && (
+          <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.75_0.18_55)" />
+              <MasteryQuiz questions={M3_QUIZ_L12} color="oklch(0.75_0.18_55)" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </LessonFrame>
+  );
+
+  // ── LESSON 13: Automation & AI Pipelines ───────────────────────────────────
+  const Lesson13 = () => (
+    <LessonFrame id={13}>
+      <AIVoice text="Automation is where AI stops being a tool you use and starts being a system that works for you. Set up the right pipelines once, and AI handles the work while you sleep." />
+
+      <div className="flex gap-1.5 mb-2">
+        {(["recipes", "builder", "quiz"] as const).map(t => (
+          <button key={t} onClick={() => setAutoTab(t)}
+            className="flex-1 py-2 rounded-xl text-xs font-bold transition-all capitalize"
+            style={{
+              background: autoTab === t ? "oklch(0.68_0.22_10_/_0.2)" : "oklch(1 0 0 / 0.04)",
+              color: autoTab === t ? "oklch(0.78_0.22_10)" : "oklch(0.5 0 0)",
+              border: `1px solid ${autoTab === t ? "oklch(0.68_0.22_10_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+            }}>
+            {t === "recipes" ? "Workflow Recipes" : t === "builder" ? "Custom Builder" : "Quiz"}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {autoTab === "recipes" && (
+          <motion.div key="recipes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="AUTOMATION RECIPES" color="oklch(0.68_0.22_10)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Click any recipe to explore its step-by-step breakdown and tools needed:</p>
+
+              <div className="space-y-2 mb-4">
+                {AUTOMATION_RECIPES.map((recipe, i) => (
+                  <button key={recipe.name} onClick={() => { setAutoRecipeIdx(i); setAutoStep(0); }}
+                    className="w-full text-left p-4 rounded-xl glass border transition-all"
+                    style={{ borderColor: autoRecipeIdx === i ? `oklch(from ${recipe.color} l c h / 0.4)` : "oklch(1 0 0 / 0.08)" }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-semibold text-foreground text-sm">{recipe.name}</span>
+                      <div className="flex gap-2">
+                        <span className="text-[10px] text-[oklch(0.72_0.18_150)]">{recipe.timeSaved}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: `oklch(from ${recipe.color} l c h / 0.15)`, color: recipe.color }}>{recipe.difficulty}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">{recipe.trigger}</div>
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={autoRecipeIdx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl border" style={{ borderColor: `oklch(from ${AUTOMATION_RECIPES[autoRecipeIdx].color} l c h / 0.3)`, background: `oklch(from ${AUTOMATION_RECIPES[autoRecipeIdx].color} l c h / 0.04)` }}>
+                  <div className="text-xs font-bold mb-3" style={{ color: AUTOMATION_RECIPES[autoRecipeIdx].color }}>
+                    {AUTOMATION_RECIPES[autoRecipeIdx].name.toUpperCase()} — STEP BY STEP
+                  </div>
+                  <div className="space-y-2 mb-3">
+                    {AUTOMATION_RECIPES[autoRecipeIdx].steps.map((step, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <button onClick={() => setAutoStep(i)}
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black transition-all"
+                          style={{
+                            background: autoStep >= i ? `oklch(from ${AUTOMATION_RECIPES[autoRecipeIdx].color} l c h / 0.25)` : "oklch(1 0 0 / 0.05)",
+                            color: autoStep >= i ? AUTOMATION_RECIPES[autoRecipeIdx].color : "oklch(0.4 0 0)",
+                            border: `1px solid ${autoStep >= i ? `oklch(from ${AUTOMATION_RECIPES[autoRecipeIdx].color} l c h / 0.4)` : "oklch(1 0 0 / 0.1)"}`,
+                          }}>
+                          {i + 1}
+                        </button>
+                        <p className="text-xs text-muted-foreground pt-0.5">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">Tools: </span>{AUTOMATION_RECIPES[autoRecipeIdx].tools}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="PLATFORMS AT A GLANCE" color="oklch(0.75_0.18_55)" />
+              <div className="space-y-2">
+                {[
+                  { name: "Zapier", icon: "Z", url: "zapier.com", desc: "6,000+ app integrations. No-code. 5-step limit on free tier. Best for non-technical users starting out.", best: "Beginners, simple automations" },
+                  { name: "Make (Integromat)", icon: "M", url: "make.com", desc: "Visual workflow builder with more complex routing than Zapier. Free 1,000 ops/month.", best: "Visual thinkers, moderate complexity" },
+                  { name: "n8n", icon: "n8", url: "n8n.io", desc: "Open-source, self-hostable, write custom code in nodes. Full control with AI nodes built in.", best: "Developers, maximum control, privacy" },
+                  { name: "Perplexity Computer", icon: "PC", url: "perplexity.ai", desc: "AI that builds and executes scheduled tasks, research pipelines, and multi-step workflows directly.", best: "AI-native workflows, research automation" },
+                ].map(p => (
+                  <div key={p.name} className="flex gap-3 p-3 rounded-xl glass border border-white/8">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[9px] font-black text-white" style={{ background: "oklch(0.4 0.1 270)" }}>{p.icon}</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-foreground text-xs">{p.name}</div>
+                      <div className="text-[10px] text-muted-foreground">{p.desc}</div>
+                      <div className="text-[10px] text-[oklch(0.82_0.18_150)] mt-0.5">Best for: {p.best}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <AIExpander prompt="Walk me through setting up a Zapier automation that monitors my Gmail for emails from specific senders and uses AI to draft replies automatically" color="oklch(0.68_0.22_10)" label="Depth Engine: Build an email automation step-by-step" />
+          </motion.div>
+        )}
+
+        {autoTab === "builder" && (
+          <motion.div key="builder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="CUSTOM AUTOMATION PLANNER" color="oklch(0.72_0.18_150)" />
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Describe what you want to automate — the AI will design a workflow plan with tools, steps, and implementation notes.</p>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">What triggers the automation?</label>
+                  <input value={customTrigger} onChange={e => setCustomTrigger(e.target.value)}
+                    placeholder="e.g. When I receive an email from a client / Every Monday morning / When someone fills out my form"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-white/20 focus:outline-none focus:border-white/25" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">What should happen automatically?</label>
+                  <textarea value={customGoal} onChange={e => setCustomGoal(e.target.value)}
+                    placeholder="e.g. Summarize the email, extract the client's request, create a task in Notion, and send me a Slack notification with the summary"
+                    rows={4}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25" />
+                </div>
+                <button disabled={customPlanLoading || !customTrigger.trim() || !customGoal.trim()} onClick={() => {
+                  setCustomPlanLoading(true); setCustomPlan("");
+                  customPlanMut.mutate({ concept: `You are an automation workflow designer. The user wants to build an AI-powered automation. Design a step-by-step implementation plan including: the trigger, each step in the pipeline, which tool handles each step (Zapier/Make/n8n/API), and what the AI does at each decision point. Be specific and practical.\n\nTrigger: ${customTrigger}\n\nGoal: ${customGoal}`, level: "student" });
+                }}
+                  className="w-full py-3 rounded-xl text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2"
+                  style={{ background: "oklch(0.72_0.18_150_/_0.15)", color: "oklch(0.82_0.18_150)", border: "1px solid oklch(0.72_0.18_150_/_0.35)" }}>
+                  {customPlanLoading ? <><Loader2 size={13} className="animate-spin" />Designing your automation…</> : <><Sparkles size={13} />Design My Automation</>}
+                </button>
+              </div>
+              {customPlan && (
+                <div className="p-4 rounded-xl glass border border-white/8">
+                  <div className="text-[10px] font-bold text-muted-foreground mb-3 uppercase tracking-widest">YOUR AUTOMATION PLAN:</div>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{customPlan}</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {autoTab === "quiz" && (
+          <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="glass rounded-2xl p-5 border border-white/8">
+              <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.68_0.22_10)" />
+              <MasteryQuiz questions={M3_QUIZ_L13} color="oklch(0.68_0.22_10)" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </LessonFrame>
+  );
+
+  // ── LESSON 14: Verifying & Fact-Checking AI ────────────────────────────────
+  const Lesson14 = () => {
+    const flagColors = { high: "oklch(0.68_0.22_10)", critical: "oklch(0.65_0.25_10)", medium: "oklch(0.75_0.18_55)" };
+
+    return (
+      <LessonFrame id={14}>
+        <AIVoice text="Trust but verify. AI is fluent, confident, and sometimes completely wrong. The skill isn't doubting AI — it's knowing exactly which claims need external verification and how to do it fast." />
+
+        <div className="flex gap-1.5 mb-2">
+          {(["redflags", "verifier", "quiz"] as const).map(t => (
+            <button key={t} onClick={() => setFactTab(t)}
+              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all capitalize"
+              style={{
+                background: factTab === t ? "oklch(0.68_0.20_140_/_0.2)" : "oklch(1 0 0 / 0.04)",
+                color: factTab === t ? "oklch(0.78_0.20_140)" : "oklch(0.5 0 0)",
+                border: `1px solid ${factTab === t ? "oklch(0.68_0.20_140_/_0.4)" : "oklch(1 0 0 / 0.08)"}`,
+              }}>
+              {t === "redflags" ? "Red Flags" : t === "verifier" ? "Fact Checker" : "Quiz"}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {factTab === "redflags" && (
+            <motion.div key="rf" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <div className="glass rounded-2xl p-5 border border-white/8">
+                <SectionBadge label="HALLUCINATION RED FLAGS" color="oklch(0.68_0.20_140)" />
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Tap each flag to learn how to spot it and verify it quickly. Check all 8 to master this skill:</p>
+                <div className="space-y-2">
+                  {HALLUCINATION_RED_FLAGS.map((flag, i) => {
+                    const riskColor = flagColors[flag.risk as keyof typeof flagColors] || "oklch(0.68_0.22_10)";
+                    const checked = checkedFlags.has(i);
+                    return (
+                      <button key={i} onClick={() => setCheckedFlags(prev => new Set(Array.from(prev).concat(i)))}
+                        className="w-full text-left p-4 rounded-xl glass border transition-all"
+                        style={{ borderColor: checked ? `oklch(from ${riskColor} l c h / 0.5)` : "oklch(1 0 0 / 0.08)" }}>
+                        <div className="flex items-start gap-3">
+                          <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all`}
+                            style={{ background: checked ? `oklch(from ${riskColor} l c h / 0.2)` : "oklch(1 0 0 / 0.05)", border: `1px solid ${checked ? `oklch(from ${riskColor} l c h / 0.5)` : "oklch(1 0 0 / 0.1)"}` }}>
+                            {checked && <Check size={10} style={{ color: riskColor }} />}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-semibold text-foreground">{flag.flag}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded uppercase font-black" style={{ background: `oklch(from ${riskColor} l c h / 0.15)`, color: riskColor }}>{flag.risk}</span>
+                            </div>
+                            {checked && <p className="text-xs text-muted-foreground leading-relaxed">{flag.advice}</p>}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {checkedFlags.size === 8 && (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.72_0.18_150_/_0.1)] border border-[oklch(0.72_0.18_150_/_0.4)] text-center">
+                    <Trophy size={20} className="text-[oklch(0.82_0.18_150)] mx-auto mb-1" />
+                    <div className="text-sm font-bold text-foreground">All 8 red flags learned!</div>
+                    <div className="text-xs text-muted-foreground mt-1">You now know exactly what to verify and what to trust.</div>
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="glass rounded-2xl p-5 border border-white/8">
+                <SectionBadge label="VERIFICATION TOOLKIT" color="oklch(0.72_0.2_290)" />
+                <div className="space-y-2">
+                  {[
+                    { name: "Perplexity AI", use: "Web-grounded answers with citations — great for fact-checking claims against current sources" },
+                    { name: "Google Scholar", use: "Verify academic citations; check if papers actually exist with those exact authors and titles" },
+                    { name: "Snopes / FactCheck.org", use: "Debunked myths, viral claims, and widely-shared misinformation" },
+                    { name: "WolframAlpha", use: "Computational facts — math, statistics, scientific constants, verified data" },
+                    { name: "Internet Archive (Wayback)", use: "Verify historical claims about websites, documents, and what was published when" },
+                    { name: "Primary sources (gov, .edu, .org)", use: "For statistics: always trace back to the original dataset or study, not AI's summary of it" },
+                  ].map(tool => (
+                    <div key={tool.name} className="flex gap-3 p-3 rounded-xl glass border border-white/8">
+                      <div className="font-semibold text-foreground text-xs w-32 shrink-0">{tool.name}</div>
+                      <p className="text-xs text-muted-foreground">{tool.use}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <AIExpander prompt="Give me a step-by-step verification workflow I can run in under 5 minutes whenever AI gives me a specific statistic or factual claim I need to trust" color="oklch(0.68_0.20_140)" label="Depth Engine: 5-minute fact-check protocol" />
+            </motion.div>
+          )}
+
+          {factTab === "verifier" && (
+            <motion.div key="verifier" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="glass rounded-2xl p-5 border border-white/8">
+                <SectionBadge label="AI CLAIM ANALYZER" color="oklch(0.68_0.20_140)" />
+                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">Paste an AI response below — the analyzer will identify which specific claims need verification, which red flags it contains, and how to verify each one.</p>
+                <textarea value={factInput} onChange={e => setFactInput(e.target.value)}
+                  placeholder={"Paste any AI response here to analyze it for claims that need verification…\n\nExample: 'According to a 2023 MIT study, AI will replace 40% of jobs by 2030. Dr. Sarah Chen found that...'"}
+                  rows={6}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25 mb-3" />
+                <button disabled={factLoading || !factInput.trim()} onClick={() => {
+                  setFactLoading(true); setFactResult("");
+                  factMut.mutate({ concept: `You are a fact-checking analyst. The user has pasted an AI response. Analyze it and:\n1. List every specific factual claim (statistics, citations, named people, dates, events)\n2. For each claim: rate its verification priority (Critical/High/Medium), explain why it might be hallucinated, and give a specific way to verify it\n3. Identify any red flags that suggest the AI may have been hallucinating\n4. Give an overall reliability assessment\n\nAI response to analyze:\n\n${factInput}`, level: "student" });
+                }}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2"
+                  style={{ background: "oklch(0.68_0.20_140_/_0.15)", color: "oklch(0.78_0.20_140)", border: "1px solid oklch(0.68_0.20_140_/_0.35)" }}>
+                  {factLoading ? <><Loader2 size={13} className="animate-spin" />Analyzing claims…</> : <><Search size={13} />Analyze for Verification Needs</>}
+                </button>
+                {factResult && (
+                  <div className="mt-4 p-4 rounded-xl glass border border-white/8">
+                    <div className="text-[10px] font-bold text-muted-foreground mb-3 uppercase tracking-widest">FACT-CHECK ANALYSIS:</div>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{factResult}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {factTab === "quiz" && (
+            <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="glass rounded-2xl p-5 border border-white/8">
+                <SectionBadge label="KNOWLEDGE CHECK" color="oklch(0.68_0.20_140)" />
+                <MasteryQuiz questions={M3_QUIZ_L14} color="oklch(0.68_0.20_140)" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </LessonFrame>
+    );
+  };
+
+  // ── LESSON 15: Your Personal AI Blueprint ─────────────────────────────────
+  const Lesson15 = () => (
+    <LessonFrame id={15}>
+      <AIVoice text="This is your capstone. You've learned every core AI skill. Now you're going to design your personal AI system — customized to your life, your work, your goals. This is what you walk out with." />
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="YOUR PERSONAL AI BLUEPRINT" color="oklch(0.72_0.18_150)" />
+        <p className="text-sm text-muted-foreground mb-5 leading-relaxed">Answer these 4 questions honestly. The AI will synthesize them into a personalized AI adoption blueprint — your specific tools, prompts, automations, and workflows to implement this week.</p>
+
+        <div className="space-y-4 mb-5">
+          {WORKFLOW_TOOLS.map((field, i) => (
+            <div key={field.name}>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">
+                {i + 1}. {field.name}
+              </label>
+              <textarea
+                value={blueprintAnswers[i]}
+                onChange={e => {
+                  const next = [...blueprintAnswers];
+                  next[i] = e.target.value;
+                  setBlueprintAnswers(next);
+                }}
+                placeholder={field.placeholder}
+                rows={3}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+              />
+            </div>
+          ))}
+        </div>
+
+        <button
+          disabled={blueprintLoading || blueprintAnswers.every(a => !a.trim())}
+          onClick={() => {
+            setBlueprintLoading(true); setBlueprintResult(""); setBlueprintGenerated(false);
+            blueprintMut.mutate({
+              concept: `You are a professional AI implementation consultant. Based on the user's answers below, create a highly personalized "Personal AI Blueprint" that includes:\n\n1. **Your AI Stack** — the specific 3-5 tools they should use based on their answers (not generic recommendations)\n2. **This Week's Quick Wins** — 3 specific AI tasks they can implement immediately (with example prompts)\n3. **Your Automation Priority** — the ONE automation to build first, with step-by-step tool recommendations\n4. **Your System Prompt** — a draft custom instruction they can paste into Claude/ChatGPT right now\n5. **30-Day Growth Path** — week by week what to learn and implement next\n\nUser's answers:\n1. Time-consuming tasks: ${blueprintAnswers[0]}\n2. AI tools they have: ${blueprintAnswers[1]}\n3. Apps they live in: ${blueprintAnswers[2]}\n4. Top priority: ${blueprintAnswers[3]}`,
+              level: "expert",
+            });
+          }}
+          className="w-full py-3.5 rounded-xl text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 text-black"
+          style={{ background: "linear-gradient(135deg, oklch(0.72_0.18_150), oklch(0.72_0.2_290))" }}>
+          {blueprintLoading ? <><Loader2 size={14} className="animate-spin" />Building your blueprint…</> : <><Sparkles size={14} />Generate My Personal AI Blueprint</>}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {blueprintResult && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className="glass rounded-2xl p-6 border" style={{ borderColor: "oklch(0.72_0.18_150_/_0.4)" }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Trophy size={18} style={{ color: "oklch(0.82_0.18_150)" }} />
+              <div>
+                <div className="font-bold text-foreground">Your Personal AI Blueprint</div>
+                <div className="text-xs text-muted-foreground">Generated just for you — save this</div>
+              </div>
+              <button onClick={() => { navigator.clipboard.writeText(blueprintResult); toast.success("Blueprint copied!"); }}
+                className="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold glass border border-white/10 text-muted-foreground hover:text-foreground transition-colors">
+                Copy
+              </button>
+            </div>
+            <div className="prose prose-invert prose-sm max-w-none">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{blueprintResult}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {blueprintGenerated && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="glass rounded-2xl p-5 border border-white/8">
+          <SectionBadge label="CAPSTONE CHALLENGE" color="oklch(0.75_0.18_55)" />
+          <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+            You now know how to use AI tools, craft powerful prompts, understand models and parameters, upload files, use RAG, generate images, automate workflows, and verify AI outputs. 
+            <strong className="text-foreground"> That is a complete AI power user skillset.</strong>
+          </p>
+          <div className="space-y-2 mb-4">
+            {[
+              "Implement one 'Quick Win' from your blueprint today",
+              "Share your AI Blueprint with one colleague who could benefit",
+              "Set a recurring reminder to try AI on one new task per week",
+              "Build your first automation using your top priority from the blueprint",
+            ].map((challenge, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-white/8">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: "oklch(0.75_0.18_55_/_0.15)", color: "oklch(0.85_0.18_55)", fontSize: "10px", fontWeight: 800 }}>
+                  {i + 1}
+                </div>
+                <p className="text-xs text-muted-foreground">{challenge}</p>
+              </div>
+            ))}
+          </div>
+          <PromptSandbox
+            placeholder={"Ask me anything about AI — test any concept from the entire course.\n\n'What's the best way to use AI for [your specific use case]?'"}
+            systemHint="You are a comprehensive AI literacy expert. The student has completed a full practical AI mastery course covering tools, prompting, parameters, multimodal AI, automation, and fact-checking. Answer their question as an expert mentor helping them apply what they've learned."
+            color="oklch(0.75_0.18_55)"
+            label="Open AI Lab — Ask Anything"
+          />
+        </motion.div>
+      )}
+
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <SectionBadge label="FINAL KNOWLEDGE CHECK" color="oklch(0.72_0.18_150)" />
+        <MasteryQuiz questions={M3_QUIZ_L15} color="oklch(0.72_0.18_150)" />
+      </div>
+
+      <AIExpander prompt="What are the most important habits, communities, and resources for staying up-to-date with AI as it evolves rapidly in the next 12 months?" color="oklch(0.72_0.18_150)" label="Depth Engine: Staying current with AI long-term" />
+    </LessonFrame>
+  );
+
+  const lessonMap: Record<number, React.ReactNode> = {
+    11: <Lesson11 />, 12: <Lesson12 />, 13: <Lesson13 />, 14: <Lesson14 />, 15: <Lesson15 />,
+  };
+
+  if (activeLesson !== null) {
+    return (
+      <div className="p-4 max-w-2xl mx-auto">
+        {lessonMap[activeLesson]}
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto space-y-4">
+      <div className="flex items-center gap-3 mb-1">
+        <button onClick={onBack}
+          className="p-2 rounded-lg glass border border-white/8 hover:border-white/20 transition-colors">
+          <ChevronLeft size={14} className="text-muted-foreground" />
+        </button>
+        <div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-widest">AI Mastery · Module 3</div>
+          <h2 className="font-bold text-foreground text-lg">Power User Workflows</h2>
+        </div>
+        <div className="ml-auto text-xs text-muted-foreground">{completed.size}/5 complete</div>
+      </div>
+
+      <div className="glass rounded-2xl p-4 border border-white/8">
+        <div className="w-full bg-white/5 rounded-full h-1.5 mb-3">
+          <div className="h-1.5 rounded-full transition-all" style={{ width: `${(completed.size / 5) * 100}%`, background: "oklch(0.68_0.22_10)" }} />
+        </div>
+        <div className="space-y-2">
+          {M3_META.map(lesson => {
+            const done = completed.has(lesson.id);
+            return (
+              <motion.button key={lesson.id} onClick={() => setActiveLesson(lesson.id)}
+                whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.995 }}
+                className="w-full flex items-center gap-4 p-4 rounded-xl glass border transition-all text-left"
+                style={{ borderColor: done ? `oklch(from ${lesson.color} l c h / 0.35)` : "oklch(1 0 0 / 0.08)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `oklch(from ${lesson.color} l c h / 0.15)`, border: `1px solid oklch(from ${lesson.color} l c h / 0.3)` }}>
+                  {done ? <CheckCircle2 size={16} style={{ color: lesson.color }} /> : <span className="text-sm font-black" style={{ color: lesson.color }}>{lesson.id}</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-foreground text-sm">{lesson.title}</div>
+                  <div className="text-xs text-muted-foreground truncate">{lesson.subtitle}</div>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-[10px] text-muted-foreground">{lesson.duration}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: lesson.color }}>+{lesson.xp} XP</span>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI LITERACY TAB — Module Switcher Shell
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function AILiteracyTab() {
+  const [activeModule, setActiveModule] = useState<1 | 2 | 3>(1);
+  const { profile } = usePersonalization();
+
+  if (activeModule === 2) return <AILiteracyModule2 onBack={() => setActiveModule(1)} />;
+  if (activeModule === 3) return <AILiteracyModule3 onBack={() => setActiveModule(1)} />;
+
+  const modules = [
+    {
+      num: 1 as const,
+      title: "AI Tools & You",
+      desc: "The AI landscape, free vs paid, tokens, context, settings, and connecting files & apps",
+      color: "oklch(0.72_0.2_290)",
+      xp: 350,
+      lessons: 5,
+      icon: <Brain size={22} />,
+      topics: ["AI tool map", "Free vs paid tiers", "Tokens & context", "Temperature & models", "File uploads & RAG"],
+    },
+    {
+      num: 2 as const,
+      title: "Prompting Mastery",
+      desc: "Zero-shot to chain-of-thought, the Prompt Lab, Prompt Fixer game, and AI agents",
+      color: "oklch(0.75_0.18_55)",
+      xp: 375,
+      lessons: 5,
+      icon: <MessageSquare size={22} />,
+      topics: ["Prompt anatomy", "Advanced techniques", "Live prompt lab", "Prompt fixer game", "Agents & instructions"],
+    },
+    {
+      num: 3 as const,
+      title: "Power User Workflows",
+      desc: "Image & video generation, voice AI, automation pipelines, fact-checking, and your blueprint",
+      color: "oklch(0.68_0.22_10)",
+      xp: 440,
+      lessons: 5,
+      icon: <Zap size={22} />,
+      topics: ["Image & video gen", "Voice & multimodal", "Automation & tasks", "Fact-checking AI", "Personal blueprint"],
+    },
+  ];
+
+  const totalXP = modules.reduce((sum, m) => sum + m.xp, 0);
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto space-y-5">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl p-6" style={{ background: "linear-gradient(135deg, oklch(0.18 0.04 270), oklch(0.14 0.06 290))", border: "1px solid oklch(0.72_0.2_290_/_0.3)" }}>
+        <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(ellipse 60% 80% at 80% 20%, oklch(0.72_0.2_290_/_0.4), transparent)" }} />
+        <div className="relative z-10">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <div className="text-[10px] font-black tracking-[0.2em] text-[oklch(0.72_0.2_290)] mb-1">AI MASTERY COURSE</div>
+              <h1 className="text-2xl font-black text-white leading-tight">From Zero to<br />Power User</h1>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-black text-white">{totalXP}</div>
+              <div className="text-xs text-muted-foreground">total XP</div>
+            </div>
+          </div>
+          <p className="text-sm text-white/60 leading-relaxed mb-4">
+            This course teaches you <em>how to use</em> AI — not what it is. By the end, you'll know how to prompt, automate, generate, verify, and build workflows that save hours every week.
+          </p>
+          <div className="flex items-center gap-4 text-xs text-white/50">
+            <span className="flex items-center gap-1"><BookOpen size={11} />15 lessons</span>
+            <span className="flex items-center gap-1"><Clock size={11} />~5 hrs total</span>
+            <span className="flex items-center gap-1"><Sparkles size={11} />3 modules</span>
+            <span className="flex items-center gap-1"><FlaskConical size={11} />10+ live labs</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Module cards */}
+      <div className="space-y-3">
+        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Choose a Module</div>
+        {modules.map(mod => (
+          <motion.button key={mod.num} onClick={() => setActiveModule(mod.num)}
+            whileHover={{ scale: 1.008 }} whileTap={{ scale: 0.995 }}
+            className="w-full text-left rounded-2xl overflow-hidden"
+            style={{ background: `oklch(from ${mod.color} l c h / 0.06)`, border: `1px solid oklch(from ${mod.color} l c h / 0.25)` }}>
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `oklch(from ${mod.color} l c h / 0.15)`, color: mod.color, border: `1px solid oklch(from ${mod.color} l c h / 0.3)` }}>
+                  {mod.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: mod.color }}>Module {mod.num}</span>
+                    <span className="text-[10px] text-muted-foreground">· {mod.lessons} lessons · +{mod.xp} XP</span>
+                  </div>
+                  <div className="font-bold text-foreground mb-1">{mod.title}</div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{mod.desc}</p>
+                </div>
+                <ChevronRight size={16} className="text-muted-foreground shrink-0 mt-1" />
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {mod.topics.map(topic => (
+                  <span key={topic} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold"
+                    style={{ background: `oklch(from ${mod.color} l c h / 0.12)`, color: mod.color }}>
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Course philosophy */}
+      <div className="glass rounded-2xl p-5 border border-white/8">
+        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">How This Course Works</div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: <FlaskConical size={14} />, title: "Live Labs", desc: "Every lesson has hands-on exercises using real AI" },
+            { icon: <Brain size={14} />, title: "Depth Engine", desc: "Tap any concept for an AI-powered deeper explanation" },
+            { icon: <Zap size={14} />, title: "Adaptive Pacing", desc: "Expand any topic as deep as you want to go" },
+            { icon: <Trophy size={14} />, title: "XP System", desc: "Earn XP for every lesson and quiz — track your mastery" },
+          ].map(item => (
+            <div key={item.title} className="flex items-start gap-2.5 p-3 rounded-xl glass border border-white/8">
+              <div className="text-[oklch(0.72_0.2_290)] mt-0.5 shrink-0">{item.icon}</div>
+              <div>
+                <div className="text-xs font-semibold text-foreground">{item.title}</div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── END AI MASTERY COURSE ────────────────────────────────────────────────────
+
+
+// ─── Clear Thinking Shared Types & Components ─────────────────────────────────
+// Used by ClearThinkingTab and all CT modules
 
 interface QuizQuestion {
   id: string;
@@ -53,175 +3269,7 @@ interface QuizQuestion {
   explanation: string;
 }
 
-interface PromptExercise {
-  id: string;
-  title: string;
-  scenario: string;
-  vague: string;
-  hint: string;
-  rubric: string[];
-}
-
-interface EthicsScenario {
-  id: string;
-  title: string;
-  setup: string;
-  stakeholders: { name: string; concern: string }[];
-  discussion: string;
-}
-
-const LESSON_META = [
-  { id: 1 as LessonId, title: "What Is AI?", subtitle: "A stable mental model — no buzzwords", duration: "25 min", color: "oklch(0.75_0.18_55)", xp: 50 },
-  { id: 2 as LessonId, title: "Myths vs. Reality", subtitle: "Separate hype and fear from fact", duration: "20 min", color: "oklch(0.65_0.22_200)", xp: 60 },
-  { id: 3 as LessonId, title: "Prompt Engineering", subtitle: "Speak AI fluently — craft prompts that work", duration: "30 min", color: "oklch(0.72_0.2_290)", xp: 80 },
-  { id: 4 as LessonId, title: "Ethics & Society", subtitle: "Navigate the human side of AI", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 70 },
-  { id: 5 as LessonId, title: "Capstone", subtitle: "Apply everything you've learned", duration: "20 min", color: "oklch(0.78_0.16_30)", xp: 100 },
-];
-
-const MYTH_QUIZ: QuizQuestion[] = [
-  { id: "m1", question: "AI systems like ChatGPT are conscious and have feelings.", options: ["True — they learn from human emotion", "False — they process patterns, not feelings", "Partly true", "Scientists disagree"], correct: 1, explanation: "LLMs are statistical pattern-matchers. They predict likely next tokens. There is no subjective experience or consciousness — however convincing the output feels." },
-  { id: "m2", question: "AI will replace ALL jobs within the next decade.", options: ["True — automation eliminates everything", "False — it transforms and creates new roles too", "Only blue-collar jobs", "Only white-collar jobs"], correct: 1, explanation: "History shows automation displaces tasks, not entire occupations. New jobs emerge. The risk is real for some roles but 'all jobs' is unsupported by any economic consensus." },
-  { id: "m3", question: "What does 'machine learning' actually mean?", options: ["A robot physically learning to walk", "Algorithms improving from data without explicit rules", "A computer memorizing a textbook", "Software that mimics human thought step by step"], correct: 1, explanation: "Machine learning finds patterns in data to make predictions — without being explicitly programmed with every rule. It's statistics at scale." },
-  { id: "m4", question: "AI is 100% objective because it's just math.", options: ["True — algorithms can't be biased", "False — AI inherits bias from training data and designers", "True — bias is human only", "Partially true"], correct: 1, explanation: "AI reflects its training data. If historical data encodes racial, gender, or socioeconomic bias, the model will too. 'It's just math' doesn't eliminate bias — it can amplify it at scale." },
-  { id: "m5", question: "Which best describes a Large Language Model (LLM)?", options: ["A database that looks up answers", "A model trained to predict the next most likely token", "Software that understands language like a human", "A search engine with a chat interface"], correct: 1, explanation: "LLMs are trained to predict what comes next, token by token. They don't 'understand' in a human sense — they model statistical relationships between words." },
-  { id: "m6", question: "AI systems always give accurate, truthful answers.", options: ["True — trained on verified data", "False — they can 'hallucinate' plausible-sounding falsehoods", "True if premium tier", "Only false for open-source models"], correct: 1, explanation: "AI hallucination is well-documented: models produce confident-sounding but factually wrong answers because they optimize for plausibility, not truth." },
-];
-
-const DEF_QUIZ: QuizQuestion[] = [
-  { id: "d1", question: "AI stands for:", options: ["Automated Intelligence", "Artificial Intelligence", "Advanced Integration", "Algorithmic Interface"], correct: 1, explanation: "Artificial Intelligence — the simulation of human-like reasoning by machines, encompassing machine learning, NLP, computer vision, and more." },
-  { id: "d2", question: "Which term describes AI that can perform any intellectual task a human can?", options: ["Narrow AI", "Strong AI / AGI", "Supervised Learning", "Neural Network"], correct: 1, explanation: "AGI is hypothetical AI matching human cognitive flexibility across all domains. Today's AI is narrow — excellent at specific tasks, brittle outside them." },
-  { id: "d3", question: "A 'neural network' in AI is inspired by:", options: ["Internet networks", "Electrical grids", "The human brain's neuron structure", "Social networks"], correct: 2, explanation: "Neural networks use layers of interconnected nodes loosely inspired by neurons and synapses that learn to recognize patterns through training." },
-  { id: "d4", question: "When an AI is 'trained', what happens?", options: ["It reads a manual", "It adjusts its parameters by processing large amounts of data", "It copies a human's behavior", "Engineers manually program every rule"], correct: 1, explanation: "Training is where a model processes data, makes predictions, receives feedback via loss functions, and adjusts millions of weights to improve future predictions." },
-];
-
-const PROMPT_EXERCISES: PromptExercise[] = [
-  { id: "p1", title: "Job Application Letter", scenario: "You need to write a cover letter for a marketing manager position at a tech startup. You have 5 years of experience and led a team that grew social media by 300%.", vague: "Write me a cover letter.", hint: "Add: role + company type, your specific achievements, desired tone, length, and what to emphasize.", rubric: ["Specifies the role and company type", "Includes at least one concrete achievement with a number", "States desired tone (professional, energetic, etc.)", "Mentions approximate length or format"] },
-  { id: "p2", title: "Explaining to Family", scenario: "Your 70-year-old grandmother asks you to have AI explain what a 'blockchain' is. She's comfortable with everyday technology but not technical jargon.", vague: "Explain blockchain.", hint: "Use: persona instruction, audience description, analogy request, length limit, and plain language requirement.", rubric: ["Specifies the audience (older adult, non-technical)", "Requests an analogy or comparison", "Sets a length limit (e.g., 3 sentences)", "Explicitly says 'no jargon' or 'plain language'"] },
-  { id: "p3", title: "Business Name Ideas", scenario: "You're starting a local bakery that specializes in sourdough bread and pastries. You want a name that feels warm, artisan, and slightly whimsical — not corporate.", vague: "Give me bakery names.", hint: "Specify: specialty, tone/mood, style, and ask for a certain number with brief reasoning.", rubric: ["Describes the bakery's specialty", "Describes the desired tone or mood", "Specifies how many options", "Asks for a brief reason per name"] },
-];
-
-const ETHICS_SCENARIOS: EthicsScenario[] = [
-  { id: "e1", title: "The Hiring Algorithm", setup: "A major employer uses an AI system to screen 50,000 job applications. An audit reveals it consistently scores women 15% lower for engineering roles — because historically, fewer women were hired for those roles.", stakeholders: [{ name: "Job Applicant", concern: "Qualified but unfairly filtered out before a human sees her application." }, { name: "HR Manager", concern: "Trusted the system to be objective; now liable." }, { name: "AI Developer", concern: "Trained on available data; wasn't asked to audit for demographic parity." }, { name: "Company CEO", concern: "Wants efficiency AND legal compliance. A lawsuit could cost millions." }], discussion: "Who is responsible? Should the system be halted immediately? Can debiasing the data solve it — or does it require rethinking from scratch? What oversight should exist before AI makes high-stakes decisions?" },
-  { id: "e2", title: "The Medical Chatbot", setup: "A hospital deploys an AI chatbot that triages patients. Studies show it performs well on average — but has higher error rates for patients who describe symptoms in non-standard dialects.", stakeholders: [{ name: "Patient", concern: "Risk of being incorrectly triaged to home care when ER is needed." }, { name: "ER Nurse", concern: "Overtaxed if AI sends everyone to ER; undertrained if it filters too aggressively." }, { name: "Hospital Administrator", concern: "Reduced wait times — but liability for AI errors." }, { name: "Regulator", concern: "AI medical devices need approval. What testing standard applies?" }], discussion: "Should language-unequal AI be deployed in healthcare at all? What minimum accuracy threshold across all demographic groups should be required? Who bears responsibility when an AI misdiagnosis causes harm?" },
-  { id: "e3", title: "The AI School Tutor", setup: "A school district deploys an AI writing tutor. Teachers report improved grades. But a parent discovers the system stores all student writing indefinitely and the privacy policy allows using this data to train future models.", stakeholders: [{ name: "Student (14 yrs)", concern: "Their personal writing and struggles are data — forever." }, { name: "Teacher", concern: "Great tool, but didn't consent students to data collection." }, { name: "Parent", concern: "Their child's data is used commercially without informed consent." }, { name: "EdTech Company", concern: "Student data is core to improving the product. Anonymization is expensive." }], discussion: "Does 'better outcomes' justify data collection from minors? Should there be a legal right to be forgotten for student data? What's the difference between anonymized and de-identified — and does it matter?" },
-];
-
-// ─── Module 2 Types & Data ────────────────────────────────────────────────────
-type M2LessonId = 6 | 7 | 8 | 9 | 10;
-
-interface ToolCard {
-  id: string;
-  name: string;
-  category: string;
-  useCases: string[];
-  bestFor: string;
-  caution: string;
-}
-
-interface OutputSample {
-  id: string;
-  label: string;
-  text: string;
-  issues: string[];
-  score: "strong" | "mixed" | "weak";
-}
-
-interface CareerScenario {
-  id: string;
-  field: string;
-  icon: string;
-  aiImpact: string;
-  tasksAutomated: string[];
-  tasksAugmented: string[];
-  newOpportunities: string[];
-  advice: string;
-}
-
-const M2_LESSON_META = [
-  { id: 6 as M2LessonId, title: "AI Tools Landscape", subtitle: "Know your toolkit before you pick it up", duration: "20 min", color: "oklch(0.72_0.2_260)", xp: 50 },
-  { id: 7 as M2LessonId, title: "Evaluating AI Output", subtitle: "The critical skill no one talks about", duration: "25 min", color: "oklch(0.68_0.22_20)", xp: 60 },
-  { id: 8 as M2LessonId, title: "Prompting for Work", subtitle: "Workplace prompts that actually deliver", duration: "30 min", color: "oklch(0.72_0.2_290)", xp: 80 },
-  { id: 9 as M2LessonId, title: "AI & Your Career", subtitle: "Navigate the shift before it navigates you", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 70 },
-  { id: 10 as M2LessonId, title: "Workplace Capstone", subtitle: "Apply Module 2 to a real scenario", duration: "20 min", color: "oklch(0.78_0.16_30)", xp: 100 },
-];
-
-const AI_TOOLS: ToolCard[] = [
-  { id: "t1", name: "ChatGPT / Claude", category: "Writing & Chat", useCases: ["Draft emails", "Summarize documents", "Brainstorm ideas", "Explain complex topics"], bestFor: "Anything text-based: drafting, editing, Q&A, research support", caution: "Verify facts independently. Confident ≠ correct." },
-  { id: "t2", name: "Copilot (Microsoft 365)", category: "Productivity Suite", useCases: ["Summarize Word docs", "Draft PowerPoint slides", "Analyze Excel data", "Recap Teams meetings"], bestFor: "People already deep in the Microsoft ecosystem", caution: "Data stays inside your Microsoft tenant — check your org's Copilot license." },
-  { id: "t3", name: "Gemini (Google Workspace)", category: "Productivity Suite", useCases: ["Write in Docs", "Summarize Gmail threads", "Build Sheets formulas", "Generate Slides content"], bestFor: "Google Workspace users who want AI inside their existing apps", caution: "Review privacy settings — by default, your data may train Google models." },
-  { id: "t4", name: "Perplexity", category: "Research", useCases: ["Cited web research", "Competitive analysis", "Fact-checking", "Up-to-date answers"], bestFor: "Research tasks where source citations matter", caution: "Still hallucinate-prone. Always click through to the cited source." },
-  { id: "t5", name: "Otter.ai / Fireflies", category: "Meetings", useCases: ["Transcribe meetings", "Generate action items", "Create meeting summaries", "Search past meetings"], bestFor: "Teams with lots of meetings and inadequate note-taking", caution: "Participants must consent to being recorded. Check local laws." },
-  { id: "t6", name: "Midjourney / DALL·E", category: "Image Generation", useCases: ["Marketing visuals", "Presentation graphics", "Concept mockups", "Social media assets"], bestFor: "Creating draft visuals fast when a designer isn't available", caution: "Review copyright rules — generated images may have usage restrictions." },
-  { id: "t7", name: "GitHub Copilot", category: "Coding", useCases: ["Code completion", "Explain legacy code", "Generate tests", "Debug errors"], bestFor: "Developers — dramatically speeds up routine coding tasks", caution: "Review every suggestion. Copilot can suggest insecure or incorrect code." },
-  { id: "t8", name: "Zapier / Make AI", category: "Automation", useCases: ["Automate repetitive workflows", "Connect apps via AI logic", "Trigger actions from emails", "Build no-code pipelines"], bestFor: "Operations teams who want to eliminate manual data-shuffling tasks", caution: "Test automations thoroughly before deploying to production data." },
-];
-
-const OUTPUT_SAMPLES: OutputSample[] = [
-  { id: "o1", label: "Meeting Summary", score: "strong",
-    text: "Meeting summary (April 15 — Q2 Planning):\n\nDecisions made:\n• Budget for Q2 marketing approved at $45,000\n• Sarah will lead the redesign project, deadline June 1\n• Weekly check-ins moved to Thursdays at 2pm\n\nAction items:\n• Marcus: send vendor quotes by April 22\n• Priya: draft redesign brief by April 19\n• All: review attached Q1 analytics before Thursday",
-    issues: [] },
-  { id: "o2", label: "Research Summary", score: "mixed",
-    text: "According to recent studies, remote work increases productivity by up to 47% across all industries. Employees who work from home report higher job satisfaction and companies save an average of $11,000 per employee annually. All major tech companies now offer permanent remote options, and most HR experts agree remote work is the future of employment.",
-    issues: ["'Up to 47%' cherry-picks one outlier study — most research shows 0–15% variation depending on role type", "'All major tech companies' is false — Apple, Amazon, and others have mandated returns to office", "'Most HR experts agree' is an unverifiable appeal to authority — no source cited", "Presents a nuanced, contested topic as settled fact"] },
-  { id: "o3", label: "Policy Explanation", score: "weak",
-    text: "The new data privacy regulation that was enacted in 2019 requires all companies with more than 250 employees to appoint a Data Protection Officer and submit annual compliance reports to the Federal Privacy Commission. Violations result in fines of up to $50,000 per incident. The regulation also gives consumers the right to request deletion of their data within 30 days.",
-    issues: ["Mixes details from GDPR (EU, 2018), CCPA (California, 2020), and possibly fictional elements", "'Federal Privacy Commission' does not exist in US law — this is fabricated", "The 250-employee threshold and $50k fine figures are invented", "High-confidence legal claims with zero citations — classic hallucination pattern"] },
-];
-
-const CAREER_SCENARIOS: CareerScenario[] = [
-  { id: "cs1", field: "Administrative & Office", icon: "office",
-    aiImpact: "AI is automating routine data entry, scheduling, and standard document drafting — but human judgment, relationship management, and complex coordination remain irreplaceable.",
-    tasksAutomated: ["Data entry and form processing", "Meeting scheduling and calendar management", "Standard email acknowledgments", "Basic report generation"],
-    tasksAugmented: ["Drafting complex correspondence (with AI as first draft)", "Research and competitive analysis", "Preparing executive briefings", "Managing multi-party coordination"],
-    newOpportunities: ["AI workflow coordinator", "Prompt specialist for office tools", "Process automation analyst", "AI output reviewer / quality assurance"],
-    advice: "Master AI tools in your current stack (Copilot, Gemini). The people who survive this shift are those who become the bridge between AI capabilities and human needs." },
-  { id: "cs2", field: "Healthcare & Social Work", icon: "health",
-    aiImpact: "AI is entering diagnostics, documentation, and triage — but clinical judgment, emotional support, and ethical decision-making require human professionals more than ever.",
-    tasksAutomated: ["Clinical documentation (AI scribes)", "Medical image pre-screening", "Insurance pre-authorization research", "Appointment scheduling and reminders"],
-    tasksAugmented: ["Diagnosis support (AI flags, human decides)", "Treatment research and literature review", "Patient communication drafting", "Care plan coordination"],
-    newOpportunities: ["Clinical AI validator", "Health informatics specialist", "AI ethics reviewer for medical tools", "Patient AI literacy educator"],
-    advice: "AI will be your colleague, not your replacement. The critical skill is knowing when to trust AI suggestions and when to override them — that requires deep domain knowledge." },
-  { id: "cs3", field: "Education & Training", icon: "education",
-    aiImpact: "AI personalizes learning content and automates grading — but teaching, mentorship, and the human relationship at the core of education cannot be replicated.",
-    tasksAutomated: ["Multiple choice grading", "Generating first-draft lesson materials", "Answering factual student questions", "Tracking student progress data"],
-    tasksAugmented: ["Personalized content scaffolding", "Identifying struggling students earlier", "Creating differentiated learning materials", "Parent communication drafting"],
-    newOpportunities: ["AI curriculum designer", "EdTech implementation specialist", "Learning analytics interpreter", "AI literacy educator (like this course!)"],
-    advice: "Your relationship with students is the moat. Invest in becoming the expert at using AI tools to save time on tasks, so you can spend more time on what humans do best — mentorship and inspiration." },
-  { id: "cs4", field: "Business, Finance & Marketing", icon: "business",
-    aiImpact: "AI is transforming analysis, content creation, and customer service — accelerating output while raising the bar on strategic thinking and creative judgment.",
-    tasksAutomated: ["Routine financial reporting", "First-draft marketing copy", "Social media content calendars", "Standard customer service responses"],
-    tasksAugmented: ["Market research and competitive analysis", "Data visualization and insight framing", "Personalized customer outreach", "Financial modeling and scenario analysis"],
-    newOpportunities: ["AI marketing strategist", "Prompt engineer for business applications", "AI risk and compliance analyst", "Revenue operations with AI tooling"],
-    advice: "The new skill premium is judgment + AI fluency. Anyone can run an AI tool. The value is in knowing which output is right, which is wrong, and how to direct AI toward business outcomes." },
-];
-
-const WORK_PROMPT_EXERCISES: PromptExercise[] = [
-  { id: "wp1", title: "Professional Email",
-    scenario: "Your team missed a deadline that affects a client. You need to write an email to the client acknowledging the delay, explaining briefly what happened (server migration took longer than expected), and proposing a new delivery date of Friday EOD. Tone should be professional but human — not robotic.",
-    vague: "Write an apology email to a client.",
-    hint: "Include: recipient context (client relationship), specific reason, new commitment with date, tone guidance, and any action you want from the client.",
-    rubric: ["Specifies the type of client relationship", "Includes the specific reason for delay", "States a concrete new deadline", "Requests a specific response or confirmation from client"] },
-  { id: "wp2", title: "Data Insight Summary",
-    scenario: "You have Q1 sales data showing: total revenue $1.2M (up 18% YoY), but unit sales dropped 3%. Average order value rose 22%. Your top 3 products account for 71% of revenue. You need a 3-bullet executive summary for a leadership slide.",
-    vague: "Summarize my sales data.",
-    hint: "Provide all the numbers directly in the prompt. Specify format (3 bullets), audience (executives), and ask for insight framing not just raw repetition of numbers.",
-    rubric: ["Includes all relevant numbers in the prompt", "Specifies bullet-point format and count", "States the audience (executives / leadership)", "Asks for insight framing, not just data restatement"] },
-  { id: "wp3", title: "Meeting Action Items",
-    scenario: "You attended a 45-minute planning meeting. You paste the rough transcript below and want AI to extract a clean action items list with owner names, tasks, and due dates. The transcript has crosstalk and filler words.",
-    vague: "Get action items from this meeting.",
-    hint: "Tell AI the format you want (table or bullets), what fields to extract (owner, task, deadline), how to handle uncertainty (flag unclear owners), and what to ignore (small talk).",
-    rubric: ["Specifies output format (table or bullet list)", "Lists the fields needed (owner, task, deadline)", "Instructs AI on how to handle unclear or missing owners", "Tells AI to ignore filler conversation"] },
-];
-
-const M2_CAPSTONE_PROMPTS = [
-  { label: "Tool Selection", q: "Your manager asks you to recommend one AI tool the team should adopt in the next 90 days. Describe the tool, what specific problem it solves, and two risks your team should mitigate before using it.", ph: "e.g., I'd recommend Copilot for Microsoft 365. Our team spends ~6 hours/week on meeting notes and status emails — Copilot's summarization can reclaim at least half that. Two risks: (1) people may trust summaries without reading them — mitigate with a 'verify before sending' policy; (2) sensitive data may be processed outside our security perimeter — we need IT to confirm tenant data boundaries first..." },
-  { label: "Output Audit", q: "You receive this AI-generated paragraph from a colleague who plans to use it in a client proposal: 'Our approach is based on the McKinsey 2024 Global Productivity Report, which found that AI adoption increases team output by 73% within 6 months for companies with 100+ employees.' What questions do you ask before approving it?", ph: "e.g., First: does this report exist? I'd search McKinsey's publication database directly — AI frequently cites plausible-sounding but nonexistent reports. Second: even if the report exists, '73%' is a very specific number — I'd check what it actually measured (self-reported perception vs. objective metrics), for what type of work, and what the full context is. Third: 'within 6 months' is a strong causal claim — most productivity research is correlational..." },
-  { label: "Career Strategy", q: "Based on your own field or the one you're targeting: name two specific AI tools entering your industry, one task category you expect to decrease in demand, and one new skill you plan to develop to stay competitive. Be specific.", ph: "e.g., In marketing, Jasper and Adobe Firefly are already replacing entry-level copywriting and basic image creation work. I expect junior content creation roles to shrink significantly. The skill I'm building is AI campaign strategy — knowing how to direct AI tools, evaluate output quality, and translate business goals into effective AI workflows. I'm also prioritizing client relationship skills since that's the human layer AI can't replace..." },
-];
-
-// ─── SegmentFooter ─────────────────────────────────────────────────────────────────
-// topics: 2–4 short strings specific to the segment just shown
-// onReady: called when the learner taps "Got it" (e.g. advance to next segment)
+// ─── SegmentFooter ─────────────────────────────────────────────────────────────
 function SegmentFooter({ topics, onReady, accentColor = "oklch(0.75_0.18_55)" }: {
   topics: string[];
   onReady?: () => void;
@@ -241,7 +3289,7 @@ function SegmentFooter({ topics, onReady, accentColor = "oklch(0.75_0.18_55)" }:
     setMode("loading");
     setExpansion("");
     expandMutation.mutate({
-      concept: `Explain "${topic}" in plain language for an adult learner who just encountered it in an AI literacy course. Be concise but thorough — 3 to 5 short paragraphs. Use concrete examples and avoid jargon.`,
+      concept: `Explain "${topic}" in plain language for an adult learner who just encountered it in a critical thinking course. Be concise but thorough — 3 to 5 short paragraphs. Use concrete examples and avoid jargon.`,
       level: "student",
     });
   };
@@ -284,7 +3332,7 @@ function SegmentFooter({ topics, onReady, accentColor = "oklch(0.75_0.18_55)" }:
               ))}
             </div>
             <button onClick={reset} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Never mind, I'm good
+              Never mind, I’m good
             </button>
           </motion.div>
         )}
@@ -371,7 +3419,7 @@ function Narrator({ text }: { text: string }) {
   );
 }
 
-// ─── Quiz Block ───────────────────────────────────────────────────────────────
+// ─── QuizBlock ────────────────────────────────────────────────────────────────
 function QuizBlock({ questions, accentColor }: { questions: QuizQuestion[]; accentColor: string }) {
   const [qi, setQi] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -409,7 +3457,6 @@ function QuizBlock({ questions, accentColor }: { questions: QuizQuestion[]; acce
   if (done) return (
     <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
       className="glass rounded-xl p-6 border border-white/10 text-center">
-      <div className="text-4xl mb-3">{score === questions.length ? "🌟" : score >= questions.length / 2 ? "✅" : "📚"}</div>
       <div className="text-xl font-bold text-foreground mb-1">{score}/{questions.length} correct</div>
       <p className="text-sm text-muted-foreground mb-4">
         {score === questions.length ? "Perfect score!" : score >= questions.length / 2 ? "Solid foundation — keep going!" : "Good effort — review the explanations to reinforce these concepts."}
@@ -462,2471 +3509,6 @@ function QuizBlock({ questions, accentColor }: { questions: QuizQuestion[]; acce
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
-  );
-}
-
-// ─── Module 2 Component ───────────────────────────────────────────────────────
-function AILiteracyModule2() {
-  const [activeLesson, setActiveLesson] = useState<M2LessonId | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
-  const { addXP, profile } = usePersonalization();
-
-  // Lesson 6 state
-  const [selectedTool, setSelectedTool] = useState<string | null>(null);
-  const [toolFilter, setToolFilter] = useState("All");
-  const [matchTask, setMatchTask] = useState("");
-  const [matchResult, setMatchResult] = useState("");
-  const [matchLoading, setMatchLoading] = useState(false);
-
-  // Lesson 7 state
-  const [activeSample, setActiveSample] = useState(0);
-  const [userVerdict, setUserVerdict] = useState<Record<string, string>>({});
-  const [revealedIssues, setRevealedIssues] = useState<Record<string, boolean>>({});
-
-  // Lesson 8 state
-  const [activeWorkEx, setActiveWorkEx] = useState(0);
-  const [workPrompt, setWorkPrompt] = useState("");
-  const [workHint, setWorkHint] = useState(false);
-  const [workChecklist, setWorkChecklist] = useState<boolean[]>([false, false, false, false]);
-  const [workResponse, setWorkResponse] = useState("");
-  const [workLoading, setWorkLoading] = useState(false);
-  const [workSubmitted, setWorkSubmitted] = useState(false);
-  const [workScores, setWorkScores] = useState<Record<string, number>>({});
-
-  // Lesson 9 state
-  const [activeCareer, setActiveCareer] = useState<number | null>(null);
-  const [careerTab, setCareerTab] = useState<"automated" | "augmented" | "opportunities">("automated");
-  const [careerReflection, setCareerReflection] = useState("");
-  const [careerReflectionSaved, setCareerReflectionSaved] = useState(false);
-
-  // Lesson 10 state
-  const [m2Step, setM2Step] = useState(0);
-  const [m2Answers, setM2Answers] = useState(["", "", ""]);
-  const [m2Done, setM2Done] = useState(false);
-
-  const matchMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (data) => { setMatchResult(data.explanation); setMatchLoading(false); },
-    onError: (err: { message: string }) => { toast.error(err.message); setMatchLoading(false); },
-  });
-
-  const workMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (data) => { setWorkResponse(data.explanation); setWorkLoading(false); setWorkSubmitted(true); },
-    onError: (err: { message: string }) => { toast.error(err.message); setWorkLoading(false); },
-  });
-
-  const handleM2Complete = (id: M2LessonId) => {
-    if (completedLessons.has(id)) return;
-    const meta = M2_LESSON_META.find((l) => l.id === id)!;
-    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
-    addXP(meta.xp);
-    toast.success(`+${meta.xp} XP — Lesson ${id - 5} complete!`);
-  };
-
-  const switchWorkEx = (idx: number) => {
-    setActiveWorkEx(idx); setWorkPrompt(""); setWorkHint(false);
-    setWorkChecklist([false, false, false, false]); setWorkSubmitted(false); setWorkResponse("");
-  };
-
-  const handleWorkCheck = (i: number) => {
-    const updated = [...workChecklist]; updated[i] = !updated[i]; setWorkChecklist(updated);
-    const score = updated.filter(Boolean).length;
-    setWorkScores((prev) => ({ ...prev, [WORK_PROMPT_EXERCISES[activeWorkEx].id]: score }));
-    if (score === 4) { addXP(15); toast.success("+15 XP — perfect work prompt!"); }
-  };
-
-  const handleMatchTask = () => {
-    if (!matchTask.trim()) { toast.error("Describe your task first."); return; }
-    setMatchLoading(true); setMatchResult("");
-    const ctx = profile.preferredTopics?.length ? ` The user's interests include: ${profile.preferredTopics.join(", ")}.` : "";
-    matchMutation.mutate({
-      concept: `I need to pick the best AI tool for this task: "${matchTask}".${ctx} Available tools: ChatGPT/Claude (writing, summarization, Q&A), Microsoft Copilot (Word/Excel/Teams/PowerPoint), Google Gemini (Docs/Gmail/Sheets), Perplexity (cited research), Otter.ai/Fireflies (meeting transcription), Midjourney/DALL-E (image generation), GitHub Copilot (coding), Zapier/Make (workflow automation). Recommend the 1-2 best fits with a short explanation tailored to the task.`,
-      level: "student",
-    });
-  };
-
-  const overallPct = Math.round((completedLessons.size / M2_LESSON_META.length) * 100);
-  const toolCategories = ["All", ...Array.from(new Set(AI_TOOLS.map((t) => t.category)))];
-  const filteredTools = toolFilter === "All" ? AI_TOOLS : AI_TOOLS.filter((t) => t.category === toolFilter);
-
-  const scoreMeta = {
-    strong: { label: "Strong Output", textCls: "text-[oklch(0.72_0.18_150)]", bgCls: "bg-[oklch(0.72_0.18_150_/_0.1)] border-[oklch(0.72_0.18_150_/_0.3)]" },
-    mixed:  { label: "Review Carefully", textCls: "text-[oklch(0.78_0.16_30)]",  bgCls: "bg-[oklch(0.78_0.16_30_/_0.1)] border-[oklch(0.78_0.16_30_/_0.3)]" },
-    weak:   { label: "High Risk — Verify", textCls: "text-[oklch(0.68_0.22_20)]", bgCls: "bg-[oklch(0.68_0.22_20_/_0.1)] border-[oklch(0.68_0.22_20_/_0.3)]" },
-  };
-
-  // Shell shared by all Module 2 lessons
-  function M2Shell({ id, children }: { id: M2LessonId; children: React.ReactNode }) {
-    const meta = M2_LESSON_META.find((l) => l.id === id)!;
-    const done = completedLessons.has(id);
-    return (
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
-        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronLeft size={14} /> Back to lessons
-        </button>
-        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Module 2 · Lesson {id - 5} · AI in the Workplace</div>
-              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
-              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
-            </div>
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
-              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
-              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
-            </div>
-          </div>
-        </div>
-        {children}
-        <div className="mt-8 pt-6 border-t border-white/8">
-          {done
-            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
-            : <motion.button onClick={() => handleM2Complete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
-                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.65_0.22_200))` }}>
-                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
-              </motion.button>
-          }
-        </div>
-        {id < 10 && (
-          <div className="mt-4 flex justify-end">
-            <button onClick={() => setActiveLesson((id + 1) as M2LessonId)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Next lesson <ChevronRight size={13} />
-            </button>
-          </div>
-        )}
-      </motion.div>
-    );
-  }
-
-  if (activeLesson !== null) return (
-    <AnimatePresence mode="wait">
-
-      {/* ── Lesson 6: AI Tools Landscape ── */}
-      {activeLesson === 6 && (
-        <M2Shell key={6} id={6}>
-          <div className="space-y-5">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="Every AI tool is built for a different job. Picking the wrong one is like using a screwdriver to cut wood. This lesson gives you a map of the AI tools landscape so you can match the right tool to any task — and know what to watch out for." />
-              <div className="mt-4 grid grid-cols-4 gap-2">
-                {[{ l: "Writing", icon: <MessageSquare size={16} /> }, { l: "Research", icon: <BookOpen size={16} /> }, { l: "Meetings", icon: <GraduationCap size={16} /> }, { l: "Automation", icon: <Zap size={16} /> }].map(({ l, icon }) => (
-                  <div key={l} className="glass rounded-xl p-3 border border-white/8 flex flex-col items-center gap-1.5 text-center">
-                    <span className="text-[oklch(0.72_0.2_260)]">{icon}</span>
-                    <span className="text-xs font-medium text-foreground">{l}</span>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.72_0.2_260)"
-                topics={["How to evaluate an AI tool's data privacy", "What 'foundation models' vs. specialized tools means", "Why AI tools give different answers to the same question", "How to run a low-risk AI pilot at work"]} />
-            </div>
-
-            {/* Category filter */}
-            <div className="flex flex-wrap gap-2">
-              {toolCategories.map((cat) => (
-                <button key={cat} onClick={() => setToolFilter(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                    toolFilter === cat
-                      ? "bg-[oklch(0.72_0.2_260_/_0.15)] border-[oklch(0.72_0.2_260_/_0.4)] text-[oklch(0.82_0.2_260)]"
-                      : "glass border-white/8 text-muted-foreground"
-                  }`}>{cat}</button>
-              ))}
-            </div>
-
-            {/* Tool grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {filteredTools.map((tool) => (
-                <motion.div key={tool.id} layout
-                  onClick={() => setSelectedTool(selectedTool === tool.id ? null : tool.id)}
-                  className={`glass rounded-xl border cursor-pointer transition-all overflow-hidden ${
-                    selectedTool === tool.id ? "border-[oklch(0.72_0.2_260_/_0.5)]" : "border-white/8 hover:border-white/20"
-                  }`}>
-                  <div className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-semibold text-sm text-foreground">{tool.name}</div>
-                        <div className="text-xs text-[oklch(0.72_0.2_260)] mt-0.5">{tool.category}</div>
-                      </div>
-                      <ChevronDown size={13} className={`text-muted-foreground mt-1 shrink-0 transition-transform ${selectedTool === tool.id ? "rotate-180" : ""}`} />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {tool.useCases.map((uc) => (
-                        <span key={uc} className="px-2 py-0.5 rounded-md text-xs bg-white/5 border border-white/8 text-muted-foreground">{uc}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <AnimatePresence>
-                    {selectedTool === tool.id && (
-                      <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                        <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-2">
-                          <p className="text-xs"><span className="font-semibold text-[oklch(0.72_0.18_150)]">Best for: </span><span className="text-muted-foreground">{tool.bestFor}</span></p>
-                          <p className="text-xs"><span className="font-semibold text-[oklch(0.68_0.22_20)]">Watch out: </span><span className="text-muted-foreground">{tool.caution}</span></p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* AI-powered task matcher */}
-            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.2_260_/_0.2)]">
-              <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-1">ADAPTIVE TOOL MATCHER</div>
-              <p className="text-xs text-muted-foreground mb-3">Describe your actual work task and get a personalized recommendation.</p>
-              <div className="flex gap-2">
-                <input value={matchTask} onChange={(e) => setMatchTask(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleMatchTask()}
-                  placeholder="e.g., I need to summarize 3 hours of weekly team meetings…"
-                  className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_260_/_0.5)] transition-colors" />
-                <motion.button onClick={handleMatchTask} disabled={matchLoading || !matchTask.trim()}
-                  whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-                  style={{ background: "oklch(0.72_0.2_260)" }}>
-                  {matchLoading ? <><RefreshCw size={13} className="animate-spin" /> Matching…</> : <><Sparkles size={13} /> Match</>}
-                </motion.button>
-              </div>
-              <AnimatePresence>
-                {matchResult && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    className="mt-3 p-4 rounded-xl bg-[oklch(0.72_0.2_260_/_0.08)] border border-[oklch(0.72_0.2_260_/_0.2)]">
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{matchResult}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
-              <QuizBlock accentColor="oklch(0.72_0.2_260)" questions={[
-                { id: "l6q1", question: "You need to transcribe and summarize weekly stakeholder meetings. Which tool category fits best?", options: ["Image generation (Midjourney / DALL·E)", "Meeting transcription AI (Otter.ai / Fireflies)", "Code assistant (GitHub Copilot)", "General chat AI with no integrations"], correct: 1, explanation: "Meeting transcription tools join calls live, identify speakers, and generate summaries and action items automatically. A general chat AI needs the transcript first — an extra manual step that these tools eliminate." },
-                { id: "l6q2", question: "Before using any AI tool for work, the most important question is:", options: ["How many parameters does the model have?", "Is it free or paid?", "What data does it collect, and where does it go?", "Which company built it?"], correct: 2, explanation: "Data privacy is the top professional concern. Sensitive company information entered into AI tools may leave your organization, be used for model training, or violate client confidentiality agreements. Check before you paste." },
-                { id: "l6q3", question: "Your org uses Google Workspace. You want AI to help draft documents and summarize email threads inside the apps you already use. The best-integrated option is:", options: ["GitHub Copilot", "Gemini for Google Workspace", "Zapier", "Midjourney"], correct: 1, explanation: "Gemini is built directly into Google Workspace apps — Docs, Gmail, Sheets, Slides. It surfaces inline, no copy-pasting required. When you already live in Google's ecosystem, Gemini is the lowest-friction choice." },
-              ]} />
-            </div>
-          </div>
-        </M2Shell>
-      )}
-
-      {/* ── Lesson 7: Evaluating AI Output ── */}
-      {activeLesson === 7 && (
-        <M2Shell key={7} id={7}>
-          <div className="space-y-5">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="The most dangerous moment with AI isn't when it's obviously wrong — it's when it sounds completely right, but isn't. Learning to audit AI output before you act on it is the highest-value skill this course will give you." />
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {[
-                  { label: "Plausibility", d: "Does it sound right?", icon: <HelpCircle size={18} className="text-[oklch(0.72_0.2_260)]" /> },
-                  { label: "Verifiability", d: "Can claims be checked?", icon: <Eye size={18} className="text-[oklch(0.78_0.16_30)]" /> },
-                  { label: "Source Quality", d: "Are citations real?", icon: <Shield size={18} className="text-[oklch(0.68_0.22_20)]" /> },
-                ].map(({ label, d, icon }) => (
-                  <div key={label} className="glass rounded-xl p-3 border border-white/8 text-center">
-                    <div className="flex justify-center mb-2">{icon}</div>
-                    <div className="text-xs font-semibold text-foreground">{label}</div>
-                    <p className="text-xs text-muted-foreground mt-1 leading-snug">{d}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="text-sm font-semibold text-foreground">Audit these 3 AI-generated outputs. Spot the problems before the reveal.</div>
-            <div className="flex gap-2">
-              {OUTPUT_SAMPLES.map((s, i) => (
-                <button key={i} onClick={() => setActiveSample(i)}
-                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
-                    activeSample === i ? `${scoreMeta[s.score].bgCls} text-foreground` : "glass border-white/8 text-muted-foreground"
-                  }`}>{s.label}</button>
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div key={activeSample} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">{OUTPUT_SAMPLES[activeSample].label}</h3>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${scoreMeta[OUTPUT_SAMPLES[activeSample].score].bgCls} ${scoreMeta[OUTPUT_SAMPLES[activeSample].score].textCls}`}>
-                    {scoreMeta[OUTPUT_SAMPLES[activeSample].score].label}
-                  </span>
-                </div>
-                <div className="glass rounded-xl p-4 border border-white/10 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono">
-                  {OUTPUT_SAMPLES[activeSample].text}
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-2 block">What issues do you spot? What would you verify?</label>
-                  <textarea value={userVerdict[OUTPUT_SAMPLES[activeSample].id] ?? ""}
-                    onChange={(e) => setUserVerdict((prev) => ({ ...prev, [OUTPUT_SAMPLES[activeSample].id]: e.target.value }))}
-                    placeholder="Note any claims that seem suspicious, vague, or unverifiable…"
-                    rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_20_/_0.5)] resize-none" />
-                </div>
-                <button onClick={() => setRevealedIssues((prev) => ({ ...prev, [OUTPUT_SAMPLES[activeSample].id]: true }))}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.68_0.22_20_/_0.12)] border border-[oklch(0.68_0.22_20_/_0.3)] text-sm text-[oklch(0.78_0.22_20)] font-medium">
-                  <Eye size={13} /> Reveal expert analysis
-                </button>
-                <AnimatePresence>
-                  {revealedIssues[OUTPUT_SAMPLES[activeSample].id] && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                      {OUTPUT_SAMPLES[activeSample].issues.length === 0 ? (
-                        <div className="p-4 rounded-xl bg-[oklch(0.72_0.18_150_/_0.1)] border border-[oklch(0.72_0.18_150_/_0.3)]">
-                          <div className="flex items-center gap-2 text-sm font-semibold text-[oklch(0.72_0.18_150)] mb-1"><CheckCircle2 size={14} /> This output is clean</div>
-                          <p className="text-xs text-muted-foreground">Well-structured, specific, and actionable — no unsupported claims. This is what good AI output looks like. Use it as your benchmark.</p>
-                        </div>
-                      ) : (
-                        <div className="p-4 rounded-xl bg-[oklch(0.68_0.22_20_/_0.08)] border border-[oklch(0.68_0.22_20_/_0.25)] space-y-2">
-                          <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-2">ISSUES FOUND ({OUTPUT_SAMPLES[activeSample].issues.length})</div>
-                          {OUTPUT_SAMPLES[activeSample].issues.map((issue, i) => (
-                            <div key={i} className="flex items-start gap-2">
-                              <XCircle size={13} className="text-[oklch(0.68_0.22_20)] mt-0.5 shrink-0" />
-                              <p className="text-xs text-muted-foreground leading-relaxed">{issue}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* CRAAP test */}
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <div className="text-xs font-semibold text-foreground mb-3">THE CRAAP TEST — A verification framework you can apply to any AI output</div>
-              <div className="grid grid-cols-5 gap-2">
-                {[
-                  { letter: "C", word: "Currency", q: "Is this up to date?" },
-                  { letter: "R", word: "Relevance", q: "Does it fit my context?" },
-                  { letter: "A", word: "Authority", q: "Is there a real source?" },
-                  { letter: "A", word: "Accuracy", q: "Is it verifiable?" },
-                  { letter: "P", word: "Purpose", q: "Any bias or agenda?" },
-                ].map(({ letter, word, q }) => (
-                  <div key={word} className="glass rounded-xl p-3 border border-white/8 text-center">
-                    <div className="text-lg font-bold text-[oklch(0.68_0.22_20)] mb-1">{letter}</div>
-                    <div className="text-xs font-semibold text-foreground mb-1">{word}</div>
-                    <p className="text-xs text-muted-foreground leading-snug">{q}</p>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
-                topics={["How to reverse-search a statistic to verify it", "What deepfakes are and how to detect them", "Why AI-generated text is hard to detect reliably", "How to fact-check AI output in under 2 minutes"]} />
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Quick Check</h4>
-              <QuizBlock accentColor="oklch(0.68_0.22_20)" questions={[
-                { id: "l7q1", question: "An AI confidently states: 'Harvard University published a 2023 study showing X.' Your first move is:", options: ["Trust it — Harvard is reputable", "Search Harvard's actual publications for the study", "Ask a second AI if it's true", "Quote it and add a disclaimer"], correct: 1, explanation: "AI tools routinely fabricate academic citations. The study title, authors, journal, and year can all sound perfectly plausible but be completely invented. Always locate the primary source before quoting it." },
-                { id: "l7q2", question: "Which AI output type carries the highest risk of silent error?", options: ["A bulleted brainstorm with no external claims", "A confident statistic with no source cited", "A creative tagline list", "A summary of text you wrote yourself"], correct: 1, explanation: "Unsourced statistics are the highest-risk AI output. Models optimize for plausibility, not truth — they predict likely-sounding numbers, not real ones. A specific figure with no citation is a red flag requiring independent verification." },
-                { id: "l7q3", question: "AI summarizes a legal contract for you and the summary looks clean. What's still required?", options: ["Nothing — AI legal summaries are reliable", "Compare the summary against the original clause by clause", "Run it through a second AI", "Ask a lawyer to review just the summary"], correct: 1, explanation: "AI summaries of contracts can omit key terms, misstate obligations, or introduce inaccuracies. For any legal or financial document, compare the summary to the source material before relying on it — the stakes are too high to skip." },
-              ]} />
-            </div>
-          </div>
-        </M2Shell>
-      )}
-
-      {/* ── Lesson 8: Prompting for Work ── */}
-      {activeLesson === 8 && (
-        <M2Shell key={8} id={8}>
-          <div className="space-y-5">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="Workplace prompts require a different mindset than casual AI use. You're writing for specific professional outcomes — precision directly determines the quality of the deliverable. Let's practice with real work scenarios." />
-              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
-                <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-3">THE WORK PROMPT FORMULA</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[{ n: "Role", d: "Who should AI act as?" }, { n: "Context", d: "Background AI needs" }, { n: "Task", d: "Exactly what to produce" }, { n: "Format", d: "Length, structure, style" }, { n: "Audience", d: "Who reads the output?" }, { n: "Constraints", d: "What to avoid or include" }].map(({ n, d }) => (
-                    <div key={n} className="glass rounded-lg p-3 border border-white/8">
-                      <div className="text-xs font-bold text-foreground mb-1">{n}</div>
-                      <p className="text-xs text-muted-foreground">{d}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              {WORK_PROMPT_EXERCISES.map((ex, i) => (
-                <button key={i} onClick={() => switchWorkEx(i)}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
-                    activeWorkEx === i ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)] text-[oklch(0.82_0.2_290)]" : "glass border-white/8 text-muted-foreground"
-                  }`}>
-                  {i + 1}. {ex.title}
-                  {workScores[ex.id] !== undefined && <span className="text-[oklch(0.72_0.18_150)]"> ({workScores[ex.id]}/4)</span>}
-                </button>
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div key={activeWorkEx} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
-                <h3 className="font-semibold text-foreground">{WORK_PROMPT_EXERCISES[activeWorkEx].title}</h3>
-                <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.15)]">
-                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-1.5">SCENARIO</div>
-                  <p className="text-sm text-muted-foreground">{WORK_PROMPT_EXERCISES[activeWorkEx].scenario}</p>
-                </div>
-                <div className="glass rounded-xl p-3 border border-white/8">
-                  <div className="text-xs text-muted-foreground mb-1">A weak prompt:</div>
-                  <p className="text-sm text-foreground font-mono italic">"{WORK_PROMPT_EXERCISES[activeWorkEx].vague}"</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Your improved prompt:</label>
-                  <textarea value={workPrompt} onChange={(e) => setWorkPrompt(e.target.value)}
-                    placeholder="Use the formula: Role, Context, Task, Format, Audience, Constraints…"
-                    rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none font-mono" />
-                </div>
-                <div className="flex gap-3">
-                  <button onClick={() => setWorkHint(!workHint)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
-                    <HelpCircle size={12} /> {workHint ? "Hide hint" : "Show hint"}
-                  </button>
-                  <motion.button
-                    onClick={() => {
-                      if (!workPrompt.trim()) { toast.error("Write a prompt first."); return; }
-                      setWorkLoading(true); setWorkResponse("");
-                      workMutation.mutate({ concept: workPrompt.substring(0, 500), level: "student" });
-                    }}
-                    disabled={workLoading || !workPrompt.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                    className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[oklch(0.72_0.2_290)] text-white text-sm font-medium disabled:opacity-50">
-                    {workLoading ? <><RefreshCw size={13} className="animate-spin" /> Sending…</> : <><Send size={13} /> Test Prompt</>}
-                  </motion.button>
-                </div>
-                <AnimatePresence>
-                  {workHint && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                      className="px-4 py-3 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)] text-sm text-muted-foreground">
-                      <strong className="text-foreground">Hint: </strong>{WORK_PROMPT_EXERCISES[activeWorkEx].hint}
-                    </motion.div>
-                  )}
-                  {workSubmitted && workResponse && (
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                      className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.2)]">
-                      <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">AI RESPONSE</div>
-                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{workResponse}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.15)]">
-                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">SELF-EVALUATION RUBRIC</div>
-                  <div className="space-y-2">
-                    {WORK_PROMPT_EXERCISES[activeWorkEx].rubric.map((criterion, i) => (
-                      <label key={i} className="flex items-start gap-3 cursor-pointer">
-                        <div onClick={() => handleWorkCheck(i)}
-                          className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                            workChecklist[i] ? "bg-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150)]" : "border-white/20"
-                          }`}>
-                          {workChecklist[i] && <Check size={11} className="text-white" />}
-                        </div>
-                        <span className={`text-sm ${workChecklist[i] ? "text-foreground" : "text-muted-foreground"}`}>{criterion}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex items-center gap-3">
-                    <div className="flex-1 h-1.5 rounded-full bg-white/8">
-                      <div className="h-full rounded-full bg-[oklch(0.72_0.18_150)] transition-all"
-                        style={{ width: `${((workScores[WORK_PROMPT_EXERCISES[activeWorkEx].id] ?? 0) / 4) * 100}%` }} />
-                    </div>
-                    <span className="text-xs font-medium text-foreground">{workScores[WORK_PROMPT_EXERCISES[activeWorkEx].id] ?? 0}/4</span>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            <SegmentFooter accentColor="oklch(0.72_0.2_290)"
-              topics={["How to write a STAR-format prompt for a workplace task", "How to give AI your 'voice' so outputs sound like you", "What prompt chaining is and when to use it", "How to evaluate whether an AI-generated work product is submission-ready"]} />
-          </div>
-        </M2Shell>
-      )}
-
-      {/* ── Lesson 9: AI & Your Career ── */}
-      {activeLesson === 9 && (
-        <M2Shell key={9} id={9}>
-          <div className="space-y-5">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="AI won't replace you. But someone who uses AI well might. The best career move you can make right now is understanding exactly how AI is entering your field — and getting ahead of it." />
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {[
-                  { label: "Automated", d: "Tasks AI fully handles", color: "oklch(0.68_0.22_20)", icon: <Zap size={16} /> },
-                  { label: "Augmented", d: "AI supports, humans decide", color: "oklch(0.78_0.16_30)", icon: <ArrowRight size={16} /> },
-                  { label: "New Roles", d: "Opportunities AI is creating", color: "oklch(0.72_0.18_150)", icon: <Star size={16} /> },
-                ].map(({ label, d, color, icon }) => (
-                  <div key={label} className="glass rounded-xl p-3 border border-white/8 text-center">
-                    <div className="flex justify-center mb-2" style={{ color }}>{icon}</div>
-                    <div className="text-xs font-semibold text-foreground">{label}</div>
-                    <p className="text-xs text-muted-foreground mt-1 leading-snug">{d}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="text-sm font-medium text-foreground">Select your field to see the AI impact breakdown:</div>
-            <div className="grid grid-cols-2 gap-2">
-              {CAREER_SCENARIOS.map((s, i) => (
-                <button key={i} onClick={() => { setActiveCareer(i); setCareerTab("automated"); }}
-                  className={`py-3 px-4 rounded-xl text-sm font-medium transition-all border text-left ${
-                    activeCareer === i
-                      ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.82_0.18_150)]"
-                      : "glass border-white/8 text-muted-foreground hover:border-white/20"
-                  }`}>{s.field}</button>
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              {activeCareer !== null && (
-                <motion.div key={activeCareer} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                  className="glass rounded-2xl p-6 border border-white/8 space-y-4">
-                  <h3 className="font-semibold text-foreground">{CAREER_SCENARIOS[activeCareer].field}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{CAREER_SCENARIOS[activeCareer].aiImpact}</p>
-                  <div className="flex gap-1 p-1 glass rounded-xl border border-white/8">
-                    {(["automated", "augmented", "opportunities"] as const).map((tab) => (
-                      <button key={tab} onClick={() => setCareerTab(tab)}
-                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all capitalize ${
-                          careerTab === tab ? "bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)]" : "text-muted-foreground"
-                        }`}>{tab}</button>
-                    ))}
-                  </div>
-                  <AnimatePresence mode="wait">
-                    <motion.div key={careerTab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-                      {careerTab === "automated" && (
-                        <div className="space-y-2">
-                          {CAREER_SCENARIOS[activeCareer].tasksAutomated.map((t, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-[oklch(0.68_0.22_20_/_0.2)]">
-                              <Zap size={13} className="text-[oklch(0.68_0.22_20)] shrink-0" />
-                              <span className="text-sm text-muted-foreground">{t}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {careerTab === "augmented" && (
-                        <div className="space-y-2">
-                          {CAREER_SCENARIOS[activeCareer].tasksAugmented.map((t, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-[oklch(0.78_0.16_30_/_0.2)]">
-                              <ArrowRight size={13} className="text-[oklch(0.78_0.16_30)] shrink-0" />
-                              <span className="text-sm text-muted-foreground">{t}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {careerTab === "opportunities" && (
-                        <div className="space-y-2">
-                          {CAREER_SCENARIOS[activeCareer].newOpportunities.map((t, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass border border-[oklch(0.72_0.18_150_/_0.2)]">
-                              <Star size={13} className="text-[oklch(0.72_0.18_150)] shrink-0" />
-                              <span className="text-sm text-muted-foreground">{t}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                  <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
-                    <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">STRATEGIC ADVICE</div>
-                    <p className="text-sm text-muted-foreground leading-relaxed italic">"{CAREER_SCENARIOS[activeCareer].advice}"</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <div className="text-sm font-semibold text-foreground mb-1">Your 30-Day Action Plan</div>
-              <p className="text-xs text-muted-foreground mb-3">Based on what you just read: what is one concrete action you will take in the next 30 days to stay ahead in your field?</p>
-              <textarea value={careerReflection} onChange={(e) => setCareerReflection(e.target.value)}
-                placeholder="e.g., I'll spend 30 minutes this week exploring Copilot in my current apps. I'll also subscribe to one newsletter covering AI in my industry…"
-                rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
-              {!careerReflectionSaved
-                ? <button onClick={() => { if (!careerReflection.trim()) { toast.error("Write your action plan first."); return; } setCareerReflectionSaved(true); addXP(10); toast.success("+10 XP — action plan saved!"); }}
-                    className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
-                    <Check size={13} /> Save My Action Plan
-                  </button>
-                : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Saved — +10 XP</p>
-              }
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Quick Check</h4>
-              <QuizBlock accentColor="oklch(0.72_0.18_150)" questions={[
-                { id: "l9q1", question: "Which task is MOST likely to be fully automated by AI in the near term?", options: ["Negotiating a contract with a difficult client", "Categorizing and routing 500 expense receipts", "Leading a team through organizational change", "Counseling someone through a mental health crisis"], correct: 1, explanation: "High-volume, rule-based data processing — like categorizing receipts — is exactly what current AI excels at and is already replacing. Tasks requiring relationship, judgment, and emotional intelligence remain deeply human." },
-                { id: "l9q2", question: "AI 'augmentation' at work means:", options: ["AI fully takes over a job function", "AI handles repetitive parts so humans can focus on higher-judgment work", "Installing AI hardware in the office", "Avoiding AI to preserve human skills"], correct: 1, explanation: "Augmentation means AI accelerates the routine parts of your work — so you can spend more time on the high-judgment, creative, and relational elements that machines can't replicate." },
-                { id: "l9q3", question: "The most career-resilient combination in an AI-heavy workplace is:", options: ["Advanced Python coding skills", "A large social media following", "Deep domain expertise plus the ability to direct and evaluate AI", "Avoiding AI tools to stay sharp"], correct: 2, explanation: "The new premium is judgment plus AI fluency. Anyone can run an AI tool. The value is in knowing your field well enough to direct AI toward the right outcomes — and catch it when it's wrong." },
-              ]} />
-            </div>
-            <SegmentFooter accentColor="oklch(0.72_0.18_150)"
-              topics={["Which AI skills are most in-demand across industries right now", "How to add AI experience to a resume or LinkedIn profile", "What 'AI-augmented' roles look like in healthcare, education, and law", "How to self-teach AI fluency in 30 minutes a day"]} />
-          </div>
-        </M2Shell>
-      )}
-
-      {/* ── Lesson 10: Workplace Capstone ── */}
-      {activeLesson === 10 && (
-        <M2Shell key={10} id={10}>
-          <div className="space-y-5">
-            {completedLessons.size < 4 && (
-              <div className="glass rounded-xl p-5 border border-[oklch(0.78_0.16_30_/_0.3)]">
-                <div className="flex items-start gap-3">
-                  <Lock size={16} className="text-[oklch(0.78_0.16_30)] mt-0.5 shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
-                    <p className="text-sm text-muted-foreground">You have completed {completedLessons.size}/4 previous lessons. The capstone builds on all four.</p>
-                    <div className="flex gap-1 mt-2">
-                      {[6, 7, 8, 9].map((n) => (
-                        <div key={n} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
-                          completedLessons.has(n) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground"
-                        }`}>{completedLessons.has(n) ? <Check size={12} /> : n - 5}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="This capstone applies all four Module 2 skills: picking the right tool, auditing AI output, crafting work prompts, and thinking strategically about your career. Be specific — specific answers are the mark of genuine understanding." />
-            </div>
-            <div className="flex gap-2">
-              {M2_CAPSTONE_PROMPTS.map((p, i) => (
-                <button key={i} onClick={() => setM2Step(i)}
-                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
-                    m2Step === i ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]" : "glass border-white/8 text-muted-foreground"
-                  }`}>
-                  {p.label} {m2Answers[i].length > 20 && <CheckCircle2 size={11} className="inline text-[oklch(0.72_0.18_150)]" />}
-                </button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div key={m2Step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.15)]">
-                <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">CAPSTONE — {M2_CAPSTONE_PROMPTS[m2Step].label.toUpperCase()}</div>
-                <p className="text-sm font-medium text-foreground mb-4 leading-snug">{M2_CAPSTONE_PROMPTS[m2Step].q}</p>
-                <textarea value={m2Answers[m2Step]}
-                  onChange={(e) => { const u = [...m2Answers]; u[m2Step] = e.target.value; setM2Answers(u); }}
-                  placeholder={M2_CAPSTONE_PROMPTS[m2Step].ph} rows={6}
-                  className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.5)] resize-none leading-relaxed" />
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-xs text-muted-foreground">{m2Answers[m2Step].length} chars</span>
-                  <div className="flex gap-2">
-                    {m2Step > 0 && (
-                      <button onClick={() => setM2Step(m2Step - 1)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
-                        <ChevronLeft size={12} /> Previous
-                      </button>
-                    )}
-                    {m2Step < M2_CAPSTONE_PROMPTS.length - 1
-                      ? <button onClick={() => setM2Step(m2Step + 1)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[oklch(0.78_0.16_30_/_0.2)] border border-[oklch(0.78_0.16_30_/_0.3)] text-xs text-[oklch(0.88_0.16_30)]">
-                          Next <ChevronRight size={12} />
-                        </button>
-                      : !m2Done && (
-                          <motion.button
-                            onClick={() => {
-                              if (m2Answers.filter((a) => a.length > 20).length < 3) {
-                                toast.error(`Complete all 3 parts (${m2Answers.filter((a) => a.length > 20).length}/3 done).`); return;
-                              }
-                              setM2Done(true); handleM2Complete(10);
-                              toast.success("Module 2 complete!");
-                            }}
-                            whileHover={{ scale: 1.02 }}
-                            className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-black text-xs font-semibold"
-                            style={{ background: "linear-gradient(to right, oklch(0.78_0.16_30), oklch(0.72_0.2_260))" }}>
-                            <Trophy size={12} /> Submit
-                          </motion.button>
-                        )
-                    }
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            {m2Done && (
-              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-                className="glass rounded-2xl p-8 border border-[oklch(0.72_0.2_260_/_0.3)] text-center">
-                <Trophy size={40} className="mx-auto mb-3 text-[oklch(0.72_0.2_260)]" />
-                <h3 className="text-2xl font-bold text-foreground mb-2">Module 2 Complete!</h3>
-                <p className="text-muted-foreground mb-4 max-w-lg mx-auto">You have earned your <strong className="text-foreground">AI in the Workplace Certificate</strong>.</p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {["Tool Expert", "Output Auditor", "Work Prompter", "Career Navigator", "Capstone"].map((b) => (
-                    <span key={b} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.72_0.2_260_/_0.12)] border border-[oklch(0.72_0.2_260_/_0.3)] text-[oklch(0.82_0.2_260)]">
-                      <CheckCircle2 size={11} className="inline mr-1" />{b}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </M2Shell>
-      )}
-    </AnimatePresence>
-  );
-
-  // ── Module 2 lesson overview ──
-  return (
-    <div className="space-y-4">
-      <div className="glass rounded-2xl p-6 border border-[oklch(0.72_0.2_260_/_0.2)]">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)] border border-[oklch(0.72_0.2_260_/_0.3)]">Module 2</span>
-              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Intermediate · ~2 hrs · 360 XP</span>
-            </div>
-            <h3 className="text-lg font-bold text-foreground">AI in the Workplace</h3>
-            <p className="text-sm text-muted-foreground">Tools, critical evaluation, prompting, and career strategy</p>
-          </div>
-          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.72_0.2_260)" }}>{overallPct}%</span>}
-        </div>
-        {completedLessons.size > 0 && (
-          <div className="w-full h-2 rounded-full bg-white/8 mt-2">
-            <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.72_0.2_260)] to-[oklch(0.72_0.18_150)] transition-all" style={{ width: `${overallPct}%` }} />
-          </div>
-        )}
-      </div>
-      <div className="space-y-2">
-        {M2_LESSON_META.map((lesson, i) => {
-          const done = completedLessons.has(lesson.id);
-          return (
-            <motion.div key={lesson.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className={`glass rounded-2xl border overflow-hidden transition-all ${done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : "border-white/8 hover:border-white/15"}`}>
-              <button onClick={() => setActiveLesson(lesson.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
-                  style={{ background: `color-mix(in oklch, ${lesson.color} 15%, transparent)`, border: `1px solid color-mix(in oklch, ${lesson.color} 30%, transparent)`, color: lesson.color }}>
-                  {lesson.id - 5}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-foreground">{lesson.title}</div>
-                  <p className="text-sm text-muted-foreground truncate">{lesson.subtitle}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
-                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp} XP</span>
-                  {done ? <span className="text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={10} /> Done</span> : <ChevronRight size={13} className="text-muted-foreground" />}
-                </div>
-              </button>
-            </motion.div>
-          );
-        })}
-      </div>
-      <div className="glass rounded-2xl p-5 border border-white/8">
-        <div className="flex items-start gap-3">
-          <GraduationCap size={15} className="text-[oklch(0.72_0.2_260)] mt-0.5 shrink-0" />
-          <div>
-            <h4 className="font-semibold text-foreground mb-1 text-sm">What you will be able to do after Module 2</h4>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {[
-                { n: "Tool Selection", d: "Pick the right AI for any task" },
-                { n: "Output Auditing", d: "Catch errors before they cost you" },
-                { n: "Work Prompting", d: "Get professional-grade results" },
-                { n: "Career Navigation", d: "Stay ahead of the AI shift" },
-              ].map(({ n, d }) => (
-                <div key={n} className="glass rounded-lg p-3 border border-white/8">
-                  <div className="text-xs font-semibold text-foreground mb-0.5">{n}</div>
-                  <p className="text-xs text-muted-foreground">{d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── AI Literacy Tab (replaces Nexus Foundation) ──────────────────────────────
-function AILiteracyTab() {
-  const [activeModule, setActiveModule] = useState<1 | 2 | 3>(1);
-  const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
-  const { addXP } = usePersonalization();
-
-  // ── Lesson 3 prompt exercise state ──
-  const [activeEx, setActiveEx] = useState(0);
-  const [userPrompt, setUserPrompt] = useState("");
-  const [showHint, setShowHint] = useState(false);
-  const [checklist, setChecklist] = useState<boolean[]>([false, false, false, false]);
-  const [promptResponse, setPromptResponse] = useState("");
-  const [promptLoading, setPromptLoading] = useState(false);
-  const [promptSubmitted, setPromptSubmitted] = useState(false);
-  const [allScores, setAllScores] = useState<Record<string, number>>({});
-
-  // ── Lesson 4 ethics state ──
-  const [activeScenario, setActiveScenario] = useState(0);
-  const [expandedStakeholder, setExpandedStakeholder] = useState<number | null>(null);
-  const [userReflections, setUserReflections] = useState<Record<string, string>>({});
-  const [savedReflections, setSavedReflections] = useState<Record<string, boolean>>({});
-
-  // ── Lesson 5 capstone ──
-  const [capstoneStep, setCapstoneStep] = useState(0);
-  const [capstoneAnswers, setCapstoneAnswers] = useState(["", "", ""]);
-  const [capstoneDone, setCapstoneDone] = useState(false);
-
-  const explainMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (data) => {
-      setPromptResponse(data.explanation);
-      setPromptLoading(false);
-      setPromptSubmitted(true);
-    },
-    onError: (err: { message: string }) => { toast.error(err.message); setPromptLoading(false); },
-  });
-
-  const handleComplete = (id: LessonId) => {
-    if (completedLessons.has(id)) return;
-    const meta = LESSON_META.find(l => l.id === id)!;
-    setCompletedLessons(prev => new Set(Array.from(prev).concat(id)));
-    addXP(meta.xp);
-    toast.success(`+${meta.xp} XP — Lesson ${id} complete!`);
-  };
-
-  const handlePromptSubmit = () => {
-    if (!userPrompt.trim()) { toast.error("Write a prompt first."); return; }
-    setPromptLoading(true);
-    setPromptResponse("");
-    explainMutation.mutate({ concept: userPrompt.substring(0, 500), level: "student" });
-  };
-
-  const handleCheck = (i: number) => {
-    const updated = [...checklist];
-    updated[i] = !updated[i];
-    setChecklist(updated);
-    const score = updated.filter(Boolean).length;
-    const ex = PROMPT_EXERCISES[activeEx];
-    setAllScores(prev => ({ ...prev, [ex.id]: score }));
-    if (score === 4) { addXP(15); toast.success("+15 XP — perfect prompt!"); }
-  };
-
-  const switchEx = (idx: number) => {
-    setActiveEx(idx);
-    setUserPrompt("");
-    setShowHint(false);
-    setChecklist([false, false, false, false]);
-    setPromptSubmitted(false);
-    setPromptResponse("");
-  };
-
-  const overallPct = Math.round((completedLessons.size / LESSON_META.length) * 100);
-
-  const CAPSTONE_PROMPTS = [
-    { label: "Real-World AI", q: "Identify one AI system you encounter daily (recommendations, search, voice assistant, etc.). How does it work? What data does it need? Who benefits and who might be harmed?", ph: "e.g., Netflix's recommendation algorithm uses viewing history from millions of users to predict what I'll watch next. Netflix benefits from longer engagement; I benefit from discovery but risk a filter bubble..." },
-    { label: "Myth Detection", q: 'A headline reads: "AI Chatbot Passes Medical Board Exam — Human Doctors Now Obsolete." Using what you learned, break down what is misleading about this framing.', ph: "e.g., Passing a multiple-choice exam tests pattern recognition on a static dataset, not clinical judgment in ambiguous real-world situations. 'Obsolete' overstates the case — doctors do far more than answer exam questions..." },
-    { label: "Ethical Reasoning", q: "A city plans to use AI to predict which neighborhoods need more police patrols. Identify at least two ethical concerns and one safeguard you would require before deployment.", ph: "e.g., Concern 1: Predictive policing can amplify historical bias — past over-policing creates more data from those areas, producing a self-fulfilling loop. Concern 2: Lack of transparency — residents can't contest an algorithmic decision they can't see..." },
-  ];
-
-  // ── Lesson shells ──
-  function LessonShell({ id, children }: { id: LessonId; children: React.ReactNode }) {
-    const meta = LESSON_META.find(l => l.id === id)!;
-    const done = completedLessons.has(id);
-    return (
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
-        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronLeft size={14} /> Back to all lessons
-        </button>
-        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Lesson {id} · Mayer Multimedia Principles</div>
-              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
-              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
-            </div>
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
-              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
-              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
-            </div>
-          </div>
-        </div>
-        {children}
-        <div className="mt-8 pt-6 border-t border-white/8">
-          {done
-            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
-            : <motion.button onClick={() => handleComplete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
-                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.65_0.22_200))` }}>
-                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
-              </motion.button>
-          }
-        </div>
-        {id < 5 && (
-          <div className="mt-4 flex justify-end">
-            <button onClick={() => setActiveLesson((id + 1) as LessonId)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Next lesson <ChevronRight size={13} />
-            </button>
-          </div>
-        )}
-      </motion.div>
-    );
-  }
-
-  // ── Lesson 1 ──
-  const [seg1, setSeg1] = useState(0);
-  const segments1 = [
-    { title: "The 60-Second Definition", narration: "Artificial Intelligence is the ability of a computer system to perform tasks that typically require human intelligence — understanding language, recognizing patterns, making decisions, and learning from experience.",
-      body: (
-        <div className="space-y-4 mt-4">
-          <p className="text-sm text-muted-foreground leading-relaxed"><strong className="text-foreground">Artificial Intelligence</strong> is the ability of a computer system to perform tasks that typically require human intelligence — recognizing patterns, making decisions, and learning from experience.</p>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { l: "Narrow AI", d: "Excels at one task (chess, translation, image recognition). All AI today is narrow.", icon: <Target size={22} className="text-violet-400" /> },
-              { l: "Machine Learning", d: "A subfield where systems learn from data rather than explicit rules.", icon: <Zap size={22} className="text-blue-400" /> },
-              { l: "Deep Learning", d: "ML using layered neural networks — the engine behind LLMs and image AI.", icon: <Brain size={22} className="text-pink-400" /> },
-              { l: "LLMs", d: "Large Language Models like ChatGPT — trained on vast text to generate and understand language.", icon: <MessageSquare size={22} className="text-emerald-400" /> },
-            ].map(({ l, d, icon }) => (
-              <div key={l} className="glass rounded-xl p-4 border border-white/8"><div className="mb-2">{icon}</div><div className="font-semibold text-sm text-foreground mb-1">{l}</div><p className="text-xs text-muted-foreground leading-relaxed">{d}</p></div>
-            ))}
-          </div>
-        </div>
-      )
-    },
-    { title: "How AI Actually Learns", narration: "Training is the core process. The model sees data, makes a prediction, gets feedback on how wrong it was, and adjusts millions of internal numbers to improve. Repeat billions of times.",
-      body: (
-        <div className="space-y-4 mt-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">Training is the core process: the model sees data, makes a prediction, receives feedback on how wrong it was (the loss), and adjusts millions of internal weights to improve. Repeat billions of times.</p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            {[{ n: "1", l: "Data In", d: "Text, images, audio" }, { n: "→", l: "", d: "" }, { n: "2", l: "Prediction", d: "Model guesses" }, { n: "→", l: "", d: "" }, { n: "3", l: "Feedback", d: "Loss score" }, { n: "→", l: "", d: "" }, { n: "4", l: "Adjust", d: "Update weights" }].map(({ n, l, d }, i) => (
-              n === "→" ? <div key={i} className="hidden sm:flex items-center justify-center text-muted-foreground self-center"><ChevronRight size={14} /></div>
-              : <div key={i} className="flex-1 glass rounded-xl p-3 border border-white/8 text-center"><div className="text-base font-bold text-[oklch(0.75_0.18_55)] mb-1">{n}</div><div className="text-xs font-semibold text-foreground">{l}</div><p className="text-xs text-muted-foreground">{d}</p></div>
-            ))}
-          </div>
-          <div className="glass rounded-xl p-4 border border-white/10">
-            <div className="flex items-start gap-2"><Info size={13} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
-              <p className="text-xs text-muted-foreground"><strong className="text-foreground">Key insight:</strong> AI doesn't "understand" the way humans do. It finds statistical patterns so strong that outputs look like understanding — which is why it can be brilliant at some things and completely wrong about others.</p>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    { title: "The AI Landscape Today", narration: "We are living through the most rapid technological transition in history. Understanding what AI is, and what it isn't, is now a basic literacy skill — as important as understanding how to evaluate a news source.",
-      body: (
-        <div className="space-y-4 mt-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">In 2024, over <strong className="text-foreground">200 million people</strong> used AI writing tools. Hospitals use AI for diagnosis. Courts use it for recommendations. AI literacy isn't just for technologists — it's civic literacy.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[{ dom: "Healthcare", uses: "Medical imaging, drug discovery, symptom triage", risk: "Misdiagnosis at scale, dataset bias" }, { dom: "Education", uses: "Personalized tutoring, essay feedback, accessibility", risk: "Over-reliance, academic dishonesty" }, { dom: "Work", uses: "Code generation, document drafting, logistics", risk: "Job displacement, deskilling" }].map(({ dom, uses, risk }) => (
-              <div key={dom} className="glass rounded-xl p-4 border border-white/8">
-                <div className="font-semibold text-sm text-foreground mb-2">{dom}</div>
-                <p className="text-xs text-muted-foreground mb-2"><strong>Uses:</strong> {uses}</p>
-                <p className="text-xs text-[oklch(0.72_0.18_150)]"><strong>Risks:</strong> {risk}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )
-    },
-  ];
-
-  if (activeLesson !== null) return (
-    <AnimatePresence mode="wait">
-      {activeLesson === 1 && (
-        <LessonShell key={1} id={1}>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              {segments1.map((s, i) => (
-                <button key={i} onClick={() => setSeg1(i)}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
-                    seg1 === i ? "bg-[oklch(0.75_0.18_55_/_0.15)] border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]" : "glass border-white/8 text-muted-foreground"
-                  }`}>{i + 1}. {s.title}</button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div key={seg1} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-white/8">
-                <h3 className="font-semibold text-foreground mb-3">{segments1[seg1].title}</h3>
-                <Narrator text={segments1[seg1].narration} />
-                {segments1[seg1].body}
-                <SegmentFooter
-                  accentColor="oklch(0.75_0.18_55)"
-                  onReady={seg1 < segments1.length - 1 ? () => setSeg1(seg1 + 1) : undefined}
-                  topics={[
-                    ["What narrow AI means in practice", "How neural networks actually work", "The difference between AI, ML, and deep learning", "Why LLMs predict text token by token"],
-                    ["How loss functions guide training", "What 'weights' are in a neural network", "Why AI can be brilliant and wrong at the same time", "How much data does training actually require"],
-                    ["Real examples of AI in healthcare today", "How AI is already changing the workforce", "What AI literacy means for everyday life", "Why civic AI literacy matters"],
-                  ][seg1]}
-                />
-              </motion.div>
-            </AnimatePresence>
-            <div className="flex justify-between">
-              <button onClick={() => setSeg1(Math.max(0, seg1 - 1))} disabled={seg1 === 0}
-                className="flex items-center gap-1 px-4 py-2 rounded-lg glass border border-white/8 text-sm text-muted-foreground disabled:opacity-40">
-                <ChevronLeft size={13} /> Previous
-              </button>
-              {seg1 < segments1.length - 1
-                ? <button onClick={() => setSeg1(seg1 + 1)} className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-sm text-[oklch(0.85_0.18_55)]">
-                    Next <ChevronRight size={13} />
-                  </button>
-                : null
-              }
-            </div>
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
-              <QuizBlock questions={DEF_QUIZ} accentColor="oklch(0.75_0.18_55)" />
-            </div>
-          </div>
-        </LessonShell>
-      )}
-
-      {activeLesson === 2 && (
-        <LessonShell key={2} id={2}>
-          <div className="space-y-4">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="This lesson debunks the most common AI myths. For each statement, decide: fact or fiction? The explanation afterward is where the real learning happens." />
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[{ l: "Media Fear", t: "'Robots will take over.' 'AI is sentient.' 'AI never makes mistakes.'", c: "oklch(0.72_0.2_290)" }, { l: "Reality", t: "Narrow tools, statistical patterns, useful but brittle, trained — not conscious.", c: "oklch(0.72_0.18_150)" }, { l: "Media Hype", t: "'AI will solve cancer.' 'AI reads minds.' 'AI is 100% objective.'", c: "oklch(0.78_0.16_30)" }].map(({ l, t, c }) => (
-                  <div key={l} className="glass rounded-xl p-4 border border-white/8">
-                    <div className="text-xs font-semibold mb-2" style={{ color: c }}>{l}</div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{t}</p>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.65_0.22_200)"
-                topics={["Why AI hallucination happens", "How media coverage distorts AI reality", "What AI consciousness actually means (or doesn't)", "Why 'AI is objective' is a myth"]} />
-            </div>
-            <QuizBlock questions={MYTH_QUIZ} accentColor="oklch(0.65_0.22_200)" />
-          </div>
-        </LessonShell>
-      )}
-
-      {activeLesson === 3 && (
-        <LessonShell key={3} id={3}>
-          <div className="space-y-5">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="Prompt engineering is communication design. You're writing instructions for a capable but literal assistant with no context about you. Precision wins." />
-              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
-                <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-3">5 PROMPT PRINCIPLES</div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {[{ n: "Persona", d: "Tell AI who to act as" }, { n: "Context", d: "Provide background" }, { n: "Specifics", d: "Concrete details & numbers" }, { n: "Constraints", d: "Length, format, tone" }, { n: "Goal", d: "State desired outcome" }].map(({ n, d }) => (
-                    <div key={n} className="glass rounded-lg p-3 border border-white/8"><div className="text-xs font-bold text-foreground mb-1">{n}</div><p className="text-xs text-muted-foreground leading-snug">{d}</p></div>
-                  ))}
-                </div>
-              </div>
-              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
-                topics={["Why persona instructions change AI output so much", "How to write effective context for AI", "What 'temperature' and model settings mean", "Why constraints produce better results than freedom"]} />
-            </div>
-            <div className="flex gap-2">
-              {PROMPT_EXERCISES.map((e, i) => (
-                <button key={i} onClick={() => switchEx(i)}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
-                    activeEx === i ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)] text-[oklch(0.82_0.2_290)]" : "glass border-white/8 text-muted-foreground"
-                  }`}>
-                  {i + 1}. {e.title} {allScores[e.id] !== undefined ? <span className="text-[oklch(0.72_0.18_150)]">({allScores[e.id]}/4)</span> : null}
-                </button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeEx} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
-                <h3 className="font-semibold text-foreground">{PROMPT_EXERCISES[activeEx].title}</h3>
-                <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.15)]">
-                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-1.5">SCENARIO</div>
-                  <p className="text-sm text-muted-foreground">{PROMPT_EXERCISES[activeEx].scenario}</p>
-                </div>
-                <div className="glass rounded-xl p-3 border border-white/8">
-                  <div className="text-xs text-muted-foreground mb-1">A weak prompt:</div>
-                  <p className="text-sm text-foreground font-mono italic">"{PROMPT_EXERCISES[activeEx].vague}"</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Your improved prompt:</label>
-                  <textarea value={userPrompt} onChange={e => setUserPrompt(e.target.value)}
-                    placeholder="Write a detailed, specific prompt using the 5 principles..."
-                    rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none font-mono transition-colors" />
-                </div>
-                <div className="flex gap-3">
-                  <button onClick={() => setShowHint(!showHint)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/8 text-xs text-muted-foreground">
-                    <HelpCircle size={12} /> {showHint ? "Hide hint" : "Show hint"}
-                  </button>
-                  <motion.button onClick={handlePromptSubmit} disabled={promptLoading || !userPrompt.trim()}
-                    whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                    className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[oklch(0.72_0.2_290)] text-white text-sm font-medium disabled:opacity-50">
-                    {promptLoading ? <><RefreshCw size={13} className="animate-spin" /> Sending...</> : <><Send size={13} /> Test Prompt</>}
-                  </motion.button>
-                </div>
-                <AnimatePresence>
-                  {showHint && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                      className="px-4 py-3 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.2)] text-sm text-muted-foreground">
-                      <strong className="text-foreground">Hint: </strong>{PROMPT_EXERCISES[activeEx].hint}
-                    </motion.div>
-                  )}
-                  {promptSubmitted && promptResponse && (
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                      className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.2)]">
-                      <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">AI RESPONSE</div>
-                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{promptResponse}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.2_290_/_0.15)]">
-                  <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">SELF-EVALUATION RUBRIC</div>
-                  <div className="space-y-2">
-                    {PROMPT_EXERCISES[activeEx].rubric.map((criterion, i) => (
-                      <label key={i} className="flex items-start gap-3 cursor-pointer">
-                        <div onClick={() => handleCheck(i)}
-                          className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                            checklist[i] ? "bg-[oklch(0.72_0.18_150)] border-[oklch(0.72_0.18_150)]" : "border-white/20"
-                          }`}>
-                          {checklist[i] && <Check size={11} className="text-white" />}
-                        </div>
-                        <span className={`text-sm ${checklist[i] ? "text-foreground" : "text-muted-foreground"}`}>{criterion}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex items-center gap-3">
-                    <div className="flex-1 h-1.5 rounded-full bg-white/8">
-                      <div className="h-full rounded-full bg-[oklch(0.72_0.18_150)] transition-all" style={{ width: `${((allScores[PROMPT_EXERCISES[activeEx].id] ?? 0) / 4) * 100}%` }} />
-                    </div>
-                    <span className="text-xs font-medium text-foreground">{allScores[PROMPT_EXERCISES[activeEx].id] ?? 0}/4</span>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </LessonShell>
-      )}
-
-      {activeLesson === 4 && (
-        <LessonShell key={4} id={4}>
-          <div className="space-y-5">
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="AI ethics is not about being anti-technology. It's about asking: Who benefits? Who bears the risk? Who decides? These scenarios have no single correct answer — the point is to reason carefully through competing values." />
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {([
-                { l: "Fairness", d: "Does the system treat all groups equitably?", icon: <Shield size={20} className="text-[oklch(0.72_0.18_150)]" /> },
-                { l: "Accountability", d: "When AI causes harm, who is responsible?", icon: <Eye size={20} className="text-[oklch(0.65_0.22_200)]" /> },
-                { l: "Transparency", d: "Can people understand how decisions are made?", icon: <Info size={20} className="text-[oklch(0.75_0.18_55)]" /> },
-              ] as { l: string; d: string; icon: React.ReactNode }[]).map(({ l, d, icon }) => (
-                  <div key={l} className="glass rounded-xl p-3 border border-white/8 text-center">
-                    <div className="flex justify-center mb-2">{icon}</div>
-                    <div className="text-xs font-semibold text-foreground mb-1">{l}</div>
-                    <p className="text-xs text-muted-foreground leading-snug">{d}</p>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.72_0.18_150)"
-                topics={["What algorithmic fairness actually means", "How AI accountability is handled legally", "Why AI transparency is harder than it sounds", "Real examples of AI bias causing harm"]} />
-            </div>
-            <div className="flex gap-2">
-              {ETHICS_SCENARIOS.map((s, i) => (
-                <button key={i} onClick={() => { setActiveScenario(i); setExpandedStakeholder(null); }}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all border ${
-                    activeScenario === i ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.82_0.18_150)]" : "glass border-white/8 text-muted-foreground"
-                  }`}>{s.title}</button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeScenario} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-white/8 space-y-4">
-                <h3 className="font-semibold text-foreground">{ETHICS_SCENARIOS[activeScenario].title}</h3>
-                <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.15)]">
-                  <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">THE SITUATION</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{ETHICS_SCENARIOS[activeScenario].setup}</p>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-foreground mb-2">Who is affected?</div>
-                  <div className="space-y-2">
-                    {ETHICS_SCENARIOS[activeScenario].stakeholders.map((s, i) => (
-                      <div key={i} className="glass rounded-xl border border-white/8 overflow-hidden">
-                        <button onClick={() => setExpandedStakeholder(expandedStakeholder === i ? null : i)}
-                          className="w-full flex items-center justify-between p-3 hover:bg-white/3 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)] flex items-center justify-center text-xs font-bold text-[oklch(0.72_0.18_150)]">{s.name.charAt(0)}</div>
-                            <span className="text-sm font-medium text-foreground">{s.name}</span>
-                          </div>
-                          <ChevronDown size={13} className={`text-muted-foreground transition-transform ${expandedStakeholder === i ? "rotate-180" : ""}`} />
-                        </button>
-                        <AnimatePresence>
-                          {expandedStakeholder === i && (
-                            <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                              <p className="px-4 pb-3 pt-2 text-sm text-muted-foreground border-t border-white/5 leading-relaxed">{s.concern}</p>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.18_150_/_0.2)]">
-                  <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">DISCUSSION</div>
-                  <p className="text-sm text-muted-foreground mb-3">{ETHICS_SCENARIOS[activeScenario].discussion}</p>
-                  <label className="text-xs font-medium text-foreground mb-2 block">Your perspective:</label>
-                  <textarea
-                    value={userReflections[ETHICS_SCENARIOS[activeScenario].id] ?? ""}
-                    onChange={e => setUserReflections(prev => ({ ...prev, [ETHICS_SCENARIOS[activeScenario].id]: e.target.value }))}
-                    placeholder="Reason through it — there's no single right answer..."
-                    rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
-                  {!savedReflections[ETHICS_SCENARIOS[activeScenario].id]
-                    ? <button onClick={() => { if (!(userReflections[ETHICS_SCENARIOS[activeScenario].id] ?? "").trim()) { toast.error("Write your perspective first."); return; } setSavedReflections(prev => ({ ...prev, [ETHICS_SCENARIOS[activeScenario].id]: true })); toast.success("Reflection saved!"); }}
-                        className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
-                        <MessageSquare size={13} /> Save Reflection
-                      </button>
-                    : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Reflection saved.</p>
-                  }
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </LessonShell>
-      )}
-
-      {activeLesson === 5 && (
-        <LessonShell key={5} id={5}>
-          <div className="space-y-5">
-            {completedLessons.size < 4 && (
-              <div className="glass rounded-xl p-5 border border-[oklch(0.78_0.16_30_/_0.3)]">
-                <div className="flex items-start gap-3">
-                  <Lock size={16} className="text-[oklch(0.78_0.16_30)] mt-0.5 shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
-                    <p className="text-sm text-muted-foreground">You've completed {completedLessons.size}/4 previous lessons. The capstone works best after building the full foundation.</p>
-                    <div className="flex gap-1 mt-2">
-                      {[1, 2, 3, 4].map(n => (
-                        <div key={n} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
-                          completedLessons.has(n) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground"
-                        }`}>{completedLessons.has(n) ? <Check size={12} /> : n}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="This capstone applies everything: AI definitions, myth-busting, prompt engineering, and ethical reasoning to real-world situations. Write your answers thoughtfully — this is your AI literacy demonstration." />
-            </div>
-            <div className="flex gap-2">
-              {CAPSTONE_PROMPTS.map((p, i) => (
-                <button key={i} onClick={() => setCapstoneStep(i)}
-                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all border text-center ${
-                    capstoneStep === i ? "bg-[oklch(0.78_0.16_30_/_0.15)] border-[oklch(0.78_0.16_30_/_0.4)] text-[oklch(0.88_0.16_30)]" : "glass border-white/8 text-muted-foreground"
-                  }`}>
-                  {p.label} {capstoneAnswers[i].length > 20 && <span className="text-[oklch(0.72_0.18_150)]">✓</span>}
-                </button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div key={capstoneStep} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="glass rounded-2xl p-6 border border-[oklch(0.78_0.16_30_/_0.15)]">
-                <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-3">CAPSTONE — {CAPSTONE_PROMPTS[capstoneStep].label.toUpperCase()}</div>
-                <p className="text-sm font-medium text-foreground mb-4 leading-snug">{CAPSTONE_PROMPTS[capstoneStep].q}</p>
-                <textarea value={capstoneAnswers[capstoneStep]}
-                  onChange={e => { const u = [...capstoneAnswers]; u[capstoneStep] = e.target.value; setCapstoneAnswers(u); }}
-                  placeholder={CAPSTONE_PROMPTS[capstoneStep].ph} rows={6}
-                  className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.5)] resize-none leading-relaxed" />
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-xs text-muted-foreground">{capstoneAnswers[capstoneStep].length} chars</span>
-                  <div className="flex gap-2">
-                    {capstoneStep > 0 && <button onClick={() => setCapstoneStep(capstoneStep - 1)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg glass border border-white/8 text-xs text-muted-foreground"><ChevronLeft size={12} /> Previous</button>}
-                    {capstoneStep < CAPSTONE_PROMPTS.length - 1
-                      ? <button onClick={() => setCapstoneStep(capstoneStep + 1)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[oklch(0.78_0.16_30_/_0.2)] border border-[oklch(0.78_0.16_30_/_0.3)] text-xs text-[oklch(0.88_0.16_30)]">Next <ChevronRight size={12} /></button>
-                      : !capstoneDone && <motion.button onClick={() => { if (capstoneAnswers.filter(a => a.length > 20).length < 3) { toast.error(`Complete all 3 parts (${capstoneAnswers.filter(a => a.length > 20).length}/3 done).`); return; } setCapstoneDone(true); toast.success("Capstone submitted!"); }} whileHover={{ scale: 1.02 }} className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-black text-xs font-semibold" style={{ background: "linear-gradient(to right, oklch(0.78_0.16_30), oklch(0.75_0.18_55))" }}><Trophy size={12} /> Submit</motion.button>
-                    }
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            {capstoneDone && (
-              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-                className="glass rounded-2xl p-8 border border-[oklch(0.75_0.18_55_/_0.3)] text-center">
-                <div className="text-5xl mb-3">🏆</div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">Module 1 Complete!</h3>
-                <p className="text-muted-foreground mb-4 max-w-lg mx-auto">You've earned your <strong className="text-foreground">AI Literacy Certificate — Module 1</strong>.</p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {["AI Definitions", "Myth Buster", "Prompt Engineer", "Ethics Reasoning", "Capstone"].map(b => (
-                    <span key={b} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">✓ {b}</span>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </LessonShell>
-      )}
-    </AnimatePresence>
-  );
-
-  // ── Lesson list (overview) ──
-  if (activeModule === 2) return <AILiteracyModule2 />;
-  if (activeModule === 3) return <AILiteracyModule3 />;
-
-  return (
-    <div className="space-y-4">
-      {/* Module switcher */}
-      <div className="flex gap-2 p-1 glass rounded-xl border border-white/8">
-        {([
-          { m: 1 as const, sub: "Intro to AI" },
-          { m: 2 as const, sub: "AI at Work" },
-          { m: 3 as const, sub: "AI & Your Life" },
-        ]).map(({ m, sub }) => (
-          <button key={m} onClick={() => setActiveModule(m)}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 rounded-lg text-xs font-medium transition-all ${
-              activeModule === m
-                ? "bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)] text-[oklch(0.85_0.18_55)]"
-                : "text-muted-foreground hover:text-foreground hover:bg-white/3"
-            }`}>
-            <span className="text-sm">Module {m}</span>
-            <span className="text-[10px] opacity-60">{sub}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="glass rounded-2xl p-6 border border-[oklch(0.75_0.18_55_/_0.2)]">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)]">Module 1</span>
-              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Beginner · ~2 hrs · 360 XP</span>
-            </div>
-            <h3 className="text-lg font-bold text-foreground">Introduction to AI for Adults</h3>
-            <p className="text-sm text-muted-foreground">Built on Mayer's 12 Multimedia Learning Principles</p>
-          </div>
-          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.75_0.18_55)" }}>{overallPct}%</span>}
-        </div>
-        {completedLessons.size > 0 && (
-          <div className="w-full h-2 rounded-full bg-white/8 mt-2">
-            <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] transition-all" style={{ width: `${overallPct}%` }} />
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        {LESSON_META.map((lesson, i) => {
-          const done = completedLessons.has(lesson.id);
-          return (
-            <motion.div key={lesson.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className={`glass rounded-2xl border overflow-hidden transition-all ${
-                done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : "border-white/8 hover:border-white/15"
-              }`}>
-              <button onClick={() => setActiveLesson(lesson.id)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/3 transition-colors">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
-                  style={{ background: `color-mix(in oklch, ${lesson.color} 15%, transparent)`, border: `1px solid color-mix(in oklch, ${lesson.color} 30%, transparent)`, color: lesson.color }}>
-                  {lesson.id}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-foreground">{lesson.title}</div>
-                  <p className="text-sm text-muted-foreground truncate">{lesson.subtitle}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
-                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp} XP</span>
-                  {done ? <span className="text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={10} /> Done</span> : <ChevronRight size={13} className="text-muted-foreground" />}
-                </div>
-              </button>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      <div className="glass rounded-2xl p-5 border border-white/8">
-        <div className="flex items-start gap-3">
-          <Brain size={15} className="text-[oklch(0.65_0.22_200)] mt-0.5 shrink-0" />
-          <div>
-            <h4 className="font-semibold text-foreground mb-1 text-sm">Built on Mayer's Multimedia Learning Theory</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-              {[{ n: "Coherence", d: "No extraneous content" }, { n: "Segmenting", d: "Learner-paced chunks" }, { n: "Personalization", d: "Conversational tone" }, { n: "Modality", d: "Audio narration + visual" }, { n: "Signaling", d: "Clear structure & cues" }, { n: "Interactivity", d: "Active exercises" }].map(({ n, d }) => (
-                <div key={n} className="glass rounded-lg p-3 border border-white/8"><div className="text-xs font-semibold text-foreground mb-0.5">{n}</div><p className="text-xs text-muted-foreground">{d}</p></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Module 3 teaser */}
-      <motion.button onClick={() => setActiveModule(3)} whileHover={{ scale: 1.005, x: 4 }}
-        className="w-full glass rounded-2xl p-5 border border-[oklch(0.72_0.18_150_/_0.25)] hover:border-[oklch(0.72_0.18_150_/_0.5)] transition-all text-left">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)]">
-            <ArrowRight size={18} className="text-[oklch(0.82_0.18_150)]" />
-          </div>
-          <div className="flex-1">
-            <div className="text-xs text-[oklch(0.72_0.18_150)] font-semibold mb-0.5">NEXT — MODULE 3</div>
-            <div className="font-semibold text-foreground">AI in Your Everyday Life</div>
-            <p className="text-xs text-muted-foreground mt-0.5">Health, money, creativity, privacy · 380 XP</p>
-          </div>
-          <ChevronRight size={16} className="text-[oklch(0.72_0.18_150)] shrink-0" />
-        </div>
-      </motion.button>
-    </div>
-  );
-}
-
-// ─── AI Literacy Module 3 Data ────────────────────────────────────────────────
-type M3LessonId = 11 | 12 | 13 | 14 | 15;
-
-interface HealthScenario {
-  id: string;
-  title: string;
-  situation: string;
-  aiSays: string;
-  reality: string;
-  verdict: "trust" | "verify" | "see-doctor";
-  verdictLabel: string;
-  verdictColor: string;
-}
-
-interface ScamPattern {
-  id: string;
-  name: string;
-  how: string;
-  redFlags: string[];
-  example: string;
-}
-
-interface CreativeExercise {
-  id: string;
-  title: string;
-  domain: string;
-  prompt: string;
-  starter: string;
-  tips: string[];
-}
-
-interface PrivacyDomain {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  whatAIKnows: string[];
-  riskLevel: "high" | "medium" | "low";
-  action: string;
-}
-
-const M3_LESSON_META = [
-  { id: 11 as M3LessonId, title: "AI & Your Health", subtitle: "When to trust AI health tools — and when to close the tab", duration: "25 min", color: "oklch(0.68_0.22_20)", xp: 60 },
-  { id: 12 as M3LessonId, title: "AI & Your Money", subtitle: "Fraud detection, robo-advice, and the scams targeting you right now", duration: "25 min", color: "oklch(0.75_0.18_55)", xp: 65 },
-  { id: 13 as M3LessonId, title: "AI & Creativity", subtitle: "Co-creating with AI — without losing your voice", duration: "30 min", color: "oklch(0.72_0.2_290)", xp: 70 },
-  { id: 14 as M3LessonId, title: "Privacy & Your Data", subtitle: "What AI knows about you, and what you can do about it", duration: "25 min", color: "oklch(0.65_0.22_200)", xp: 65 },
-  { id: 15 as M3LessonId, title: "Personal AI Audit", subtitle: "Assess your own AI footprint across all four domains", duration: "25 min", color: "oklch(0.72_0.18_150)", xp: 120 },
-];
-
-const HEALTH_SCENARIOS: HealthScenario[] = [
-  {
-    id: "hs1",
-    title: "Symptom Checker at 2am",
-    situation: "You wake up with chest tightness and shortness of breath. You ask an AI symptom checker what's wrong.",
-    aiSays: "Your symptoms may indicate anxiety, acid reflux, or muscle strain. Rest and monitor symptoms. If severe, seek care.",
-    reality: "Chest tightness + shortness of breath can indicate a cardiac event, pulmonary embolism, or other emergencies. AI symptom checkers are designed to avoid over-alarming users — they systematically under-refer for serious conditions.",
-    verdict: "see-doctor",
-    verdictLabel: "Call emergency services or urgent care — do not self-diagnose",
-    verdictColor: "oklch(0.68_0.22_20)",
-  },
-  {
-    id: "hs2",
-    title: "Medication Interaction Query",
-    situation: "You're prescribed a new medication and want to know if it interacts with your daily supplements. You ask an AI.",
-    aiSays: "Provides a list of known interactions with general warnings about consulting a pharmacist.",
-    reality: "AI can surface known drug interactions accurately from pharmaceutical databases — this is actually a reasonable use case. However, it cannot account for your specific dosages, kidney/liver function, or other medications in your regimen.",
-    verdict: "verify",
-    verdictLabel: "Useful starting point — confirm with your pharmacist before acting",
-    verdictColor: "oklch(0.75_0.18_55)",
-  },
-  {
-    id: "hs3",
-    title: "Mental Health Check-In",
-    situation: "You've been feeling persistently low. You describe your feelings to an AI chatbot for support.",
-    aiSays: "Provides empathetic responses, suggests breathing exercises, and mentions professional resources.",
-    reality: "AI mental health tools can provide a safe, non-judgmental space to articulate feelings — which has real value. But they cannot diagnose clinical depression, adjust to nuance in the way a therapist can, or substitute for a care relationship. For persistent symptoms, professional evaluation is essential.",
-    verdict: "verify",
-    verdictLabel: "Valuable supplement — not a replacement for professional mental health care",
-    verdictColor: "oklch(0.75_0.18_55)",
-  },
-  {
-    id: "hs4",
-    title: "Nutrition Plan Generator",
-    situation: "You ask an AI to generate a personalized meal plan based on your health goals and dietary restrictions.",
-    aiSays: "Generates a detailed 7-day plan with macros, recipes, and shopping list tailored to your stated profile.",
-    reality: "General nutrition guidance from AI is often accurate and useful. However, AI cannot account for undiagnosed conditions, medication interactions with foods, or individual metabolic variation. For those with medical dietary needs, a registered dietitian remains essential.",
-    verdict: "trust",
-    verdictLabel: "Generally safe for healthy adults — flag medical conditions to a professional",
-    verdictColor: "oklch(0.72_0.18_150)",
-  },
-];
-
-const SCAM_PATTERNS: ScamPattern[] = [
-  {
-    id: "sp1",
-    name: "Voice Cloning Scam",
-    how: "AI clones a family member's voice from publicly available audio (social media, voicemails). You receive a panicked call from 'your child' claiming to be in trouble and needing emergency money.",
-    redFlags: ["Urgency that prevents verification", "Request for wire transfer or gift cards (untraceable)", "Resistance to hanging up and calling back on a known number", "Story that prevents normal verification steps"],
-    example: "'Mom, it's me — I'm at the hospital, I can't explain now, please wire $2,000 to this account. Don't call Dad, he'll freak out.'",
-  },
-  {
-    id: "sp2",
-    name: "AI-Generated Phishing",
-    how: "AI generates perfectly written, personalized phishing emails that reference your real name, employer, recent transactions, or public information — eliminating the spelling errors that used to flag scams.",
-    redFlags: ["Urgent action required on accounts", "Links that don't match the organization's actual domain", "Requests to verify credentials by clicking (real banks never do this)", "Slightly wrong sender email addresses"],
-    example: "'Dear [Your Name], unusual activity was detected on your Chase account ending in 4821. Verify your identity within 24 hours to avoid suspension: [fake-chase-secure.net]'",
-  },
-  {
-    id: "sp3",
-    name: "Deepfake Video Fraud",
-    how: "AI generates realistic video of a CEO, public figure, or trusted contact — used in investment scams, romance fraud, or to authorize fake wire transfers in business settings.",
-    redFlags: ["Unsolicited investment opportunity from someone you'd never expect to contact you", "Video or call quality that's slightly off (blinks, mouth sync, lighting)", "Pressure to act before 'the opportunity closes'", "Requests routed through unusual channels"],
-    example: "A WhatsApp video from what appears to be your company's CFO asking you to process an urgent wire transfer before end of day for a 'confidential acquisition.'",
-  },
-  {
-    id: "sp4",
-    name: "AI Romance Fraud",
-    how: "AI-powered chatbots maintain long-term 'romantic' relationships across weeks or months, building emotional trust before making increasingly large financial requests.",
-    redFlags: ["Never able to meet in person or video call (excuses evolve over time)", "Financial crisis emerges only after deep emotional investment", "Story involves offshore work, military deployment, or international travel", "Requests for gift cards, crypto, or wire transfers"],
-    example: "After 3 months of daily messaging, your 'partner' is stranded abroad after a business deal went wrong and needs $5,000 to come home — then $3,000 more for medical bills.",
-  },
-];
-
-const CREATIVE_EXERCISES: CreativeExercise[] = [
-  {
-    id: "ce1",
-    title: "Story Seed",
-    domain: "Writing",
-    prompt: "Start a story with AI, then redirect it in your own direction. The AI generates an opening paragraph — you add the next one, then ask AI to continue — keeping it distinctly yours.",
-    starter: "Write the opening paragraph of a story about an ordinary person who discovers something extraordinary about their neighborhood. Keep it grounded and specific — no magic, no sci-fi. One paragraph only.",
-    tips: ["After the AI's paragraph, write your own that changes the tone or direction", "Ask the AI to match your style in the next iteration", "Notice how the collaboration evolves — where is AI strong? Where do you diverge?"],
-  },
-  {
-    id: "ce2",
-    title: "Perspective Shift",
-    domain: "Thinking",
-    prompt: "Use AI to argue the opposite of your strongest opinion on any topic. Then write your original position strengthened by understanding the other side.",
-    starter: "I believe [write your actual strong opinion here]. Now argue the most compelling possible case against this position — be rigorous and assume I already know the obvious objections.",
-    tips: ["Pick something you actually care about — the discomfort is the point", "The goal isn't to change your view — it's to sharpen it", "Write one paragraph integrating the strongest opposing point into your original argument"],
-  },
-  {
-    id: "ce3",
-    title: "Style Transfer",
-    domain: "Writing",
-    prompt: "Write a paragraph describing your morning routine in your natural voice. Then ask AI to rewrite it in the style of three different authors. What does style actually mean?",
-    starter: "Rewrite this paragraph in the style of [Ernest Hemingway / Joan Didion / James Baldwin]: '[paste your paragraph here]'. Preserve the content exactly — only change the voice, rhythm, and word choices.",
-    tips: ["The differences reveal what 'style' actually consists of", "Try to identify the specific techniques each version uses", "Ask AI to explain what stylistic choices it made — then try to do it yourself"],
-  },
-  {
-    id: "ce4",
-    title: "Constraint Generator",
-    domain: "Creativity",
-    prompt: "Ask AI to give you creative constraints for a project you're already working on. Constraints unlock creativity by forcing novel solutions.",
-    starter: "I'm working on [describe your project — could be a presentation, garden, room redesign, recipe, anything]. Give me 5 unusual creative constraints that would force me to approach it completely differently. Make them specific and slightly uncomfortable.",
-    tips: ["Choose 1-2 constraints that feel hardest and actually apply them", "Constraints work because they eliminate infinite choice paralysis", "The best ones should make you think 'I'd never have thought of that myself'"],
-  },
-];
-
-const PRIVACY_DOMAINS: PrivacyDomain[] = [
-  {
-    id: "pd1",
-    name: "Search & Browsing",
-    icon: <Globe size={16} />,
-    whatAIKnows: ["Every search query and when you searched it", "Browsing history and time spent on each page", "What you click on vs. what you ignore", "Cross-device identity linking via cookies and fingerprinting"],
-    riskLevel: "high",
-    action: "Use a private browser for sensitive searches. Consider a privacy-focused search engine (DuckDuckGo, Brave) for health, financial, and personal queries.",
-  },
-  {
-    id: "pd2",
-    name: "Social Media",
-    icon: <Users size={16} />,
-    whatAIKnows: ["Political and religious leanings inferred from likes and follows", "Income bracket estimated from brand interactions", "Relationship status, life events, and location patterns", "Emotional state inferred from posting frequency and content"],
-    riskLevel: "high",
-    action: "Audit your privacy settings quarterly. Be aware that 'private' accounts still share data with the platform's advertising AI. What you engage with teaches the model more than what you post.",
-  },
-  {
-    id: "pd3",
-    name: "Health & Fitness Apps",
-    icon: <Heart size={16} />,
-    whatAIKnows: ["Menstrual cycles, fertility windows, pregnancy status", "Sleep patterns and sleep disorders", "Heart rate anomalies and activity levels", "Mental health states inferred from usage patterns"],
-    riskLevel: "high",
-    action: "Read the data-sharing sections of health app privacy policies — many sell to data brokers or insurers. Free health apps often monetize through data. Consider whether the convenience justifies the exposure.",
-  },
-  {
-    id: "pd4",
-    name: "Smart Home & Voice",
-    icon: <Smartphone size={16} />,
-    whatAIKnows: ["Home occupancy patterns and daily schedule", "Household size and likely income from product purchases", "Conversations occurring near always-on devices", "TV and media consumption preferences"],
-    riskLevel: "medium",
-    action: "Review which apps have microphone access on your devices. Smart speakers can be muted when not in use. Review your voice history in device settings and delete regularly.",
-  },
-  {
-    id: "pd5",
-    name: "Financial Transactions",
-    icon: <DollarSign size={16} />,
-    whatAIKnows: ["Spending categories and lifestyle habits", "Financial stress indicators from payment patterns", "Location data via transaction timestamps", "Subscription patterns that reveal personal interests"],
-    riskLevel: "medium",
-    action: "Banks use AI fraud detection (beneficial). Third-party finance apps often sell transaction data. Review which apps have access to your bank account and revoke unnecessary permissions.",
-  },
-];
-
-const M3_CAPSTONE_AUDIT = [
-  {
-    domain: "Health",
-    color: "oklch(0.68_0.22_20)",
-    icon: <Heart size={14} />,
-    questions: [
-      { id: "ca_h1", text: "I understand when AI health tools are reliable vs. when I need professional evaluation" },
-      { id: "ca_h2", text: "I know the difference between AI symptom checking and medical diagnosis" },
-      { id: "ca_h3", text: "I have a plan for which health questions I can use AI for vs. which require a doctor" },
-    ],
-  },
-  {
-    domain: "Money",
-    color: "oklch(0.75_0.18_55)",
-    icon: <DollarSign size={14} />,
-    questions: [
-      { id: "ca_m1", text: "I can identify the key red flags of AI-powered financial scams" },
-      { id: "ca_m2", text: "I know to verify urgency claims by contacting people through known numbers before acting" },
-      { id: "ca_m3", text: "I understand how robo-advisors work and their limitations compared to human advisors" },
-    ],
-  },
-  {
-    domain: "Creativity",
-    color: "oklch(0.72_0.2_290)",
-    icon: <Palette size={14} />,
-    questions: [
-      { id: "ca_c1", text: "I understand the difference between AI-generated content and AI-assisted creation" },
-      { id: "ca_c2", text: "I can use AI as a creative collaborator without losing my own voice or perspective" },
-      { id: "ca_c3", text: "I'm aware of copyright and attribution considerations when using AI creative tools" },
-    ],
-  },
-  {
-    domain: "Privacy",
-    color: "oklch(0.65_0.22_200)",
-    icon: <Fingerprint size={14} />,
-    questions: [
-      { id: "ca_p1", text: "I know what data AI systems are collecting about me across my main apps and devices" },
-      { id: "ca_p2", text: "I have reviewed privacy settings on at least my highest-risk platforms" },
-      { id: "ca_p3", text: "I understand the trade-off between free services and personal data" },
-    ],
-  },
-];
-
-const M3_QUIZ_L11: QuizQuestion[] = [
-  { id: "m3l11q1", question: "Why do AI symptom checkers systematically under-refer for serious conditions?", options: ["They are programmed to save money on healthcare", "They are optimized to avoid over-alarming users, which creates a systematic bias toward reassurance", "They lack access to medical databases", "They are only designed for minor illnesses"], correct: 1, explanation: "Symptom checker designers face a difficult trade-off: too many 'go to the ER' recommendations and users lose trust; too few and serious conditions are missed. The commercial pressure to avoid 'alarmist' outputs creates a systematic bias that can delay care for genuine emergencies." },
-  { id: "m3l11q2", question: "AI mental health chatbots are most appropriately used as:", options: ["A replacement for therapy when professional care is unavailable", "A supplement that can help articulate feelings, while professional care remains the standard for clinical conditions", "A diagnostic tool for depression and anxiety", "A crisis intervention resource"], correct: 1, explanation: "AI mental health tools can offer a low-barrier space to process and articulate feelings — which is genuinely valuable. They cannot diagnose, adjust to clinical nuance, or provide the sustained therapeutic relationship that produces lasting outcomes. They're a complement, not a substitute." },
-  { id: "m3l11q3", question: "Which is the most appropriate use of AI for health information?", options: ["Diagnosing a rash from a photo", "Understanding what a medical term in your lab results means before your follow-up appointment", "Deciding whether surgery is appropriate", "Replacing a pharmacist's review of your medications"], correct: 1, explanation: "AI excels at translating medical jargon into plain language and helping people prepare for doctor conversations. This use is low-risk and high-value. The risks are concentrated in using AI to make clinical decisions — diagnosis, treatment choice, and medication management — where the consequences of errors are severe." },
-];
-
-const M3_QUIZ_L12: QuizQuestion[] = [
-  { id: "m3l12q1", question: "The defining feature of AI-powered voice cloning scams is:", options: ["They only target elderly people", "They can replicate a family member's voice convincingly enough to bypass emotional skepticism", "They are easy to detect because the audio quality is poor", "They always ask for cryptocurrency"], correct: 1, explanation: "Voice cloning scams exploit the deep emotional response we have to hearing a loved one's voice. The audio quality can be quite good with modern AI — the defense is procedural: establish a family safe word and always hang up and call back on a known number before acting on any urgent request." },
-  { id: "m3l12q2", question: "Robo-advisors are most appropriate for:", options: ["Active stock trading based on market conditions", "Long-term, passive investment management with diversified index funds", "Complex tax optimization strategies", "Real estate investment decisions"], correct: 1, explanation: "Robo-advisors excel at the core tasks of long-term passive investing: low-cost index fund allocation, automatic rebalancing, and tax-loss harvesting. They are far less appropriate for complex situations requiring judgment about life circumstances, tax law nuances, or non-standard assets." },
-  { id: "m3l12q3", question: "An urgent request for money or information should always be:", options: ["Acted on quickly to prevent the stated harm", "Verified by hanging up and calling back through a number you find independently", "Forwarded to family to decide collectively", "Reported to the company before taking any action"], correct: 1, explanation: "The universal defense against AI-powered financial fraud is slowing down. Any legitimate emergency can withstand a 5-minute delay for verification. The urgency itself is the manipulation — it's designed to prevent you from taking the time to think. Hang up, find the number yourself, call back." },
-];
-
-const M3_QUIZ_L13: QuizQuestion[] = [
-  { id: "m3l13q1", question: "The most accurate description of AI's role in creative work is:", options: ["AI replaces human creativity by producing better outputs faster", "AI is a collaborative tool that generates material humans then shape, direct, and judge", "AI cannot produce genuinely creative work", "AI creativity is limited to remixing existing content"], correct: 1, explanation: "The most productive framing of AI in creative work is collaboration, not replacement. AI can generate options, overcome blank-page paralysis, and offer perspectives — but the direction, curation, judgment, and authentic voice come from the human. The creative decisions that make work meaningful are still yours." },
-  { id: "m3l13q2", question: "Which concern about AI-generated creative content is most legitimate?", options: ["AI will make all human art worthless", "Copyright law is evolving and the training data and ownership of AI outputs remain legally uncertain", "AI-generated content is always lower quality than human-created work", "AI cannot understand or convey emotions"], correct: 1, explanation: "The genuine legal uncertainty around AI-generated content is the most legitimate near-term concern for creators. Training data copyright, ownership of AI outputs, and liability for infringement are all in active litigation. This is not settled law, and creators who use AI commercially should stay informed." },
-  { id: "m3l13q3", question: "Creative constraints (like those an AI might generate) are valuable because:", options: ["They make creative work faster by reducing options", "They eliminate the paralysis of unlimited choices and force novel problem-solving", "They ensure AI-generated work is original", "They match your output to audience expectations"], correct: 1, explanation: "Constraints work because unlimited choice produces decision paralysis and predictable defaults. When forced to solve within tight parameters, creators access novel solutions they'd never have found otherwise. This is why creative traditions from haiku to sonnet to 30-second commercials have thrived under artificial restrictions." },
-];
-
-const M3_QUIZ_L14: QuizQuestion[] = [
-  { id: "m3l14q1", question: "Free apps and services monetize primarily through:", options: ["Government subsidies for digital access", "Selling or licensing user data to advertisers, data brokers, and other third parties", "In-app purchases that most users eventually make", "Voluntary donations from satisfied users"], correct: 1, explanation: "The business model of free digital services is, with rare exceptions, data monetization. Your behavior, preferences, and patterns are the product. This isn't inherently wrong — but it becomes a problem when users don't understand the trade-off they're making, or when sensitive categories like health and financial data are involved." },
-  { id: "m3l14q2", question: "Data brokers are companies that:", options: ["Help you protect your data from unauthorized collection", "Compile and sell detailed profiles of individuals from dozens of sources without your direct consent", "Provide secure cloud storage for personal files", "Verify identity for financial institutions"], correct: 1, explanation: "Data brokers aggregate information from public records, app data purchases, loyalty programs, and other sources to build remarkably detailed individual profiles — including income estimates, health conditions, political views, and purchase history. Most people have profiles with multiple data brokers and don't know it." },
-  { id: "m3l14q3", question: "The most effective personal privacy action is:", options: ["Deleting all social media accounts", "Auditing which apps have access to your microphone, location, and contacts — and revoking unnecessary permissions", "Using a VPN at all times", "Never using free services"], correct: 1, explanation: "App permission audits deliver the highest return on time invested because they directly cut off data collection at the source. Most people have given dozens of apps access to data they never intended to share — a quarterly permission review takes 15 minutes and has lasting protective effect." },
-];
-
-// ─── AI Literacy Module 3 Component ──────────────────────────────────────────
-function AILiteracyModule3() {
-  const [activeLesson, setActiveLesson] = useState<M3LessonId | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<Set<M3LessonId>>(new Set());
-  const { addXP } = usePersonalization();
-
-  // L11 — health
-  const [activeHealthScenario, setActiveHealthScenario] = useState<number | null>(null);
-  const [healthReveal, setHealthReveal] = useState<Set<string>>(new Set());
-  const [healthQuery, setHealthQuery] = useState("");
-  const [healthResult, setHealthResult] = useState("");
-  const [healthLoading, setHealthLoading] = useState(false);
-
-  // L12 — money/scams
-  const [activeScam, setActiveScam] = useState<string | null>(null);
-  const [scamGuesses, setScamGuesses] = useState<Record<string, boolean>>({});
-  const [moneyQuery, setMoneyQuery] = useState("");
-  const [moneyResult, setMoneyResult] = useState("");
-  const [moneyLoading, setMoneyLoading] = useState(false);
-
-  // L13 — creativity
-  const [activeCE, setActiveCE] = useState<number>(0);
-  const [creativePrompt, setCreativePrompt] = useState("");
-  const [creativeResult, setCreativeResult] = useState("");
-  const [creativeLoading, setCreativeLoading] = useState(false);
-  const [creativeHistory, setCreativeHistory] = useState<string[]>([]);
-  const [myContribution, setMyContribution] = useState("");
-
-  // L14 — privacy
-  const [activePD, setActivePD] = useState<string | null>(null);
-  const [privacyQuery, setPrivacyQuery] = useState("");
-  const [privacyResult, setPrivacyResult] = useState("");
-  const [privacyLoading, setPrivacyLoading] = useState(false);
-
-  // L15 — capstone
-  const [auditChecks, setAuditChecks] = useState<Record<string, boolean>>({});
-  const [auditReflection, setAuditReflection] = useState("");
-  const [auditSaved, setAuditSaved] = useState(false);
-  const [auditDone, setAuditDone] = useState(false);
-  const [priorityAction, setPriorityAction] = useState("");
-  const [prioritySaved, setPrioritySaved] = useState(false);
-
-  const healthMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (d) => { setHealthResult(d.explanation); setHealthLoading(false); },
-    onError: (e: { message: string }) => { toast.error(e.message); setHealthLoading(false); },
-  });
-  const moneyMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (d) => { setMoneyResult(d.explanation); setMoneyLoading(false); },
-    onError: (e: { message: string }) => { toast.error(e.message); setMoneyLoading(false); },
-  });
-  const creativeMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (d) => {
-      setCreativeResult(d.explanation);
-      setCreativeLoading(false);
-      setCreativeHistory((prev) => [...prev, d.explanation]);
-    },
-    onError: (e: { message: string }) => { toast.error(e.message); setCreativeLoading(false); },
-  });
-  const privacyMutation = trpc.ai.explainConcept.useMutation({
-    onSuccess: (d) => { setPrivacyResult(d.explanation); setPrivacyLoading(false); },
-    onError: (e: { message: string }) => { toast.error(e.message); setPrivacyLoading(false); },
-  });
-
-  const handleM3Complete = (id: M3LessonId) => {
-    if (completedLessons.has(id)) return;
-    const meta = M3_LESSON_META.find((l) => l.id === id)!;
-    setCompletedLessons((prev) => new Set(Array.from(prev).concat(id)));
-    addXP(meta.xp);
-    toast.success(`+${meta.xp} XP — Lesson complete!`);
-  };
-
-  const overallPct = Math.round((completedLessons.size / M3_LESSON_META.length) * 100);
-
-  const SectionBadge = ({ type, color }: { type: string; color: string }) => (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase mb-3"
-      style={{ background: `oklch(from ${color} l c h / 0.15)`, color, border: `1px solid oklch(from ${color} l c h / 0.3)` }}>
-      {type}
-    </span>
-  );
-
-  function M3Shell({ id, children }: { id: M3LessonId; children: React.ReactNode }) {
-    const meta = M3_LESSON_META.find((l) => l.id === id)!;
-    const done = completedLessons.has(id);
-    const ids: M3LessonId[] = [11, 12, 13, 14, 15];
-    const idx = ids.indexOf(id);
-    return (
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
-        <button onClick={() => setActiveLesson(null)} className="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronLeft size={14} /> Back to all lessons
-        </button>
-        <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">AI Literacy · Module 3 · AI in Your Everyday Life</div>
-              <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
-              <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
-            </div>
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {meta.duration}</span>
-              <span className="flex items-center gap-1 text-xs" style={{ color: meta.color }}><Zap size={10} /> +{meta.xp} XP</span>
-              {done && <span className="flex items-center gap-1 text-xs text-[oklch(0.72_0.18_150)] font-medium"><CheckCircle2 size={10} /> Complete</span>}
-            </div>
-          </div>
-        </div>
-        {children}
-        <div className="mt-8 pt-6 border-t border-white/8">
-          {done
-            ? <div className="flex items-center justify-center gap-2 text-sm text-[oklch(0.72_0.18_150)]"><Award size={15} /> Lesson complete — great work!</div>
-            : <motion.button onClick={() => handleM3Complete(id)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
-                style={{ background: `linear-gradient(to right, ${meta.color}, oklch(0.72_0.18_150))` }}>
-                <CheckCircle2 size={15} /> Mark Complete & Earn {meta.xp} XP
-              </motion.button>
-          }
-        </div>
-        {idx < ids.length - 1 && (
-          <div className="mt-4 flex justify-end">
-            <button onClick={() => setActiveLesson(ids[idx + 1])}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Next lesson <ChevronRight size={13} />
-            </button>
-          </div>
-        )}
-      </motion.div>
-    );
-  }
-
-  if (activeLesson !== null) return (
-    <AnimatePresence mode="wait">
-
-      {/* ── Lesson 11: AI & Your Health ── */}
-      {activeLesson === 11 && (
-        <M3Shell key={11} id={11}>
-          <div className="space-y-5">
-
-            {/* Hook */}
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
-              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
-              <Narrator text="More than one in three adults have searched for a health symptom online before — or instead of — seeing a doctor. AI has made this far more sophisticated and far more dangerous. Understanding exactly what AI health tools can and cannot do may be one of the most important practical skills in this course." />
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {[
-                  { stat: "35%", label: "of adults use AI/search to self-diagnose", color: "oklch(0.68_0.22_20)" },
-                  { stat: "72%", label: "of symptom checker users change their care decision based on results", color: "oklch(0.75_0.18_55)" },
-                  { stat: "57%", label: "accuracy rate of top symptom checkers (vs. ~90% for GPs)", color: "oklch(0.72_0.2_260)" },
-                ].map(({ stat, label, color }) => (
-                  <div key={stat} className="glass rounded-xl p-4 border border-white/8 text-center">
-                    <div className="text-2xl font-bold mb-1" style={{ color }}>{stat}</div>
-                    <p className="text-xs text-muted-foreground leading-snug">{label}</p>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
-                topics={["How AI symptom checkers are built and what data they use", "Why AI diagnosis accuracy varies so much by condition type", "What 'AI-assisted diagnosis' means in clinical settings", "How AI is changing radiology and pathology"]} />
-            </div>
-
-            {/* Core Concept */}
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.68_0.22_20)" }}>
-              <SectionBadge type="Core Concept" color="oklch(0.68_0.22_20)" />
-              <h3 className="font-semibold text-foreground mb-1">The Trust Framework</h3>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Not all AI health interactions carry the same risk. The key is matching your level of trust to what the tool is actually capable of — and never using AI where a professional decision is what's actually needed.</p>
-              <div className="space-y-2 mb-4">
-                {[
-                  { level: "High Trust", tasks: ["Explaining medical terminology from lab results", "Summarizing what a diagnosis means in plain language", "Researching what questions to ask your doctor", "General nutrition and exercise guidance (healthy adults)"], color: "oklch(0.72_0.18_150)" },
-                  { level: "Use with Caution", tasks: ["Drug interaction lookups (verify with pharmacist)", "Mental health support (supplement, not substitute)", "General symptom education (not diagnosis)", "Medication side effect information"], color: "oklch(0.75_0.18_55)" },
-                  { level: "Don't Rely on AI", tasks: ["Diagnosing serious or ambiguous symptoms", "Deciding whether to seek emergency care", "Pediatric health decisions", "Mental health crisis situations"], color: "oklch(0.68_0.22_20)" },
-                ].map(({ level, tasks, color }) => (
-                  <div key={level} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${color}` }}>
-                    <div className="text-xs font-bold mb-2" style={{ color }}>{level.toUpperCase()}</div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {tasks.map((t) => (
-                        <div key={t} className="flex items-start gap-1.5">
-                          <div className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ background: color }} />
-                          <p className="text-xs text-muted-foreground leading-snug">{t}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.68_0.22_20)"
-                topics={["What 'clinical validation' of an AI health tool means", "How AI diagnostic tools are regulated (FDA clearance)", "The role of AI in rare disease diagnosis", "What telehealth AI looks like today"]} />
-            </div>
-
-            {/* Scenario Explorer */}
-            <div className="glass rounded-2xl p-5 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.2_260)" }}>
-              <SectionBadge type="Scenario Explorer" color="oklch(0.72_0.2_260)" />
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Four real-world health AI situations. For each: form your own judgment first, then reveal what to actually do.</p>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {HEALTH_SCENARIOS.map((s, i) => (
-                  <button key={s.id} onClick={() => setActiveHealthScenario(i)}
-                    className={`p-3 rounded-xl text-left border text-xs font-medium transition-all ${ activeHealthScenario === i ? "bg-[oklch(0.72_0.2_260_/_0.15)] border-[oklch(0.72_0.2_260_/_0.4)] text-foreground" : "glass border-white/8 text-muted-foreground hover:border-white/20" }`}>
-                    {s.title}
-                  </button>
-                ))}
-              </div>
-              <AnimatePresence mode="wait">
-                {activeHealthScenario !== null && (() => {
-                  const s = HEALTH_SCENARIOS[activeHealthScenario];
-                  const revealed = healthReveal.has(s.id);
-                  return (
-                    <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                      className="space-y-3">
-                      <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_260_/_0.2)]">
-                        <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-2">SITUATION</div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{s.situation}</p>
-                      </div>
-                      <div className="glass rounded-xl p-4 border border-white/8">
-                        <div className="text-xs font-semibold text-muted-foreground mb-2">AI RESPONSE</div>
-                        <p className="text-sm text-foreground/80 italic leading-relaxed">"{s.aiSays}"</p>
-                      </div>
-                      {!revealed ? (
-                        <motion.button onClick={() => setHealthReveal((prev) => new Set(Array.from(prev).concat(s.id)))}
-                          whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                          className="w-full py-2.5 rounded-xl text-sm font-medium text-black"
-                          style={{ background: `linear-gradient(to right, oklch(0.72_0.2_260), oklch(0.68_0.22_20))` }}>
-                          Reveal: Should You Trust This?
-                        </motion.button>
-                      ) : (
-                        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-                          <div className="glass rounded-xl p-4 border border-white/8">
-                            <div className="text-xs font-semibold text-muted-foreground mb-2">THE REALITY</div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">{s.reality}</p>
-                          </div>
-                          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ borderColor: s.verdictColor, background: `oklch(from ${s.verdictColor} l c h / 0.08)` }}>
-                            <BadgeCheck size={16} style={{ color: s.verdictColor, flexShrink: 0 }} />
-                            <p className="text-sm font-semibold" style={{ color: s.verdictColor }}>{s.verdictLabel}</p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  );
-                })()}
-              </AnimatePresence>
-            </div>
-
-            {/* Live Health Query Tool */}
-            <div className="glass rounded-2xl p-5 border border-[oklch(0.68_0.22_20_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
-              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
-              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">HEALTH AI ADVISOR</div>
-              <p className="text-xs text-muted-foreground mb-3">Ask a health-related question and see how AI handles it — then evaluate: is this a High Trust, Caution, or Don't Rely response?</p>
-              <textarea value={healthQuery} onChange={(e) => setHealthQuery(e.target.value)}
-                placeholder="e.g., 'What does a high TSH level mean?' or 'Is it safe to take ibuprofen and aspirin together?'"
-                rows={2} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_20_/_0.5)] resize-none mb-3" />
-              <motion.button onClick={() => {
-                if (!healthQuery.trim()) { toast.error("Enter a health question."); return; }
-                setHealthLoading(true); setHealthResult("");
-                healthMutation.mutate({ concept: `Answer this health question helpfully and accurately, and then — critically — end your response with a clear statement of what level of trust the questioner should place in this answer: HIGH TRUST (AI is reliable for this), USE WITH CAUTION (verify with a professional), or DON'T RELY ON AI (see a healthcare provider). Question: "${healthQuery}"`, level: "student" });
-              }} disabled={healthLoading || !healthQuery.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
-                style={{ background: "oklch(0.68_0.22_20)" }}>
-                {healthLoading ? <><RefreshCw size={13} className="animate-spin" /> Thinking…</> : <><Heart size={13} /> Ask Health AI</>}
-              </motion.button>
-              <AnimatePresence>
-                {healthResult && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-4 rounded-xl bg-[oklch(0.68_0.22_20_/_0.08)] border border-[oklch(0.68_0.22_20_/_0.25)]">
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{healthResult}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
-              <QuizBlock questions={M3_QUIZ_L11} accentColor="oklch(0.68_0.22_20)" />
-            </div>
-          </div>
-        </M3Shell>
-      )}
-
-      {/* ── Lesson 12: AI & Your Money ── */}
-      {activeLesson === 12 && (
-        <M3Shell key={12} id={12}>
-          <div className="space-y-5">
-
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
-              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
-              <Narrator text="AI is simultaneously protecting your money and attacking it. The same technology that powers fraud detection at your bank is being used by scammers to impersonate your family members. Understanding both sides of this makes you significantly harder to deceive — and helps you use legitimate AI financial tools with appropriate confidence." />
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {[
-                  { label: "AI Protects", items: ["Real-time fraud detection (flags 97%+ of card fraud)", "Robo-advisors managing $3T+ globally", "Credit scoring and loan underwriting", "Insurance fraud prevention"], color: "oklch(0.72_0.18_150)" },
-                  { label: "AI Attacks", items: ["Voice cloning for family emergency scams", "Deepfake video for executive fraud", "Personalized phishing at scale", "AI chatbot romance fraud (avg. loss: $10k+)"], color: "oklch(0.68_0.22_20)" },
-                ].map(({ label, items, color }) => (
-                  <div key={label} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${color}` }}>
-                    <div className="text-xs font-bold mb-2" style={{ color }}>{label}</div>
-                    {items.map((item) => (
-                      <div key={item} className="flex items-start gap-2 mb-1.5">
-                        <div className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ background: color }} />
-                        <p className="text-xs text-muted-foreground leading-snug">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.75_0.18_55)"
-                topics={["How bank fraud detection AI actually works", "What robo-advisors do vs. human financial advisors", "How AI is used in high-frequency trading", "What AI-powered credit scoring means for consumers"]} />
-            </div>
-
-            {/* Scam pattern explorer */}
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.68_0.22_20)" }}>
-              <SectionBadge type="Core Concept" color="oklch(0.68_0.22_20)" />
-              <h3 className="font-semibold text-foreground mb-1">4 AI Scams Targeting You Right Now</h3>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">These are not hypothetical — they are active, documented fraud patterns that financial crime units track. Knowing how they work is your primary defense.</p>
-              <div className="space-y-2">
-                {SCAM_PATTERNS.map((sp) => (
-                  <div key={sp.id}>
-                    <button onClick={() => setActiveScam(activeScam === sp.id ? null : sp.id)}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all ${ activeScam === sp.id ? "bg-[oklch(0.68_0.22_20_/_0.12)] border-[oklch(0.68_0.22_20_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
-                      <div className="flex items-center gap-3">
-                        <ShieldAlert size={16} className="text-[oklch(0.68_0.22_20)] shrink-0" />
-                        <span className="font-semibold text-sm text-foreground">{sp.name}</span>
-                      </div>
-                      <ChevronRight size={14} className={`text-muted-foreground transition-transform ${activeScam === sp.id ? "rotate-90" : ""}`} />
-                    </button>
-                    <AnimatePresence>
-                      {activeScam === sp.id && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden">
-                          <div className="p-5 space-y-3 glass rounded-b-xl border-x border-b border-[oklch(0.68_0.22_20_/_0.3)]">
-                            <div>
-                              <div className="text-xs font-semibold text-[oklch(0.68_0.22_20)] mb-1">HOW IT WORKS</div>
-                              <p className="text-sm text-muted-foreground leading-relaxed">{sp.how}</p>
-                            </div>
-                            <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_260_/_0.2)]">
-                              <div className="text-xs font-semibold text-[oklch(0.72_0.2_260)] mb-2">REAL EXAMPLE</div>
-                              <p className="text-sm text-foreground italic leading-relaxed">"{sp.example}"</p>
-                            </div>
-                            <div>
-                              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">RED FLAGS TO WATCH FOR</div>
-                              <div className="space-y-1.5">
-                                {sp.redFlags.map((flag, i) => (
-                                  <div key={i} className="flex items-start gap-2">
-                                    <AlertTriangle size={11} className="text-[oklch(0.68_0.22_20)] mt-0.5 shrink-0" />
-                                    <p className="text-xs text-muted-foreground leading-snug">{flag}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
-              </div>
-
-              {/* Family safe word callout */}
-              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.75_0.18_55_/_0.3)]">
-                <div className="flex items-start gap-3">
-                  <BadgeCheck size={16} className="text-[oklch(0.75_0.18_55)] shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-xs font-bold text-[oklch(0.75_0.18_55)] mb-1">IMMEDIATE ACTION: SET A FAMILY SAFE WORD</div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">Before leaving this lesson: establish a code word with close family members that proves identity in a genuine emergency. Any caller who claims to be a family member but doesn't know the word should be treated as a potential scam, regardless of how convincing they sound.</p>
-                  </div>
-                </div>
-              </div>
-              <SegmentFooter accentColor="oklch(0.75_0.18_55)"
-                topics={["How to report an AI-powered scam attempt", "What consumer protections exist against AI fraud", "How voice cloning technology actually works", "What the FTC recommends for AI scam protection"]} />
-            </div>
-
-            {/* Live scam checker */}
-            <div className="glass rounded-2xl p-5 border border-[oklch(0.75_0.18_55_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
-              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
-              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">SCAM DETECTOR</div>
-              <p className="text-xs text-muted-foreground mb-3">Paste a suspicious message, email, or describe a suspicious call. The AI will assess if it matches known AI-powered scam patterns.</p>
-              <textarea value={moneyQuery} onChange={(e) => setMoneyQuery(e.target.value)}
-                placeholder="e.g., 'I got a text saying my Chase account was suspended and I need to verify my identity at chase-secure-verify.net'"
-                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none mb-3" />
-              <motion.button onClick={() => {
-                if (!moneyQuery.trim()) { toast.error("Describe the suspicious contact first."); return; }
-                setMoneyLoading(true); setMoneyResult("");
-                moneyMutation.mutate({ concept: `Analyze this potentially fraudulent contact for AI-powered scam patterns: "${moneyQuery}". Identify: (1) Which scam type this most resembles (voice cloning, phishing, deepfake, romance fraud, or other). (2) The specific red flags present. (3) What the person should do right now. (4) Whether this appears to be a scam, legitimate, or uncertain. Be direct, specific, and protective in tone.`, level: "student" });
-              }} disabled={moneyLoading || !moneyQuery.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-black disabled:opacity-50"
-                style={{ background: "linear-gradient(to right, oklch(0.75_0.18_55), oklch(0.68_0.22_20))" }}>
-                {moneyLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><ShieldAlert size={13} /> Check for Scam</>}
-              </motion.button>
-              <AnimatePresence>
-                {moneyResult && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-4 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.25)]">
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{moneyResult}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
-              <QuizBlock questions={M3_QUIZ_L12} accentColor="oklch(0.75_0.18_55)" />
-            </div>
-          </div>
-        </M3Shell>
-      )}
-
-      {/* ── Lesson 13: AI & Creativity ── */}
-      {activeLesson === 13 && (
-        <M3Shell key={13} id={13}>
-          <div className="space-y-5">
-
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
-              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
-              <Narrator text="Every major creative shift in history — the printing press, photography, recorded music — was met with predictions that human creativity would be destroyed. Instead, each technology redefined where human creativity lived. AI is doing the same thing. The question isn't whether AI changes creative work — it already has. The question is what that means for you." />
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {[
-                  { label: "AI Generates", d: "First drafts, options, variations, remixes — fast and cheap", icon: <Sparkles size={16} />, color: "oklch(0.72_0.2_290)" },
-                  { label: "Humans Curate", d: "Judgment, voice, meaning, context, emotional truth", icon: <Brain size={16} />, color: "oklch(0.65_0.22_200)" },
-                  { label: "Together Create", d: "Work that neither could produce alone", icon: <Brush size={16} />, color: "oklch(0.72_0.18_150)" },
-                ].map(({ label, d, icon, color }) => (
-                  <div key={label} className="glass rounded-xl p-4 border border-white/8 text-center">
-                    <div className="flex justify-center mb-2" style={{ color }}>{icon}</div>
-                    <div className="text-xs font-bold text-foreground mb-1">{label}</div>
-                    <p className="text-xs text-muted-foreground leading-snug">{d}</p>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
-                topics={["What the current legal status of AI-generated art is", "How training data and copyright interact", "What 'AI-assisted' vs 'AI-generated' means for attribution", "Which creative domains are most and least affected by AI"]} />
-            </div>
-
-            {/* Creative Studio */}
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.2_290)" }}>
-              <SectionBadge type="Core Concept + Try It" color="oklch(0.72_0.2_290)" />
-              <h3 className="font-semibold text-foreground mb-1">Creative Studio</h3>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Four exercises across writing, thinking, and creativity. Each one shows a different way AI can serve your creative process without replacing it. Pick one and go hands-on.</p>
-
-              <div className="flex gap-2 mb-4 overflow-x-auto">
-                {CREATIVE_EXERCISES.map((ex, i) => (
-                  <button key={ex.id} onClick={() => { setActiveCE(i); setCreativePrompt(""); setCreativeResult(""); setCreativeHistory([]); setMyContribution(""); }}
-                    className={`shrink-0 py-2 px-4 rounded-lg text-xs font-medium transition-all border ${ activeCE === i ? "bg-[oklch(0.72_0.2_290_/_0.15)] border-[oklch(0.72_0.2_290_/_0.4)] text-[oklch(0.82_0.2_290)]" : "glass border-white/8 text-muted-foreground hover:border-white/20" }`}>
-                    {ex.domain}: {ex.title}
-                  </button>
-                ))}
-              </div>
-
-              <AnimatePresence mode="wait">
-                <motion.div key={activeCE} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                  className="space-y-4">
-                  <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.2_290_/_0.2)]">
-                    <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">THE EXERCISE</div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{CREATIVE_EXERCISES[activeCE].prompt}</p>
-                  </div>
-
-                  <div className="glass rounded-xl p-4 border border-white/8">
-                    <div className="text-xs font-semibold text-muted-foreground mb-2">STARTER PROMPT</div>
-                    <p className="text-sm text-foreground/80 font-mono text-xs leading-relaxed bg-white/3 rounded-lg p-3">{CREATIVE_EXERCISES[activeCE].starter}</p>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Your customized prompt (edit the starter above):</label>
-                    <textarea value={creativePrompt} onChange={(e) => setCreativePrompt(e.target.value)}
-                      placeholder="Customize the starter prompt with your own content, topic, or details…"
-                      rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] resize-none" />
-                    <motion.button onClick={() => {
-                      if (!creativePrompt.trim()) { toast.error("Write your prompt first."); return; }
-                      setCreativeLoading(true); setCreativeResult("");
-                      creativeMutation.mutate({ concept: creativePrompt, level: "student" });
-                    }} disabled={creativeLoading || !creativePrompt.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                      className="mt-3 flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
-                      style={{ background: "oklch(0.72_0.2_290)" }}>
-                      {creativeLoading ? <><RefreshCw size={13} className="animate-spin" /> Creating…</> : <><Palette size={13} /> Generate with AI</>}
-                    </motion.button>
-                  </div>
-
-                  <AnimatePresence>
-                    {creativeResult && (
-                      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                        <div className="p-4 rounded-xl bg-[oklch(0.72_0.2_290_/_0.08)] border border-[oklch(0.72_0.2_290_/_0.25)]">
-                          <div className="text-xs font-semibold text-[oklch(0.72_0.2_290)] mb-2">AI CONTRIBUTION</div>
-                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{creativeResult}</p>
-                        </div>
-                        <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_150_/_0.2)]">
-                          <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-2">YOUR CONTRIBUTION (write your response/continuation here)</div>
-                          <textarea value={myContribution} onChange={(e) => setMyContribution(e.target.value)}
-                            placeholder="Continue, respond to, or transform what AI generated. This is where your voice comes in…"
-                            rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
-                          {myContribution.length > 30 && (
-                            <button onClick={() => {
-                              setCreativePrompt(`Continue our creative collaboration. Here is what came before:\n\nAI: ${creativeResult}\n\nHuman: ${myContribution}\n\nNow continue in a way that builds on both contributions naturally.`);
-                              setMyContribution("");
-                              toast.success("Ready to continue the collaboration!");
-                            }} className="mt-2 flex items-center gap-1.5 px-4 py-2 rounded-lg glass border border-[oklch(0.72_0.18_150_/_0.3)] text-xs text-[oklch(0.82_0.18_150)]">
-                              <ArrowRight size={11} /> Set up next round of collaboration
-                            </button>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="glass rounded-xl p-4 border border-white/8">
-                    <div className="text-xs font-semibold text-muted-foreground mb-2">TIPS FOR THIS EXERCISE</div>
-                    <div className="space-y-1.5">
-                      {CREATIVE_EXERCISES[activeCE].tips.map((tip, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <Lightbulb size={11} className="text-[oklch(0.75_0.18_55)] mt-0.5 shrink-0" />
-                          <p className="text-xs text-muted-foreground leading-snug">{tip}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-              <SegmentFooter accentColor="oklch(0.72_0.2_290)"
-                topics={["How professional writers are using AI in their process right now", "What 'prompt engineering for creativity' involves", "How AI changes the economics of creative work", "What creative skills become more valuable in an AI world"]} />
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
-              <QuizBlock questions={M3_QUIZ_L13} accentColor="oklch(0.72_0.2_290)" />
-            </div>
-          </div>
-        </M3Shell>
-      )}
-
-      {/* ── Lesson 14: Privacy & Your Data ── */}
-      {activeLesson === 14 && (
-        <M3Shell key={14} id={14}>
-          <div className="space-y-5">
-
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.75_0.18_55)" }}>
-              <SectionBadge type="Hook" color="oklch(0.75_0.18_55)" />
-              <Narrator text="The AI systems you interact with daily are learning from you constantly. This isn't sinister — much of it is genuinely useful. But most people significantly underestimate how much is being collected, who it's being shared with, and what it can reveal about them. This lesson won't make you paranoid. It'll make you informed." />
-              <div className="mt-4 glass rounded-xl p-4 border border-[oklch(0.65_0.22_200_/_0.2)]">
-                <div className="text-xs font-semibold text-[oklch(0.65_0.22_200)] mb-3">WHAT AI SYSTEMS ARE LEARNING FROM YOU RIGHT NOW</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    "Your political and religious views (inferred, not stated)",
-                    "Your approximate income and financial stress level",
-                    "Your health conditions and medications",
-                    "Your daily schedule and home occupancy",
-                    "Your relationship status and quality",
-                    "Your emotional state and psychological patterns",
-                  ].map((item) => (
-                    <div key={item} className="flex items-start gap-2">
-                      <Database size={11} className="text-[oklch(0.65_0.22_200)] mt-0.5 shrink-0" />
-                      <p className="text-xs text-muted-foreground leading-snug">{item}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <SegmentFooter accentColor="oklch(0.65_0.22_200)"
-                topics={["What data brokers do and how to opt out", "How GDPR and CCPA affect your rights in the US and EU", "What 'differential privacy' is and how companies use it", "How to request your data from major platforms"]} />
-            </div>
-
-            {/* Privacy domain explorer */}
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.65_0.22_200)" }}>
-              <SectionBadge type="Core Concept" color="oklch(0.65_0.22_200)" />
-              <h3 className="font-semibold text-foreground mb-1">Your Data Across 5 Domains</h3>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">Click each domain to see what AI systems are collecting, the risk level, and the single most effective action you can take.</p>
-              <div className="space-y-2">
-                {PRIVACY_DOMAINS.map((pd) => (
-                  <div key={pd.id}>
-                    <button onClick={() => setActivePD(activePD === pd.id ? null : pd.id)}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all ${ activePD === pd.id ? "bg-[oklch(0.65_0.22_200_/_0.12)] border-[oklch(0.65_0.22_200_/_0.4)]" : "glass border-white/8 hover:border-white/20" }`}>
-                      <div className="flex items-center gap-3">
-                        <div style={{ color: pd.riskLevel === "high" ? "oklch(0.68_0.22_20)" : pd.riskLevel === "medium" ? "oklch(0.75_0.18_55)" : "oklch(0.72_0.18_150)" }}>
-                          {pd.icon}
-                        </div>
-                        <span className="font-semibold text-sm text-foreground">{pd.name}</span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${ pd.riskLevel === "high" ? "bg-[oklch(0.68_0.22_20_/_0.15)] text-[oklch(0.68_0.22_20)]" : pd.riskLevel === "medium" ? "bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.75_0.18_55)]" : "bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.72_0.18_150)]" }`}>
-                          {pd.riskLevel}
-                        </span>
-                      </div>
-                      <ChevronRight size={14} className={`text-muted-foreground transition-transform ${activePD === pd.id ? "rotate-90" : ""}`} />
-                    </button>
-                    <AnimatePresence>
-                      {activePD === pd.id && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                          <div className="p-4 space-y-3 glass rounded-b-xl border-x border-b border-[oklch(0.65_0.22_200_/_0.3)]">
-                            <div>
-                              <div className="text-xs font-semibold text-[oklch(0.65_0.22_200)] mb-2">WHAT AI KNOWS FROM THIS DOMAIN</div>
-                              <div className="space-y-1.5">
-                                {pd.whatAIKnows.map((item) => (
-                                  <div key={item} className="flex items-start gap-2">
-                                    <Eye size={11} className="text-[oklch(0.65_0.22_200)] mt-0.5 shrink-0" />
-                                    <p className="text-xs text-muted-foreground leading-snug">{item}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="glass rounded-lg p-3 border border-[oklch(0.72_0.18_150_/_0.2)]">
-                              <div className="text-xs font-semibold text-[oklch(0.72_0.18_150)] mb-1">YOUR BEST ACTION</div>
-                              <p className="text-xs text-muted-foreground leading-relaxed">{pd.action}</p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
-              </div>
-              <SegmentFooter accentColor="oklch(0.65_0.22_200)"
-                topics={["How to do an app permissions audit on iOS and Android", "What data brokers know about you and how to remove your listing", "What 'informed consent' actually means in privacy law", "How end-to-end encryption works and when it protects you"]} />
-            </div>
-
-            {/* Privacy Advisor */}
-            <div className="glass rounded-2xl p-5 border border-[oklch(0.65_0.22_200_/_0.2)]" style={{ borderLeft: "3px solid oklch(0.78_0.16_30)" }}>
-              <SectionBadge type="Try It" color="oklch(0.78_0.16_30)" />
-              <div className="text-xs font-semibold text-[oklch(0.78_0.16_30)] mb-1">PRIVACY ADVISOR</div>
-              <p className="text-xs text-muted-foreground mb-3">Ask any question about AI data collection, privacy settings, or data rights. The AI will explain clearly and tell you what concrete action to take.</p>
-              <textarea value={privacyQuery} onChange={(e) => setPrivacyQuery(e.target.value)}
-                placeholder="e.g., 'Can my health insurance company access data from my fitness app?' or 'How do I find out what Google knows about me?'"
-                rows={2} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] resize-none mb-3" />
-              <motion.button onClick={() => {
-                if (!privacyQuery.trim()) { toast.error("Ask a privacy question first."); return; }
-                setPrivacyLoading(true); setPrivacyResult("");
-                privacyMutation.mutate({ concept: `Answer this privacy and AI data question clearly and practically: "${privacyQuery}". Include: (1) What is actually happening with data in this scenario. (2) What rights or protections the person has. (3) The single most effective action they can take right now. Be specific, practical, and avoid alarming tone — the goal is informed agency, not fear.`, level: "student" });
-              }} disabled={privacyLoading || !privacyQuery.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
-                style={{ background: "oklch(0.65_0.22_200)" }}>
-                {privacyLoading ? <><RefreshCw size={13} className="animate-spin" /> Researching…</> : <><Fingerprint size={13} /> Ask Privacy Advisor</>}
-              </motion.button>
-              <AnimatePresence>
-                {privacyResult && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-4 rounded-xl bg-[oklch(0.65_0.22_200_/_0.08)] border border-[oklch(0.65_0.22_200_/_0.25)]">
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{privacyResult}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
-              <QuizBlock questions={M3_QUIZ_L14} accentColor="oklch(0.65_0.22_200)" />
-            </div>
-          </div>
-        </M3Shell>
-      )}
-
-      {/* ── Lesson 15: Personal AI Audit Capstone ── */}
-      {activeLesson === 15 && (
-        <M3Shell key={15} id={15}>
-          <div className="space-y-5">
-            {completedLessons.size < 4 && (
-              <div className="glass rounded-xl p-5 border border-[oklch(0.72_0.18_150_/_0.3)]">
-                <div className="flex items-start gap-3">
-                  <Lock size={16} className="text-[oklch(0.72_0.18_150)] mt-0.5 shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">Complete Earlier Lessons First</h4>
-                    <p className="text-sm text-muted-foreground">Complete {4 - completedLessons.size} more lesson{completedLessons.size < 3 ? "s" : ""} to unlock the capstone.</p>
-                    <div className="flex gap-1 mt-2">
-                      {([11, 12, 13, 14] as M3LessonId[]).map((id) => (
-                        <div key={id} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${ completedLessons.has(id) ? "bg-[oklch(0.72_0.18_150_/_0.2)] border-[oklch(0.72_0.18_150_/_0.4)] text-[oklch(0.72_0.18_150)]" : "glass border-white/10 text-muted-foreground" }`}>
-                          {completedLessons.has(id) ? <Check size={12} /> : id - 10}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="glass rounded-2xl p-6 border border-white/8" style={{ borderLeft: "3px solid oklch(0.72_0.18_150)" }}>
-              <SectionBadge type="Capstone" color="oklch(0.72_0.18_150)" />
-              <Narrator text="This capstone is your personal AI audit — a structured self-assessment across the four domains of this module. There are no wrong answers. The goal is honest self-knowledge: where is AI serving you well, where are you exposed, and what one thing will you change this week?" />
-            </div>
-
-            {/* Domain self-assessment */}
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <div className="text-sm font-semibold text-foreground mb-1">Step 1 — Self-Assessment Checklist</div>
-              <p className="text-xs text-muted-foreground mb-4">Check off each statement you genuinely agree with after completing this module. Be honest — the gaps are where your growth is.</p>
-              <div className="space-y-4">
-                {M3_CAPSTONE_AUDIT.map((domain) => (
-                  <div key={domain.domain} className="glass rounded-xl p-4 border border-white/8" style={{ borderLeft: `3px solid ${domain.color}` }}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span style={{ color: domain.color }}>{domain.icon}</span>
-                      <span className="text-sm font-semibold text-foreground">{domain.domain}</span>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {domain.questions.filter((q) => auditChecks[q.id]).length}/{domain.questions.length}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {domain.questions.map((q) => (
-                        <label key={q.id} className="flex items-start gap-3 cursor-pointer group">
-                          <div onClick={() => setAuditChecks((prev) => ({ ...prev, [q.id]: !prev[q.id] }))}
-                            className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${ auditChecks[q.id] ? "border-none" : "border-white/20 group-hover:border-white/40" }`}
-                            style={auditChecks[q.id] ? { background: domain.color } : {}}>
-                            {auditChecks[q.id] && <Check size={11} className="text-white" />}
-                          </div>
-                          <span className={`text-xs leading-snug ${ auditChecks[q.id] ? "text-foreground" : "text-muted-foreground" }`}>{q.text}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full bg-white/8">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${(Object.values(auditChecks).filter(Boolean).length / 12) * 100}%`, background: "linear-gradient(to right, oklch(0.68_0.22_20), oklch(0.72_0.18_150))" }} />
-                </div>
-                <span className="text-xs font-medium text-foreground">{Object.values(auditChecks).filter(Boolean).length}/12</span>
-              </div>
-            </div>
-
-            {/* Reflection */}
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <div className="text-sm font-semibold text-foreground mb-1">Step 2 — Gaps & Reflections</div>
-              <p className="text-xs text-muted-foreground mb-3">Look at the items you didn't check. Pick the one gap that concerns you most and write 2-3 sentences about why it matters to you specifically — and what you'd need to address it.</p>
-              <textarea value={auditReflection} onChange={(e) => setAuditReflection(e.target.value)}
-                placeholder="e.g., The item I'm most concerned about is privacy — specifically my health apps. I use 3 different fitness/period tracking apps and I've never read their privacy policies. The risk that concerns me is insurance companies accessing this data. To address it I'd need to spend 30 minutes reading those policies and either accepting the terms with full knowledge or switching to a privacy-focused alternative..."
-                rows={5} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
-              {!auditSaved
-                ? <button onClick={() => {
-                    if (!auditReflection.trim()) { toast.error("Write your reflection first."); return; }
-                    setAuditSaved(true); addXP(15); toast.success("+15 XP — reflection saved!");
-                  }} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
-                    <Check size={13} /> Save Reflection (+15 XP)
-                  </button>
-                : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Saved — +15 XP</p>
-              }
-            </div>
-
-            {/* Priority action */}
-            <div className="glass rounded-2xl p-5 border border-white/8">
-              <div className="text-sm font-semibold text-foreground mb-1">Step 3 — Your One Action This Week</div>
-              <p className="text-xs text-muted-foreground mb-3">Name a single, specific, doable action you will take in the next 7 days as a result of this module. The smaller and more specific, the more likely it is to actually happen.</p>
-              <textarea value={priorityAction} onChange={(e) => setPriorityAction(e.target.value)}
-                placeholder="e.g., I will spend 20 minutes on Saturday reviewing app permissions on my phone and revoking microphone/location access from any app I haven't used in 3 months."
-                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] resize-none" />
-              {!prioritySaved
-                ? <button onClick={() => {
-                    if (!priorityAction.trim()) { toast.error("Write your action first."); return; }
-                    setPrioritySaved(true); addXP(10); toast.success("+10 XP — action committed!");
-                  }} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.2)] border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.82_0.18_150)]">
-                    <Check size={13} /> Commit to This Action (+10 XP)
-                  </button>
-                : <p className="mt-3 text-xs text-[oklch(0.72_0.18_150)] flex items-center gap-1"><CheckCircle2 size={11} /> Committed — +10 XP</p>
-              }
-            </div>
-
-            {/* Submit */}
-            {!auditDone && (
-              <motion.button
-                onClick={() => {
-                  const checks = Object.values(auditChecks).filter(Boolean).length;
-                  if (checks < 6) { toast.error(`Complete at least 6 self-assessment items (${checks}/6 done).`); return; }
-                  if (!auditSaved) { toast.error("Save your reflection first."); return; }
-                  if (!prioritySaved) { toast.error("Commit to your action first."); return; }
-                  setAuditDone(true); handleM3Complete(15);
-                }}
-                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-black"
-                style={{ background: "linear-gradient(to right, oklch(0.72_0.18_150), oklch(0.65_0.22_200))" }}>
-                <Trophy size={15} /> Complete Module 3 Audit
-              </motion.button>
-            )}
-
-            {/* Completion certificate */}
-            <AnimatePresence>
-              {auditDone && (
-                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
-                  className="glass rounded-2xl p-8 border border-[oklch(0.72_0.18_150_/_0.4)] text-center"
-                  style={{ background: "linear-gradient(135deg, oklch(0.72_0.18_150_/_0.05), oklch(0.65_0.22_200_/_0.05))" }}>
-                  <Award size={44} className="mx-auto mb-3" style={{ color: "oklch(0.72_0.18_150)" }} />
-                  <h3 className="text-xl font-bold text-foreground mb-2">AI Literacy — Module 3 Complete</h3>
-                  <p className="text-sm text-muted-foreground mb-5 leading-relaxed max-w-md mx-auto">You've completed "AI in Your Everyday Life." You now understand how AI intersects with your health decisions, financial security, creative practice, and personal privacy — and you have a concrete action committed for this week.</p>
-                  <div className="flex justify-center gap-2 flex-wrap">
-                    {[
-                      { label: "Health AI Literate", color: "oklch(0.68_0.22_20)" },
-                      { label: "Scam Resistant", color: "oklch(0.75_0.18_55)" },
-                      { label: "AI Creative", color: "oklch(0.72_0.2_290)" },
-                      { label: "Privacy Aware", color: "oklch(0.65_0.22_200)" },
-                      { label: "Module 3 Certified", color: "oklch(0.72_0.18_150)" },
-                    ].map(({ label, color }) => (
-                      <span key={label} className="px-3 py-1.5 rounded-full text-xs font-semibold border"
-                        style={{ color, borderColor: color, background: `oklch(from ${color} l c h / 0.1)` }}>
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </M3Shell>
-      )}
-    </AnimatePresence>
-  );
-
-  // ── Module 3 lesson grid ──
-  return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="glass rounded-2xl p-5 border border-white/8 mb-5">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.3)]">Module 3</span>
-              <span className="px-2.5 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-muted-foreground">Intermediate · ~2 hrs · 380 XP</span>
-            </div>
-            <h3 className="text-lg font-bold text-foreground">AI in Your Everyday Life</h3>
-            <p className="text-sm text-muted-foreground">Health, money, creativity, privacy — where AI touches you most personally</p>
-          </div>
-          {completedLessons.size > 0 && <span className="text-sm font-bold shrink-0" style={{ color: "oklch(0.72_0.18_150)" }}>{overallPct}%</span>}
-        </div>
-        {completedLessons.size > 0 && (
-          <div className="w-full h-1.5 rounded-full bg-white/8">
-            <div className="h-full rounded-full transition-all" style={{ width: `${overallPct}%`, background: "linear-gradient(to right, oklch(0.68_0.22_20), oklch(0.72_0.18_150))" }} />
-          </div>
-        )}
-      </div>
-      <div className="space-y-2">
-        {M3_LESSON_META.map((lesson, i) => {
-          const done = completedLessons.has(lesson.id);
-          const locked = i > 0 && !completedLessons.has(M3_LESSON_META[i - 1].id);
-          return (
-            <motion.button key={lesson.id} onClick={() => !locked && setActiveLesson(lesson.id)}
-              whileHover={!locked ? { scale: 1.005, x: 4 } : {}}
-              className={`w-full glass rounded-2xl p-5 border text-left transition-all ${ done ? "border-[oklch(0.72_0.18_150_/_0.3)]" : locked ? "border-white/5 opacity-50 cursor-not-allowed" : "border-white/8 hover:border-white/20" }`}>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm"
-                  style={{ background: done ? `color-mix(in oklch, ${lesson.color} 20%, transparent)` : "oklch(1_0_0_/_0.04)", border: `1px solid color-mix(in oklch, ${lesson.color} ${done ? "40" : "20"}%, transparent)`, color: done ? lesson.color : "oklch(0.7_0_0)" }}>
-                  {done ? <CheckCircle2 size={18} /> : locked ? <Lock size={14} /> : lesson.id - 10}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-foreground text-sm">{lesson.title}</div>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug truncate">{lesson.subtitle}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock size={10} /> {lesson.duration}</span>
-                  <span className="text-xs flex items-center gap-1" style={{ color: lesson.color }}><Zap size={10} /> +{lesson.xp}</span>
-                  {!locked && <ChevronRight size={13} className="text-muted-foreground" />}
-                </div>
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
     </motion.div>
   );
 }
