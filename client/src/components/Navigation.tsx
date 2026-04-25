@@ -2,502 +2,422 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu,
-  X,
-  Zap,
-  ChevronDown,
-  Brain,
-  Network,
-  Settings2,
-  Target,
-  BarChart3,
-  Trophy,
-  BookOpen,
-  Search,
-  Flame,
-  GraduationCap,
-  TrendingUp,
-  User,
-  BookMarked,
-  Layers,
-  ShieldCheck,
-  MonitorCog,
-  LogOut,
-  PenSquare,
-  Sun,
-  Moon,
-  Sparkles,
+  Menu, X, Zap, Brain, Settings2, Target, BarChart3, Trophy,
+  BookOpen, Search, Flame, GraduationCap, TrendingUp, User,
+  BookMarked, Layers, LogOut, PenSquare, Sun, Moon, Sparkles,
+  FlaskConical, Network, Code2, ChevronRight, MessageSquare,
+  Lightbulb, Home, Library, Map,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
-const navLinks = [
-  { href: "/app", label: "Home" },
-  { href: "/learn", label: "Learn" },
-  { href: "/research", label: "Research" },
-  { href: "/depth", label: "Depth" },
-  { href: "/library", label: "Library" },
-  { href: "/lab", label: "Lab" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+// ─── Navigation structure: 4 clear sections ──────────────────────────────────
+const NAV_SECTIONS = [
+  {
+    label: "Learn",
+    href: "/learn",
+    items: [
+      { href: "/learn", label: "Learning Paths", icon: GraduationCap, desc: "AI Mastery, Critical Thinking, and more" },
+      { href: "/depth", label: "Depth Engine", icon: Layers, desc: "Any concept explained at 5 levels of depth" },
+      { href: "/study-buddy", label: "Study Buddy", icon: MessageSquare, desc: "AI tutoring on demand" },
+      { href: "/ai-by-ai", label: "AI by AI", icon: Sparkles, desc: "A course about AI, written by AI" },
+    ],
+  },
+  {
+    label: "Practice",
+    href: "/testing",
+    items: [
+      { href: "/testing", label: "Testing Center", icon: Target, desc: "Assess and measure your knowledge" },
+      { href: "/flashcards", label: "Flashcards", icon: BookOpen, desc: "Spaced repetition system" },
+      { href: "/daily", label: "Daily Challenge", icon: Flame, desc: "5-question challenge, fresh every day" },
+      { href: "/mindmap", label: "Mind Maps", icon: Network, desc: "Visual concept mapping tool" },
+      { href: "/lab", label: "The Lab", icon: Code2, desc: "Interactive coding challenges" },
+    ],
+  },
+  {
+    label: "Explore",
+    href: "/research",
+    items: [
+      { href: "/research", label: "Research Forge", icon: FlaskConical, desc: "Document intelligence & summarization" },
+      { href: "/library", label: "Knowledge Library", icon: Library, desc: "Curated resources with AI context" },
+      { href: "/about", label: "About Nexus", icon: Map, desc: "What this platform is and why it exists" },
+      { href: "/contact", label: "Contact", icon: MessageSquare, desc: "Get in touch" },
+    ],
+  },
+  {
+    label: "My Nexus",
+    href: "/dashboard",
+    items: [
+      { href: "/dashboard", label: "My Progress", icon: BarChart3, desc: "XP, streaks, and performance trends" },
+      { href: "/progress", label: "Stats", icon: TrendingUp, desc: "Detailed learning statistics" },
+      { href: "/skills", label: "Skill Tree", icon: Layers, desc: "Your knowledge mastery map" },
+      { href: "/leaderboard", label: "Leaderboard", icon: Trophy, desc: "Global XP rankings" },
+      { href: "/reading-list", label: "Reading List", icon: BookMarked, desc: "Saved resources" },
+      { href: "/profile", label: "Profile", icon: User, desc: "Account and preferences" },
+      { href: "/settings", label: "AI Settings", icon: Settings2, desc: "Provider & API keys" },
+    ],
+  },
 ];
 
-const toolsLinks = [
-  {
-    href: "/flashcards",
-    label: "Flashcards",
-    Icon: Brain,
-    desc: "Spaced repetition",
-  },
-  {
-    href: "/mindmap",
-    label: "Mind Maps",
-    Icon: Network,
-    desc: "Visual concept maps",
-  },
-  {
-    href: "/settings",
-    label: "AI Settings",
-    Icon: Settings2,
-    desc: "Provider & API keys",
-  },
-  {
-    href: "/testing",
-    label: "Testing Center",
-    Icon: Target,
-    desc: "Assess your knowledge",
-  },
-  {
-    href: "/dashboard",
-    label: "My Progress",
-    Icon: BarChart3,
-    desc: "Track your learning",
-  },
-  {
-    href: "/leaderboard",
-    label: "Leaderboard",
-    Icon: Trophy,
-    desc: "Global XP rankings",
-  },
-  {
-    href: "/study-buddy",
-    label: "Study Buddy",
-    Icon: BookOpen,
-    desc: "AI-powered tutoring",
-  },
-  {
-    href: "/daily",
-    label: "Daily Challenge",
-    Icon: Flame,
-    desc: "Today's AI challenge",
-  },
-  {
-    href: "/ai-literacy",
-    label: "AI Literacy Course",
-    Icon: GraduationCap,
-    desc: "Module 1 - Intro to AI",
-  },
-  {
-    href: "/ai-by-ai",
-    label: "AI by AI",
-    Icon: Sparkles,
-    desc: "A course about AI, written by AI",
-  },
-  {
-    href: "/learn/my-profile",
-    label: "My Learner Profile",
-    Icon: User,
-    desc: "How adaptive lessons are tuned for you",
-  },
-  {
-    href: "/progress",
-    label: "Progress",
-    Icon: TrendingUp,
-    desc: "Your learning stats",
-  },
-  {
-    href: "/reading-list",
-    label: "Reading List",
-    Icon: BookMarked,
-    desc: "Saved resources",
-  },
-  {
-    href: "/skills",
-    label: "Skill Tree",
-    Icon: Layers,
-    desc: "Your skill mastery",
-  },
-  {
-    href: "/profile",
-    label: "Profile",
-    Icon: User,
-    desc: "Your account & preferences",
-  },
-  {
-    href: "/admin",
-    label: "Web Admin Lite",
-    Icon: ShieldCheck,
-    desc: "Operations and publishing controls",
-  },
-  {
-    href: "/studio",
-    label: "Desktop Studio",
-    Icon: MonitorCog,
-    desc: "Draft sync and conflict workspace",
-  },
+// Mobile bottom tab bar (5 tabs)
+const MOBILE_TABS = [
+  { href: "/app", label: "Home", icon: Home },
+  { href: "/learn", label: "Learn", icon: GraduationCap },
+  { href: "/testing", label: "Practice", icon: Target },
+  { href: "/research", label: "Explore", icon: FlaskConical },
+  { href: "/dashboard", label: "My Nexus", icon: User },
 ];
 
 export default function Navigation() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
   const { profile } = usePersonalization();
   const { user, isGuest, logout } = useAuth();
   const { isEditMode, toggleEditMode } = useEditMode();
   const { theme, toggleTheme, switchable } = useTheme();
-  const toolsRef = useRef<HTMLDivElement>(null);
   const canEdit = user?.role === "admin";
   const isDarkTheme = theme === "dark";
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    setMobileOpen(false);
-    setToolsOpen(false);
-  }, [location]);
+  useEffect(() => { setOpenSection(null); setMobileMenuOpen(false); }, [location]);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
-        setToolsOpen(false);
-      }
+    const onClick = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenSection(null);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const isToolsActive = toolsLinks.some(t => location === t.href);
+  const activeSectionLabel = NAV_SECTIONS.find(section =>
+    location === section.href || section.items.some(item => location.startsWith(item.href) && item.href.length > 1)
+  )?.label ?? null;
 
   return (
     <>
+      {/* ── Top nav bar ────────────────────────────────────────────────────── */}
       <motion.nav
-        initial={{ y: -80, opacity: 0 }}
+        ref={navRef}
+        initial={{ y: -56, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
-          scrolled
-            ? "glass-strong border-b border-white/5 shadow-2xl shadow-black/50"
-            : "bg-transparent"
-        }`}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed top-0 left-0 right-0 z-40 transition-all duration-300"
+        style={{
+          height: "56px",
+          background: scrolled ? "oklch(0.09 0.010 255 / 0.96)" : "transparent",
+          borderBottom: scrolled ? "1px solid oklch(0.20 0.016 255)" : "1px solid transparent",
+          boxShadow: scrolled ? "0 1px 24px oklch(0 0 0 / 0.22)" : "none",
+          backdropFilter: scrolled ? "blur(24px) saturate(160%)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(24px) saturate(160%)" : "none",
+        }}
       >
-        <div className="container flex items-center justify-between h-16">
+        <div className="section-container flex items-center justify-between h-full">
           {/* Logo */}
-          <Link href="/">
-            <motion.div
-              className="flex items-center gap-2 cursor-pointer group"
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="relative w-8 h-8">
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] opacity-80 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute inset-0 rounded-lg flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">N</span>
-                </div>
+          <Link href="/app">
+            <motion.div className="flex items-center gap-2 cursor-pointer" whileHover={{ opacity: 0.82 }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: "oklch(0.78 0.16 52)" }}>
+                <span style={{ color: "oklch(0.09 0.010 255)", fontWeight: 700, fontSize: "13px", lineHeight: 1 }}>N</span>
               </div>
-              <span className="font-bold text-lg tracking-tight text-gradient-gold">
-                Nexus
+              <span className="font-semibold text-[0.9375rem] tracking-tight text-foreground">
+                Nex<span style={{ color: "oklch(0.78 0.16 52)" }}>us</span>
               </span>
             </motion.div>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map(link => {
-              const isActive = location === link.href;
+          {/* Desktop nav sections */}
+          <div className="hidden md:flex items-center">
+            {NAV_SECTIONS.map(section => {
+              const isActive = activeSectionLabel === section.label;
+              const isOpen = openSection === section.label;
               return (
-                <Link key={link.href} href={link.href}>
-                  <motion.div
-                    className={`relative px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-                      isActive
-                        ? "text-[oklch(0.85_0.18_55)]"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <div key={section.label} className="relative">
+                  <button
+                    onClick={() => setOpenSection(isOpen ? null : section.label)}
+                    onMouseEnter={() => setOpenSection(section.label)}
+                    className="relative flex items-center px-3.5 text-sm font-medium transition-colors duration-150"
+                    style={{
+                      height: "56px",
+                      color: isActive ? "oklch(0.92 0.008 255)" : "oklch(0.55 0.010 255)",
+                    }}
+                    onMouseLeave={(e) => {
+                      // Only close if not hovering the dropdown
+                      const related = e.relatedTarget as Node;
+                      if (!navRef.current?.contains(related)) setOpenSection(null);
+                    }}
                   >
+                    {section.label}
+                    {/* Active bottom indicator */}
                     {isActive && (
-                      <motion.div
-                        layoutId="nav-active"
-                        className="absolute inset-0 rounded-lg bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)]"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.4,
-                        }}
+                      <motion.span
+                        layoutId="nav-indicator"
+                        className="absolute bottom-0 left-2 right-2 rounded-t-sm"
+                        style={{ height: "2px", background: "oklch(0.78 0.16 52)" }}
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
                       />
                     )}
-                    <span className="relative z-10">{link.label}</span>
-                  </motion.div>
-                </Link>
+                  </button>
+
+                  {/* Mega menu panel */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.985 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.985 }}
+                        transition={{ duration: 0.14, ease: "easeOut" }}
+                        onMouseEnter={() => setOpenSection(section.label)}
+                        onMouseLeave={() => setOpenSection(null)}
+                        className="absolute top-full left-0 mt-0.5 w-72 rounded-xl overflow-hidden z-50"
+                        style={{
+                          background: "oklch(0.12 0.012 255)",
+                          border: "1px solid oklch(0.22 0.016 255)",
+                          boxShadow: "0 16px 48px oklch(0 0 0 / 0.42), 0 0 0 1px oklch(0.14 0.012 255)",
+                        }}
+                      >
+                        <div className="p-1.5">
+                          {section.items.map(item => {
+                            const Icon = item.icon;
+                            const itemActive = location === item.href;
+                            return (
+                              <Link key={item.href} href={item.href}>
+                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
+                                  style={{ background: itemActive ? "oklch(0.78 0.16 52 / 0.10)" : "transparent" }}
+                                  onMouseEnter={e => { if (!itemActive) (e.currentTarget as HTMLElement).style.background = "oklch(0.16 0.014 255)"; }}
+                                  onMouseLeave={e => { if (!itemActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                    style={{ background: itemActive ? "oklch(0.78 0.16 52 / 0.18)" : "oklch(0.16 0.014 255)" }}>
+                                    <Icon size={13} style={{ color: itemActive ? "oklch(0.88 0.16 52)" : "oklch(0.52 0.010 255)" }} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium" style={{ color: itemActive ? "oklch(0.88 0.16 52)" : "oklch(0.88 0.008 255)" }}>{item.label}</p>
+                                    <p className="text-xs truncate" style={{ color: "oklch(0.46 0.010 255)" }}>{item.desc}</p>
+                                  </div>
+                                  {itemActive && <ChevronRight size={12} style={{ color: "oklch(0.78 0.16 52)" }} className="shrink-0" />}
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               );
             })}
-
-            {/* Tools dropdown */}
-            <div ref={toolsRef} className="relative">
-              <motion.button
-                onClick={() => setToolsOpen(o => !o)}
-                className={`flex items-center gap-1 relative px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-                  isToolsActive
-                    ? "text-[oklch(0.85_0.18_55)]"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isToolsActive && (
-                  <motion.div
-                    layoutId="nav-active"
-                    className="absolute inset-0 rounded-lg bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)]"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                  />
-                )}
-                <span className="relative z-10">Tools</span>
-                <motion.div
-                  animate={{ rotate: toolsOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="relative z-10"
-                >
-                  <ChevronDown size={14} />
-                </motion.div>
-              </motion.button>
-
-              <AnimatePresence>
-                {toolsOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-full right-0 mt-2 w-52 glass-strong rounded-xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
-                  >
-                    {toolsLinks.map(({ href, label, Icon, desc }) => {
-                      const isActive = location === href;
-                      return (
-                        <Link key={href} href={href}>
-                          <div
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer ${isActive ? "bg-[oklch(0.75_0.18_55_/_0.12)]" : "hover:bg-white/5"}`}
-                          >
-                            <div className="p-1.5 rounded-lg bg-violet-500/10">
-                              <Icon size={14} className="text-violet-400" />
-                            </div>
-                            <div>
-                              <p
-                                className={`text-sm font-medium ${isActive ? "text-[oklch(0.85_0.18_55)]" : "text-foreground"}`}
-                              >
-                                {label}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {desc}
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
 
-          {/* Ctrl/Cmd+K search button */}
-          <div className="hidden md:flex items-center gap-2">
-            {switchable && (
-              <button
-                onClick={toggleTheme}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/70 bg-card/80 text-xs text-muted-foreground hover:text-foreground hover:border-ring/40 hover:bg-card transition-colors"
-                aria-label={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
-                title={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
-              >
-                {isDarkTheme ? <Sun size={12} /> : <Moon size={12} />}
-                <span>{isDarkTheme ? "Light" : "Dark"} Mode</span>
-              </button>
-            )}
-
-            {canEdit && (
-              <button
-                onClick={toggleEditMode}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-all ${
-                  isEditMode
-                    ? "border-[oklch(0.75_0.18_55_/_0.45)] bg-[oklch(0.75_0.18_55_/_0.18)] text-[oklch(0.85_0.18_55)]"
-                    : "bg-white/5 border-white/8 text-muted-foreground hover:bg-white/8 hover:text-foreground"
-                }`}
-              >
-                <PenSquare size={12} />
-                {isEditMode ? "Editing" : "Edit Mode"}
-              </button>
-            )}
-
+          {/* Right side controls */}
+          <div className="flex items-center gap-1">
+            {/* Search */}
             <button
-              onClick={() => {
-                const event = new KeyboardEvent("keydown", {
-                  key: "k",
-                  metaKey: true,
-                  ctrlKey: true,
-                  bubbles: true,
-                });
-                window.dispatchEvent(event);
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-xs text-muted-foreground hover:bg-white/8 hover:text-foreground transition-all group"
+              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true, bubbles: true }))}
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all"
+              style={{ color: "oklch(0.46 0.010 255)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.88 0.008 255)"; (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.46 0.010 255)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
             >
-              <Search size={12} />
-              <span>Search</span>
-              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/8 text-[10px] font-mono group-hover:bg-white/12 transition-colors">
-                Ctrl/Cmd+K
+              <Search size={13} />
+              <span className="hidden lg:inline">Search</span>
+              <kbd className="hidden lg:flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono"
+                style={{ background: "oklch(0.16 0.014 255)", border: "1px solid oklch(0.22 0.016 255)", color: "oklch(0.46 0.010 255)" }}>
+                ⌘K
               </kbd>
             </button>
-          </div>
 
-          {/* XP indicator + user info + mobile menu */}
-          <div className="flex items-center gap-3">
+            {/* XP pill */}
             {profile.xp > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-[oklch(0.75_0.18_55_/_0.2)] text-xs"
-              >
-                <Zap size={11} className="text-[oklch(0.75_0.18_55)]" />
-                <span className="text-[oklch(0.75_0.18_55)] font-semibold">
-                  {profile.xp} XP
-                </span>
-                <span className="text-muted-foreground">/</span>
-                <span className="text-muted-foreground">
-                  Lv.{profile.level}
-                </span>
-              </motion.div>
+              <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs"
+                style={{ border: "1px solid oklch(0.78 0.16 52 / 0.25)", background: "oklch(0.78 0.16 52 / 0.08)" }}>
+                <Zap size={10} style={{ color: "oklch(0.78 0.16 52)" }} />
+                <span style={{ color: "oklch(0.88 0.16 52)" }} className="font-semibold">{profile.xp}</span>
+                <span style={{ color: "oklch(0.46 0.010 255)" }}>xp</span>
+              </div>
             )}
 
-            {/* User avatar / guest indicator */}
+            {/* Theme toggle */}
+            {switchable && (
+              <button onClick={toggleTheme} aria-label="Toggle theme"
+                className="p-2 rounded-lg transition-all"
+                style={{ color: "oklch(0.46 0.010 255)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.88 0.008 255)"; (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.46 0.010 255)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                {isDarkTheme ? <Sun size={14} /> : <Moon size={14} />}
+              </button>
+            )}
+
+            {/* Edit mode (admin) */}
+            {canEdit && (
+              <button onClick={toggleEditMode}
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all"
+                style={isEditMode
+                  ? { background: "oklch(0.78 0.16 52 / 0.14)", color: "oklch(0.88 0.16 52)", border: "1px solid oklch(0.78 0.16 52 / 0.35)" }
+                  : { color: "oklch(0.46 0.010 255)", border: "1px solid transparent" }
+                }
+                onMouseEnter={e => { if (!isEditMode) (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"; }}
+                onMouseLeave={e => { if (!isEditMode) (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                <PenSquare size={12} />{isEditMode ? "Editing" : "Edit"}
+              </button>
+            )}
+
+            {/* User */}
             {user ? (
-              <div className="hidden sm:flex items-center gap-2">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
-                >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name ?? ""}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-[oklch(0.75_0.18_55_/_0.2)] flex items-center justify-center">
-                      <User size={12} className="text-[oklch(0.75_0.18_55)]" />
-                    </div>
-                  )}
-                  <span className="text-xs text-foreground font-medium max-w-[80px] truncate">
-                    {user.name ?? user.email}
-                  </span>
+              <div className="hidden sm:flex items-center gap-0.5">
+                <Link href="/profile">
+                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors"
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.name ?? ""} className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0"
+                        style={{ background: "oklch(0.78 0.16 52 / 0.18)", color: "oklch(0.78 0.16 52)" }}>
+                        {(user.name ?? user.email ?? "U")[0].toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium max-w-[72px] truncate hidden lg:block" style={{ color: "oklch(0.78 0.008 255)" }}>
+                      {user.name ?? user.email}
+                    </span>
+                  </div>
                 </Link>
-                <button
-                  onClick={logout}
-                  className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
-                  title="Sign out"
-                >
-                  <LogOut size={14} />
+                <button onClick={logout} title="Sign out"
+                  className="p-1.5 rounded-lg transition-all"
+                  style={{ color: "oklch(0.46 0.010 255)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.88 0.008 255)"; (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.46 0.010 255)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                  <LogOut size={13} />
                 </button>
               </div>
             ) : isGuest ? (
-              <Link
-                href="/register"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-muted-foreground hover:text-foreground hover:border-white/20 transition-colors"
-              >
-                <User size={12} />
-                Sign Up
+              <Link href="/register">
+                <div className="hidden sm:flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                  style={{ background: "oklch(0.78 0.16 52)", color: "oklch(0.09 0.010 255)" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "oklch(0.82 0.16 52)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.16 52)"}>
+                  Sign Up
+                </div>
               </Link>
             ) : null}
 
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
-            >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            {/* Mobile hamburger (for full menu — bottom tabs handle primary nav) */}
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg transition-all"
+              style={{ color: "oklch(0.46 0.010 255)" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* Mobile menu */}
+      {/* ── Mobile full-screen menu ───────────────────────────────────────── */}
       <AnimatePresence>
-        {mobileOpen && (
+        {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-16 left-0 right-0 z-30 glass-strong border-b border-white/5 md:hidden"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-x-0 top-14 z-30 md:hidden overflow-y-auto"
+            style={{
+              maxHeight: "calc(100vh - 56px - 60px)",
+              background: "oklch(0.09 0.010 255 / 0.98)",
+              borderBottom: "1px solid oklch(0.20 0.016 255)",
+              backdropFilter: "blur(24px)",
+            }}
           >
-            <div className="container py-4 flex flex-col gap-1">
-              {navLinks.map(link => {
-                const isActive = location === link.href;
-                return (
-                  <Link key={link.href} href={link.href}>
-                    <div
-                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        isActive
-                          ? "bg-[oklch(0.75_0.18_55_/_0.12)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.2)]"
-                          : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                      }`}
-                    >
-                      {link.label}
-                    </div>
-                  </Link>
-                );
-              })}
-              <div className="border-t border-white/5 mt-2 pt-2">
-                <p className="text-xs text-muted-foreground px-4 py-1 uppercase tracking-widest">
-                  Tools
-                </p>
-                {toolsLinks.map(({ href, label, Icon, desc }) => {
-                  const isActive = location === href;
-                  return (
-                    <Link key={href} href={href}>
-                      <div
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? "bg-[oklch(0.75_0.18_55_/_0.12)] text-[oklch(0.85_0.18_55)]" : "text-muted-foreground hover:text-foreground hover:bg-white/5"}`}
-                      >
-                        <Icon size={16} className="text-violet-400" />
-                        <div>
-                          <p className="text-sm font-medium">{label}</p>
-                          <p className="text-xs opacity-60">{desc}</p>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+            <div className="p-4 space-y-4">
+              {NAV_SECTIONS.map(section => (
+                <div key={section.label}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] px-2 mb-2"
+                    style={{ color: "oklch(0.38 0.010 255)" }}>
+                    {section.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {section.items.map(item => {
+                      const Icon = item.icon;
+                      const isActive = location === item.href;
+                      return (
+                        <Link key={item.href} href={item.href}>
+                          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors"
+                            style={{
+                              background: isActive ? "oklch(0.78 0.16 52 / 0.10)" : "transparent",
+                              color: isActive ? "oklch(0.88 0.16 52)" : "oklch(0.62 0.010 255)",
+                            }}>
+                            <Icon size={15} />
+                            <div>
+                              <p className="text-sm font-medium">{item.label}</p>
+                              <p className="text-xs" style={{ color: "oklch(0.42 0.010 255)" }}>{item.desc}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Bottom controls in mobile menu */}
+              <div className="pt-2 border-t" style={{ borderColor: "oklch(0.18 0.014 255)" }}>
+                {switchable && (
+                  <button onClick={toggleTheme}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors"
+                    style={{ color: "oklch(0.58 0.010 255)" }}>
+                    {isDarkTheme ? <Sun size={15} /> : <Moon size={15} />}
+                    {isDarkTheme ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                  </button>
+                )}
+                {user && (
+                  <button onClick={logout}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors"
+                    style={{ color: "oklch(0.58 0.010 255)" }}>
+                    <LogOut size={15} />Sign Out
+                  </button>
+                )}
               </div>
             </div>
-
-            {switchable && (
-              <button
-                onClick={toggleTheme}
-                className="mt-3 w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border/70 bg-card/70 text-sm text-foreground hover:bg-card transition-colors"
-                aria-label={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
-              >
-                <span className="flex items-center gap-2">
-                  {isDarkTheme ? <Sun size={15} /> : <Moon size={15} />}
-                  {isDarkTheme ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                </span>
-              </button>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Mobile bottom tab bar ─────────────────────────────────────────── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around px-1"
+        style={{
+          height: "60px",
+          background: "oklch(0.10 0.012 255 / 0.98)",
+          borderTop: "1px solid oklch(0.18 0.014 255)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
+      >
+        {MOBILE_TABS.map(tab => {
+          const Icon = tab.icon;
+          const isActive = location === tab.href || (tab.href !== "/app" && location.startsWith(tab.href));
+          return (
+            <Link key={tab.href} href={tab.href}>
+              <div className="flex flex-col items-center gap-0.5 px-3 py-1 cursor-pointer">
+                <Icon size={20} style={{ color: isActive ? "oklch(0.78 0.16 52)" : "oklch(0.42 0.010 255)" }} />
+                <span className="text-[9px] font-semibold tracking-wide"
+                  style={{ color: isActive ? "oklch(0.78 0.16 52)" : "oklch(0.42 0.010 255)" }}>
+                  {tab.label}
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
     </>
   );
 }
