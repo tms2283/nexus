@@ -27,6 +27,7 @@ import {
   Sun,
   Moon,
   Sparkles,
+  Contrast,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,7 +158,7 @@ export default function Navigation() {
   const { profile } = usePersonalization();
   const { user, isGuest, logout } = useAuth();
   const { isEditMode, toggleEditMode } = useEditMode();
-  const { theme, toggleTheme, switchable } = useTheme();
+  const { theme, toggleTheme, switchable, displayMode, toggleDisplayMode } = useTheme();
   const toolsRef = useRef<HTMLDivElement>(null);
   const canEdit = user?.role === "admin";
   const isDarkTheme = theme === "dark";
@@ -318,6 +319,19 @@ export default function Navigation() {
 
           {/* Ctrl/Cmd+K search button */}
           <div className="hidden md:flex items-center gap-2">
+            <button
+              onClick={toggleDisplayMode}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-colors ${
+                displayMode === "focus"
+                  ? "border-[oklch(0.65_0.22_200_/_0.4)] bg-[oklch(0.65_0.22_200_/_0.1)] text-[oklch(0.75_0.2_200)]"
+                  : "border-border/70 bg-card/80 text-muted-foreground hover:text-foreground hover:border-ring/40 hover:bg-card"
+              }`}
+              aria-label={displayMode === "focus" ? "Switch to Glass mode" : "Switch to Focus mode"}
+              title={displayMode === "focus" ? "Glass mode (default)" : "Focus mode (high contrast)"}
+            >
+              <Contrast size={12} />
+              <span>{displayMode === "focus" ? "Glass" : "Focus"}</span>
+            </button>
             {switchable && (
               <button
                 onClick={toggleTheme}
@@ -370,14 +384,11 @@ export default function Navigation() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-[oklch(0.75_0.18_55_/_0.2)] text-xs"
+                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-[10px] opacity-50 hover:opacity-80 transition-opacity"
+                title={`${profile.xp} XP · Level ${profile.level}`}
               >
-                <Zap size={11} className="text-[oklch(0.75_0.18_55)]" />
-                <span className="text-[oklch(0.75_0.18_55)] font-semibold">
-                  {profile.xp} XP
-                </span>
-                <span className="text-muted-foreground">/</span>
-                <span className="text-muted-foreground">
+                <Zap size={9} className="text-[oklch(0.75_0.18_55)]" />
+                <span className="text-muted-foreground font-medium">
                   Lv.{profile.level}
                 </span>
               </motion.div>
@@ -483,10 +494,21 @@ export default function Navigation() {
               </div>
             </div>
 
+            <button
+              onClick={toggleDisplayMode}
+              className={`mt-3 w-full flex items-center gap-2 px-4 py-3 rounded-lg border text-sm transition-colors ${
+                displayMode === "focus"
+                  ? "border-[oklch(0.65_0.22_200_/_0.4)] bg-[oklch(0.65_0.22_200_/_0.1)] text-[oklch(0.75_0.2_200)]"
+                  : "border-border/70 bg-card/70 text-foreground hover:bg-card"
+              }`}
+            >
+              <Contrast size={15} />
+              {displayMode === "focus" ? "Switch to Glass Mode" : "Switch to Focus Mode (high contrast)"}
+            </button>
             {switchable && (
               <button
                 onClick={toggleTheme}
-                className="mt-3 w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border/70 bg-card/70 text-sm text-foreground hover:bg-card transition-colors"
+                className="mt-2 w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border/70 bg-card/70 text-sm text-foreground hover:bg-card transition-colors"
                 aria-label={`Switch to ${isDarkTheme ? "light" : "dark"} mode`}
               >
                 <span className="flex items-center gap-2">

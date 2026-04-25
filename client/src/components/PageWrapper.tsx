@@ -28,6 +28,24 @@ export default function PageWrapper({ children, pageName, className = "" }: Page
     }
   }, [pageName, isLoaded]);
 
+  useEffect(() => {
+    const targets = document.querySelectorAll<HTMLElement>(".reveal:not(.revealed)");
+    if (!targets.length) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+    );
+    targets.forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [pageName]);
+
   return (
     <motion.div
       variants={pageVariants}

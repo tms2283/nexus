@@ -189,7 +189,7 @@ export async function recordPageVisit(cookieId: string, page: string): Promise<{
   const pages = profile.pagesVisited ?? [];
   const isNewPage = !pages.includes(page);
   if (isNewPage) pages.push(page);
-  const xpGain = isNewPage ? 10 : 2;
+  const xpGain = 0;
   const today = new Date().toISOString().split("T")[0];
   let streak = profile.streak;
   let lastStreakDate = profile.lastStreakDate;
