@@ -62,13 +62,13 @@ function NodeCard({ node, pathId, cookieId }: NodeCardProps) {
   // Auto-navigate the moment this node's lesson becomes ready
   useEffect(() => {
     if (waitingForLesson && node.lessonStatus === "ready" && node.lessonKey) {
-      navigate(`/lesson/${node.lessonKey}`);
+      navigate(`/adaptive-lesson/${node.lessonKey}`);
     }
   }, [waitingForLesson, node.lessonStatus, node.lessonKey, navigate]);
 
   const handleOpen = async () => {
     if (node.lessonStatus === "ready" && node.lessonKey) {
-      navigate(`/lesson/${node.lessonKey}`);
+      navigate(`/adaptive-lesson/${node.lessonKey}`);
       return;
     }
     if (node.lessonStatus === "generating") {
@@ -82,7 +82,7 @@ function NodeCard({ node, pathId, cookieId }: NodeCardProps) {
         cookieId,
       });
       if (result.status === "ready" && result.lessonKey) {
-        navigate(`/lesson/${result.lessonKey}`);
+        navigate(`/adaptive-lesson/${result.lessonKey}`);
       } else {
         setWaitingForLesson(true);
       }

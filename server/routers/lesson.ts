@@ -447,7 +447,7 @@ export const lessonRouter = router({
    * the caller's LearnerProfile. Used by the new adaptive lesson UI.
    */
   getSeededLesson: publicProcedure
-    .input(z.object({ lessonId: z.string().max(64), cookieId: z.string().optional() }))
+    .input(z.object({ lessonId: z.string().max(192), cookieId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
       let template = AI_LITERACY_TEMPLATES[input.lessonId] ?? AI_BY_AI_TEMPLATES[input.lessonId] ?? null;
       if (!template) {

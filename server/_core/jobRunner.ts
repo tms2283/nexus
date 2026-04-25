@@ -213,6 +213,35 @@ Rules:
       pitch: decomposition.pitch,
       estimatedTotalMinutes: totalMins,
     }).where(eq(goalPaths.id, p.pathId));
+
+    // Pre-generate all lessons eagerly so they're ready when the user opens the path
+    const profileBucket = computeProfileBucket(p.profileSnapshot);
+    for (const conceptId of sorted) {
+      const lessonKey = `path-${p.pathId}-concept-${conceptId}`;
+      // Check cache first — skip if already generated for this profile bucket
+      const existing = await db.select({ lessonKey: adaptiveLessonTemplates.lessonKey })
+        .from(adaptiveLessonTemplates)
+        .where(and(
+          eq(adaptiveLessonTemplates.conceptId, conceptId),
+          eq(adaptiveLessonTemplates.profileBucket, profileBucket)
+        )).limit(1);
+      if (existing[0]) {
+        // Already cached — point the node directly to it
+        await db.update(goalPathNodes)
+          .set({ lessonKey: existing[0].lessonKey, lessonStatus: "ready" })
+          .where(and(eq(goalPathNodes.pathId, p.pathId), eq(goalPathNodes.conceptId, conceptId)));
+        continue;
+      }
+      // Mark node as generating and enqueue
+      await db.update(goalPathNodes)
+        .set({ lessonKey, lessonStatus: "generating" })
+        .where(and(eq(goalPathNodes.pathId, p.pathId), eq(goalPathNodes.conceptId, conceptId)));
+      await db.insert(backgroundJobs).values({
+        type: "GENERATE_ADAPTIVE_LESSON",
+        payload: { pathId: p.pathId, conceptId, lessonKey, profileBucket, profileSnapshot: p.profileSnapshot, cookieId: p.cookieId },
+        status: "pending",
+      });
+    }
   }
 
   // ── GENERATE_ADAPTIVE_LESSON ───────────────────────────────────────────────

@@ -539,7 +539,7 @@ export default function Home() {
                     <Brain size={15} /> Start your journey
                   </motion.button>
                 </Link>
-                <Link href="/about">
+                <Link href="/contact">
                   <button className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
                     <Users size={13} /> About the creator
                   </button>

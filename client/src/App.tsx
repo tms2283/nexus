@@ -55,6 +55,7 @@ const AdminUsers   = lazy(() => import("./pages/AdminUsers"));
 const Studio       = lazy(() => import("./pages/Studio"));
 const MyLearnerProfile = lazy(() => import("./pages/MyLearnerProfile"));
 const PathView          = lazy(() => import("./pages/PathView"));
+const AdaptiveLesson    = lazy(() => import("./pages/AdaptiveLesson"));
 const AdminConcepts     = lazy(() => import("./pages/AdminConcepts"));
 const MasteryDashboard  = lazy(() => import("./pages/MasteryDashboard"));
 
@@ -154,6 +155,9 @@ function Router() {
           </Route>
           <Route path="/path/:pathId">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><PathView /></Suspense></RequireAuth>
+          </Route>
+          <Route path="/adaptive-lesson/:lessonKey">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><AdaptiveLesson /></Suspense></RequireAuth>
           </Route>
           <Route path="/reading-list">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><ReadingList /></Suspense></RequireAuth>
