@@ -3124,11 +3124,12 @@ function AILiteracyModule3({ onBack }: { onBack: () => void }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function AILiteracyTab() {
-  const [activeModule, setActiveModule] = useState<1 | 2 | 3>(1);
+  const [activeModule, setActiveModule] = useState<1 | 2 | 3 | null>(null);
   const { profile } = usePersonalization();
 
-  if (activeModule === 2) return <AILiteracyModule2 onBack={() => setActiveModule(1)} />;
-  if (activeModule === 3) return <AILiteracyModule3 onBack={() => setActiveModule(1)} />;
+  if (activeModule === 1) return <AILiteracyModule1 onBack={() => setActiveModule(null)} />;
+  if (activeModule === 2) return <AILiteracyModule2 onBack={() => setActiveModule(null)} />;
+  if (activeModule === 3) return <AILiteracyModule3 onBack={() => setActiveModule(null)} />;
 
   const modules = [
     {
