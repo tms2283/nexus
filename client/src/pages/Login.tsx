@@ -53,7 +53,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[oklch(0.75_0.18_55_/_0.05)] blur-[100px]" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[var(--nexus-gold-fill)] blur-[100px]" />
       </div>
 
       <motion.div
@@ -63,14 +63,14 @@ export default function Login() {
       >
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground transition-colors">
-            <Brain size={20} className="text-[oklch(0.75_0.18_55)]" />
+            <Brain size={20} className="text-[var(--nexus-gold)]" />
             <span className="font-semibold text-foreground">Nexus</span>
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
           <p className="text-muted-foreground text-sm mt-1">Sign in to continue learning</p>
         </div>
 
-        <div className="glass rounded-2xl border border-white/8 p-6 flex flex-col gap-4">
+        <div className="card-nexus p-6 flex flex-col gap-4">
           {/* Google */}
           <GoogleSignInButton
             mode="signin"
@@ -79,27 +79,27 @@ export default function Login() {
           />
 
           {/* Facebook stub */}
-          <button disabled className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/8 text-muted-foreground text-sm opacity-40 cursor-not-allowed">
+          <button disabled className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border/30 text-muted-foreground text-sm opacity-40 cursor-not-allowed">
             <FacebookIcon /> Facebook (Coming Soon)
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/8" />
+            <div className="flex-1 h-px bg-border/60" />
             <span className="text-xs text-muted-foreground">or email</span>
-            <div className="flex-1 h-px bg-white/8" />
+            <div className="flex-1 h-px bg-border/60" />
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="Email address" required autoComplete="email"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)]"
+              className="w-full bg-[var(--surface-2)] border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--nexus-gold)]"
             />
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="Password" required autoComplete="current-password"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)]"
+                className="w-full bg-[var(--surface-2)] border border-border/60 rounded-lg px-3 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--nexus-gold)]"
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -108,7 +108,7 @@ export default function Login() {
             </div>
 
             <button type="submit" disabled={loginMutation.isPending}
-              className="w-full py-2.5 rounded-lg bg-[oklch(0.75_0.18_55)] text-black font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60">
+              className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-60">
               {loginMutation.isPending && <Loader2 size={16} className="animate-spin" />}
               Sign In
             </button>
@@ -116,7 +116,7 @@ export default function Login() {
 
           <p className="text-center text-xs text-muted-foreground">
             Don't have an account?{" "}
-            <Link href="/register" className="text-[oklch(0.75_0.18_55)] hover:underline">Create one</Link>
+            <Link href="/register" className="text-[var(--nexus-gold)] hover:underline">Create one</Link>
           </p>
         </div>
       </motion.div>

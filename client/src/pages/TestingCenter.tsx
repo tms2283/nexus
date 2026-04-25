@@ -417,7 +417,7 @@ function Timer({ seconds, onExpire }: { seconds: number; onExpire: () => void })
       <span className="font-mono text-sm font-semibold" style={{ color }}>
         {mins}:{secs.toString().padStart(2, "0")}
       </span>
-      <div className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="w-24 h-1.5 bg-[var(--surface-2)] rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
@@ -496,7 +496,7 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
 
           <div className="space-y-3">
             {q.options.map((opt, idx) => {
-              let borderColor = "border-white/10";
+              let borderColor = "border-border/60";
               let bg = "bg-transparent";
               let textColor = "text-foreground";
 
@@ -513,9 +513,9 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
                   key={idx}
                   whileHover={!showFeedback ? { x: 4 } : {}}
                   onClick={() => handleSelect(idx)}
-                  className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bg} ${textColor} transition-all duration-200 flex items-center gap-4 ${!showFeedback ? "cursor-pointer hover:border-white/25" : "cursor-default"}`}
+                  className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bg} ${textColor} transition-all duration-200 flex items-center gap-4 ${!showFeedback ? "cursor-pointer hover:border-border/60" : "cursor-default"}`}
                 >
-                  <span className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center text-xs font-bold flex-shrink-0 text-muted-foreground">
+                  <span className="w-7 h-7 rounded-full border border-border/60 flex items-center justify-center text-xs font-bold flex-shrink-0 text-muted-foreground">
                     {String.fromCharCode(65 + idx)}
                   </span>
                   <span className="text-sm leading-relaxed">{opt}</span>
@@ -527,7 +527,7 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
           </div>
 
           {showFeedback && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 rounded-xl bg-[var(--surface-1)] border border-border/60">
               <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Explanation: </span>{q.explanation}</p>
             </motion.div>
           )}
@@ -570,7 +570,7 @@ function TestResults({ test, score, answers, timeUsed, onRetry, onBack }: { test
       {/* IQ Score (if applicable) */}
       {iqScore && iqInfo && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="mb-6 p-6 glass rounded-2xl border border-white/10">
+          className="mb-6 p-6 glass rounded-2xl border border-border/60">
           <div className="text-5xl font-bold mb-2" style={{ color: iqInfo.color }}>{iqScore}</div>
           <div className="text-xl font-semibold text-foreground mb-1">{iqInfo.label}</div>
           <div className="text-sm text-muted-foreground">{iqInfo.desc}</div>
@@ -689,7 +689,7 @@ export default function TestingCenter() {
           {/* Header */}
           {phase === "select" && (
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 text-sm text-muted-foreground mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full card-nexus text-sm text-muted-foreground mb-6">
                 <Target size={14} /> <span>Establish Your Baseline</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
@@ -707,7 +707,7 @@ export default function TestingCenter() {
               {tests.map((test, i) => (
                 <motion.div key={test.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                   whileHover={{ y: -4, scale: 1.01 }}
-                  className="glass rounded-2xl border border-white/10 p-6 cursor-pointer group hover:border-white/25 transition-all duration-300"
+                  className="card-nexus p-6 cursor-pointer group hover:border-border/60 transition-all duration-300"
                   onClick={() => startTest(test)}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${test.color}22`, color: test.color }}>
                     {test.icon}
@@ -719,7 +719,7 @@ export default function TestingCenter() {
                     <span className="flex items-center gap-1"><Clock size={12} />{Math.floor(test.timeLimit / 60)} min</span>
                     <span className="flex items-center gap-1"><Star size={12} />Up to 60 XP</span>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="mt-4 pt-4 border-t border-border/60">
                     <Button size="sm" className="w-full h-9 text-sm font-semibold group-hover:opacity-100 opacity-80 transition-opacity" style={{ background: test.color, color: "oklch(0.15 0.02 280)" }}>
                       Start Assessment <ChevronRight size={14} className="ml-1" />
                     </Button>

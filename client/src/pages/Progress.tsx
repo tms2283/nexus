@@ -38,7 +38,7 @@ export default function ProgressPage() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass rounded-2xl p-6 border border-white/8"
+      className="card-nexus p-6"
     >
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -121,7 +121,7 @@ export default function ProgressPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-12 glass rounded-2xl p-8 border border-white/8"
+          className="mb-12 card-nexus p-8"
         >
           <h2 className="text-2xl font-bold text-foreground mb-6">Lessons Completed</h2>
           {progressQuery.isLoading ? (
@@ -129,7 +129,7 @@ export default function ProgressPage() {
           ) : progress && progress.lessons && progress.lessons.length > 0 ? (
             <div className="space-y-3">
               {progress.lessons.map((item: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between p-4 rounded-lg bg-white/3 border border-white/8">
+                <div key={idx} className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-2)] border border-border/30">
                   <div className="flex items-center gap-3">
                     <BookOpen size={20} className="text-[oklch(0.75_0.18_55)]" />
                     <div>
@@ -156,7 +156,7 @@ export default function ProgressPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass rounded-2xl p-8 border border-white/8"
+          className="card-nexus p-8"
         >
           <h2 className="text-2xl font-bold text-foreground mb-6">Achievements</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -174,7 +174,7 @@ export default function ProgressPage() {
                   className={`p-4 rounded-lg border text-center transition-all ${
                     achievement.unlocked
                       ? "bg-[oklch(0.75_0.18_55)]/10 border-[oklch(0.75_0.18_55)] text-foreground"
-                      : "bg-white/3 border-white/8 text-muted-foreground opacity-50"
+                      : "bg-[var(--surface-2)] border-border/30 text-muted-foreground opacity-50"
                   }`}
                 >
                   <Icon size={32} className="mx-auto mb-2" />

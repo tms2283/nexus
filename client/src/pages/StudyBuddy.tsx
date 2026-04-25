@@ -140,13 +140,13 @@ function TutorMode({ cookieId }: { cookieId: string }) {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="e.g., Machine Learning, Quantum Physics..."
-            className="flex-1 min-w-48 bg-white/3 border border-white/10 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] transition-colors"
+            className="flex-1 min-w-48 bg-[var(--surface-2)] border border-border/60 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[var(--nexus-blue)] transition-colors"
           />
           {SUGGESTED_TOPICS.slice(0, 4).map(t => (
             <button
               key={t}
               onClick={() => setTopic(t)}
-              className="px-3 py-1.5 rounded-lg text-xs bg-white/5 border border-white/8 text-muted-foreground hover:text-foreground hover:border-white/15 transition-all whitespace-nowrap"
+              className="px-3 py-1.5 rounded-lg text-xs bg-[var(--surface-1)] border border-border/60 text-muted-foreground hover:text-foreground hover:border-border/60 transition-all whitespace-nowrap"
             >
               {t}
             </button>
@@ -166,13 +166,13 @@ function TutorMode({ cookieId }: { cookieId: string }) {
             <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
               msg.role === "assistant"
                 ? "bg-[oklch(0.65_0.22_200_/_0.15)] border border-[oklch(0.65_0.22_200_/_0.3)]"
-                : "bg-white/8 border border-white/15"
+                : "bg-[var(--surface-2)] border border-border/60"
             }`}>
               {msg.role === "assistant" ? <Brain size={13} className="text-[oklch(0.65_0.22_200)]" /> : <span className="text-xs">You</span>}
             </div>
             <div className={`flex-1 rounded-2xl px-4 py-3 text-sm leading-relaxed max-w-[85%] ${
               msg.role === "user"
-                ? "bg-white/8 border border-white/12 text-foreground"
+                ? "bg-[var(--surface-2)] border border-border/60 text-foreground"
                 : "bg-[oklch(0.65_0.22_200_/_0.05)] border border-[oklch(0.65_0.22_200_/_0.15)] text-foreground"
             }`}>
               {msg.role === "assistant" ? <Streamdown>{msg.content}</Streamdown> : msg.content}
@@ -199,7 +199,7 @@ function TutorMode({ cookieId }: { cookieId: string }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
           placeholder="Ask anything... (Enter to send)"
-          className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] transition-colors"
+          className="flex-1 bg-[var(--surface-2)] border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[var(--nexus-blue)] transition-colors"
         />
         <button
           onClick={sendMessage}
@@ -288,7 +288,7 @@ function QuizMode({ cookieId }: { cookieId: string }) {
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
             placeholder="e.g., Neural Networks, Quantum Mechanics, World War II..."
-            className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] transition-colors"
+            className="w-full bg-[var(--surface-2)] border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[var(--nexus-gold)] transition-colors"
           />
         </div>
         <div>
@@ -303,7 +303,7 @@ function QuizMode({ cookieId }: { cookieId: string }) {
                     ? d === "beginner" ? "bg-[oklch(0.70_0.20_150_/_0.15)] border-[oklch(0.70_0.20_150_/_0.4)] text-[oklch(0.70_0.20_150)]"
                     : d === "intermediate" ? "bg-[oklch(0.75_0.18_55_/_0.15)] border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.75_0.18_55)]"
                     : "bg-[oklch(0.65_0.22_20_/_0.15)] border-[oklch(0.65_0.22_20_/_0.4)] text-[oklch(0.65_0.22_20)]"
-                    : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/15"
+                    : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-border/60"
                 }`}
               >
                 {d}
@@ -318,7 +318,7 @@ function QuizMode({ cookieId }: { cookieId: string }) {
               <button
                 key={t}
                 onClick={() => setTopic(t)}
-                className="px-3 py-1.5 rounded-lg text-xs bg-white/5 border border-white/8 text-muted-foreground hover:text-foreground hover:border-white/15 transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs bg-[var(--surface-1)] border border-border/60 text-muted-foreground hover:text-foreground hover:border-border/60 transition-all"
               >
                 {t}
               </button>
@@ -349,7 +349,7 @@ function QuizMode({ cookieId }: { cookieId: string }) {
         <p className="text-muted-foreground mb-2">{pct}% — {pct >= 80 ? "Excellent!" : pct >= 60 ? "Good effort!" : "Keep practicing!"}</p>
         <p className="text-xs text-muted-foreground mb-6">+{score * 10} XP earned</p>
         <div className="flex gap-3 justify-center">
-          <button onClick={handleRestart} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/8 border border-white/12 text-sm font-medium hover:bg-white/12 transition-all">
+          <button onClick={handleRestart} className="btn-ghost flex items-center gap-2">
             <RotateCcw size={14} /> Try Another
           </button>
           <button onClick={() => { setDifficulty(pct >= 80 ? "advanced" : pct >= 60 ? "intermediate" : "beginner"); handleRestart(); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] text-white text-sm font-medium">
@@ -368,12 +368,12 @@ function QuizMode({ cookieId }: { cookieId: string }) {
         <span className="text-xs text-muted-foreground">Question {currentIdx + 1} of {questions.length}</span>
         <span className="text-xs text-muted-foreground">Score: {score}/{currentIdx}</span>
       </div>
-      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[var(--surface-2)] rounded-full overflow-hidden">
         <div className="h-full bg-gradient-to-r from-[oklch(0.75_0.18_55)] to-[oklch(0.65_0.22_200)] rounded-full transition-all" style={{ width: `${((currentIdx) / questions.length) * 100}%` }} />
       </div>
 
       {/* Question */}
-      <div className="glass rounded-xl border border-white/10 p-5">
+      <div className="card-nexus p-5">
         <div className="flex items-center gap-2 mb-3">
           <span className={`text-xs px-2 py-0.5 rounded-full border ${
             q.difficulty === "easy" ? "text-[oklch(0.70_0.20_150)] bg-[oklch(0.70_0.20_150_/_0.1)] border-[oklch(0.70_0.20_150_/_0.25)]"
@@ -400,8 +400,8 @@ function QuizMode({ cookieId }: { cookieId: string }) {
                 showResult
                   ? isCorrect ? "bg-[oklch(0.70_0.20_150_/_0.15)] border-[oklch(0.70_0.20_150_/_0.4)] text-foreground"
                   : isSelected ? "bg-[oklch(0.65_0.22_20_/_0.15)] border-[oklch(0.65_0.22_20_/_0.4)] text-foreground"
-                  : "bg-white/3 border-white/8 text-muted-foreground"
-                  : "bg-white/3 border-white/8 text-foreground hover:bg-white/6 hover:border-white/15"
+                  : "bg-[var(--surface-2)] border-border/30 text-muted-foreground"
+                  : "bg-[var(--surface-2)] border-border/30 text-foreground hover:bg-white/6 hover:border-border/60"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -424,7 +424,7 @@ function QuizMode({ cookieId }: { cookieId: string }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="glass rounded-xl border border-[oklch(0.65_0.22_200_/_0.2)] p-4"
+            className="card-nexus border-[var(--nexus-blue-border)] p-4"
           >
             <div className="flex items-center gap-2 mb-2">
               <Sparkles size={12} className="text-[oklch(0.65_0.22_200)]" />
@@ -468,7 +468,7 @@ function FlashcardGeneratorMode({ cookieId }: { cookieId: string }) {
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="e.g., Python decorators, Calculus derivatives, French Revolution..."
-          className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] transition-colors"
+          className="w-full bg-[var(--surface-2)] border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[var(--nexus-purple)] transition-colors"
         />
       </div>
       <div>
@@ -486,7 +486,7 @@ function FlashcardGeneratorMode({ cookieId }: { cookieId: string }) {
         <label className="text-sm font-medium text-foreground mb-2 block">Quick topics</label>
         <div className="flex flex-wrap gap-2">
           {SUGGESTED_TOPICS.slice(0, 6).map(t => (
-            <button key={t} onClick={() => setTopic(t)} className="px-3 py-1.5 rounded-lg text-xs bg-white/5 border border-white/8 text-muted-foreground hover:text-foreground hover:border-white/15 transition-all">
+            <button key={t} onClick={() => setTopic(t)} className="px-3 py-1.5 rounded-lg text-xs bg-[var(--surface-1)] border border-border/60 text-muted-foreground hover:text-foreground hover:border-border/60 transition-all">
               {t}
             </button>
           ))}
@@ -501,7 +501,7 @@ function FlashcardGeneratorMode({ cookieId }: { cookieId: string }) {
           {generateDeck.isPending ? <><Loader2 size={16} className="animate-spin" /> Generating...</> : <><Plus size={16} /> Generate {count} Flashcards</>}
         </button>
       ) : (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl border border-[oklch(0.72_0.2_290_/_0.3)] p-5 text-center">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-nexus border-[var(--nexus-purple-border)] p-5 text-center">
           <CheckCircle2 size={32} className="text-[oklch(0.72_0.2_290)] mx-auto mb-3" />
           <p className="font-medium text-foreground mb-1">Flashcard deck created!</p>
           <p className="text-xs text-muted-foreground mb-4">Your {count} cards are ready for spaced repetition review.</p>
@@ -509,7 +509,7 @@ function FlashcardGeneratorMode({ cookieId }: { cookieId: string }) {
             <a href="/flashcards" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[oklch(0.72_0.2_290_/_0.15)] border border-[oklch(0.72_0.2_290_/_0.3)] text-[oklch(0.72_0.2_290)] text-sm font-medium hover:bg-[oklch(0.72_0.2_290_/_0.25)] transition-all">
               <Layers size={13} /> Review Deck <ArrowRight size={12} />
             </a>
-            <button onClick={() => { setGeneratedDeckId(null); setTopic(""); }} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-all">
+            <button onClick={() => { setGeneratedDeckId(null); setTopic(""); }} className="px-4 py-2 rounded-xl bg-[var(--surface-1)] border border-border/60 text-sm text-muted-foreground hover:text-foreground transition-all">
               Generate Another
             </button>
           </div>
@@ -550,7 +550,7 @@ function ConceptExplainerMode({ cookieId }: { cookieId: string }) {
           onChange={(e) => setConcept(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && concept.trim() && explain.mutate({ concept, level })}
           placeholder="e.g., Attention mechanism, Black holes, Recursion..."
-          className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.5)] transition-colors"
+          className="w-full bg-[var(--surface-2)] border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[var(--nexus-green)] transition-colors"
         />
       </div>
       <div>
@@ -563,7 +563,7 @@ function ConceptExplainerMode({ cookieId }: { cookieId: string }) {
               className={`py-2.5 px-3 rounded-xl border text-left transition-all ${
                 level === l.id
                   ? "bg-[oklch(0.72_0.18_150_/_0.15)] border-[oklch(0.72_0.18_150_/_0.4)] text-foreground"
-                  : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/15"
+                  : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-border/60"
               }`}
             >
               <div className="text-xs font-medium">{l.label}</div>
@@ -581,7 +581,7 @@ function ConceptExplainerMode({ cookieId }: { cookieId: string }) {
       </button>
       <AnimatePresence>
         {explanation && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl border border-[oklch(0.72_0.18_150_/_0.2)] p-5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-nexus border-[var(--nexus-green-border)] p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Lightbulb size={13} className="text-[oklch(0.72_0.18_150)]" />
@@ -614,7 +614,7 @@ export default function StudyBuddy() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-[oklch(0.65_0.22_200_/_0.3)] text-sm text-[oklch(0.65_0.22_200)] mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--nexus-blue-fill)] border border-[var(--nexus-blue-border)] text-sm text-[var(--nexus-blue)] mb-6"
               >
                 <Brain size={14} />
                 <span>AI Study Buddy</span>
@@ -655,7 +655,7 @@ export default function StudyBuddy() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + i * 0.08 }}
                       onClick={() => setActiveMode(mode.id)}
-                      className="glass rounded-2xl border p-6 text-left hover:border-white/20 transition-all group"
+                      className="glass rounded-2xl border p-6 text-left hover:border-border/60 transition-all group"
                       style={{ borderColor: mode.border }}
                     >
                       <div
@@ -677,7 +677,7 @@ export default function StudyBuddy() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-2xl border border-white/12 p-6"
+                className="card-nexus p-6"
               >
                 {/* Mode Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -700,7 +700,7 @@ export default function StudyBuddy() {
                   </div>
                   <button
                     onClick={() => setActiveMode(null)}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 hover:border-white/15"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg bg-[var(--surface-1)] border border-border/60 hover:border-border/60"
                   >
                     ← Back
                   </button>
@@ -728,7 +728,7 @@ export default function StudyBuddy() {
               ].map(stat => {
                 const Icon = stat.icon;
                 return (
-                  <div key={stat.label} className="glass rounded-xl border border-white/8 p-4 text-center">
+                  <div key={stat.label} className="card-nexus p-4 text-center">
                     <Icon size={18} className="mx-auto mb-2" style={{ color: stat.color }} />
                     <div className="text-sm font-semibold text-foreground">{stat.value}</div>
                     <div className="text-xs text-muted-foreground">{stat.label}</div>

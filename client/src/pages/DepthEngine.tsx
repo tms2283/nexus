@@ -127,7 +127,7 @@ export default function DepthEngine() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-[oklch(0.72_0.2_290_/_0.3)] text-sm text-[oklch(0.72_0.2_290)] mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--nexus-purple-fill)] border border-[var(--nexus-purple-border)] text-sm text-[var(--nexus-purple)] mb-6"
             >
               <Layers size={14} />
               <span>Depth Engine</span>
@@ -155,7 +155,7 @@ export default function DepthEngine() {
         <section className="pb-16 px-4">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Concept Input */}
-            <div className="glass rounded-2xl p-6 border border-white/8">
+            <div className="card-nexus p-6">
               <label className="text-sm font-medium text-muted-foreground mb-3 block">
                 What concept do you want to understand?
               </label>
@@ -165,12 +165,12 @@ export default function DepthEngine() {
                   onChange={(e) => setConcept(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && selectedLevel && handleExplain(selectedLevel)}
                   placeholder="Enter any concept, theory, or idea..."
-                  className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.72_0.2_290_/_0.5)] transition-colors"
+                  className="flex-1 bg-[var(--surface-2)] border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[var(--nexus-purple)] transition-colors"
                 />
                 {completedLevels > 0 && (
                   <button
                     onClick={handleReset}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-muted-foreground hover:text-foreground hover:border-white/20 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--surface-1)] border border-border/60 text-sm text-muted-foreground hover:text-foreground hover:border-border/60 transition-all"
                   >
                     <RotateCcw size={14} /> Reset
                   </button>
@@ -184,7 +184,7 @@ export default function DepthEngine() {
                   <button
                     key={ex}
                     onClick={() => setConcept(ex)}
-                    className="px-3 py-1 rounded-full text-xs bg-white/5 border border-white/8 text-muted-foreground hover:border-white/20 hover:text-foreground transition-all"
+                    className="px-3 py-1 rounded-full text-xs bg-[var(--surface-1)] border border-border/60 text-muted-foreground hover:border-border/60 hover:text-foreground transition-all"
                   >
                     {ex}
                   </button>
@@ -201,7 +201,7 @@ export default function DepthEngine() {
                         className={`w-2 h-2 rounded-full transition-all ${
                           explanations[level.id]
                             ? "bg-[oklch(0.72_0.18_150)] scale-125"
-                            : "bg-white/15"
+                            : "bg-[var(--surface-2)]"
                         }`}
                       />
                     ))}
@@ -238,8 +238,8 @@ export default function DepthEngine() {
                       isActive
                         ? `bg-[${level.bgColor}] border-[${level.borderColor}]`
                         : isDone
-                        ? "bg-white/5 border-white/15 hover:border-white/25"
-                        : "bg-white/3 border-white/8 hover:border-white/18 hover:bg-white/5"
+                        ? "bg-white/5 border-white/15 hover:border-border/60"
+                        : "bg-[var(--surface-2)] border-border/30 hover:border-white/18 hover:bg-white/5"
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                     style={{
                       backgroundColor: isActive ? level.bgColor : undefined,
@@ -286,10 +286,10 @@ export default function DepthEngine() {
                   });
                 }}
                 disabled={!concept.trim() || !!loadingLevel}
-                className="p-4 rounded-xl border border-dashed border-white/15 text-left bg-white/2 hover:bg-white/5 hover:border-white/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="p-4 rounded-xl border border-dashed border-white/15 text-left bg-white/2 hover:bg-white/5 hover:border-border/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[oklch(0.75_0.18_55_/_0.15)] to-[oklch(0.65_0.22_200_/_0.15)] border border-white/10 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-[var(--nexus-gold-fill)] border border-[var(--nexus-gold-border)] flex items-center justify-center">
                     <Sparkles size={13} className="text-[oklch(0.75_0.18_55)]" />
                   </div>
                   <span className="font-semibold text-sm text-foreground">All Depths</span>
@@ -306,7 +306,7 @@ export default function DepthEngine() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="glass rounded-2xl border border-white/8 overflow-hidden"
+                  className="card-nexus overflow-hidden"
                 >
                   {/* Header */}
                   {(() => {
@@ -315,7 +315,7 @@ export default function DepthEngine() {
                     const Icon = level.icon;
                     return (
                       <div
-                        className="flex items-center justify-between px-6 py-4 border-b border-white/5"
+                        className="flex items-center justify-between px-6 py-4 border-b border-border/60"
                         style={{ backgroundColor: level.bgColor }}
                       >
                         <div className="flex items-center gap-3">
@@ -328,7 +328,7 @@ export default function DepthEngine() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleCopy(activeExplanation, explanations[activeExplanation])}
-                            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors"
                           >
                             {copiedLevel === activeExplanation ? (
                               <Check size={13} className="text-[oklch(0.72_0.18_150)]" />
@@ -348,7 +348,7 @@ export default function DepthEngine() {
 
                   {/* Level switcher */}
                   {Object.keys(explanations).length > 1 && (
-                    <div className="px-6 pb-4 flex gap-2 flex-wrap border-t border-white/5 pt-4">
+                    <div className="px-6 pb-4 flex gap-2 flex-wrap border-t border-border/60 pt-4">
                       <span className="text-xs text-muted-foreground mr-1 self-center">Switch depth:</span>
                       {DEPTH_LEVELS.filter((l) => explanations[l.id]).map((level) => (
                         <button
@@ -357,7 +357,7 @@ export default function DepthEngine() {
                           className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
                             activeExplanation === level.id
                               ? "text-foreground"
-                              : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/20"
+                              : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-border/60"
                           }`}
                           style={
                             activeExplanation === level.id
@@ -380,7 +380,7 @@ export default function DepthEngine() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="glass rounded-2xl p-6 border border-white/8"
+                className="card-nexus p-6"
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Brain size={16} className="text-[oklch(0.72_0.2_290)]" />

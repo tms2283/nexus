@@ -94,8 +94,8 @@ export default function About() {
   return (
     <PageWrapper pageName="about">
       {/* Hero */}
-      <section className="py-32 border-b border-white/5">
-        <div className="container">
+      <section className="py-32 border-b border-border/60">
+        <div className="section-container">
           <div className="max-w-3xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -133,12 +133,12 @@ export default function About() {
               className="flex flex-wrap gap-3"
             >
               <Link href="/learn">
-                <span className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[oklch(0.75_0.18_55)] text-[oklch(0.08_0.015_260)] text-sm font-semibold hover:bg-[oklch(0.80_0.18_55)] transition-colors cursor-pointer">
+                <span className="btn-primary cursor-pointer flex items-center gap-2">
                   Explore Courses <ArrowRight size={15} />
                 </span>
               </Link>
               <Link href="/research">
-                <span className="flex items-center gap-2 px-5 py-2.5 rounded-xl glass border border-white/15 text-sm text-foreground hover:border-white/30 transition-all cursor-pointer">
+                <span className="btn-ghost cursor-pointer flex items-center gap-2">
                   <Telescope size={15} /> Try the Workbench
                 </span>
               </Link>
@@ -148,8 +148,8 @@ export default function About() {
       </section>
 
       {/* What Nexus Is */}
-      <section className="py-24 border-b border-white/5">
-        <div className="container">
+      <section className="py-24 border-b border-border/60">
+        <div className="section-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -182,8 +182,8 @@ export default function About() {
       </section>
 
       {/* Features */}
-      <section className="py-24 border-b border-white/5">
-        <div className="container">
+      <section className="py-24 border-b border-border/60">
+        <div className="section-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -204,7 +204,7 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.06 }}
-                className="p-6 glass rounded-2xl border border-white/10 hover:border-white/20 transition-colors"
+                className="card-nexus p-6"
               >
                 <div className="flex items-start gap-4">
                   <div
@@ -228,8 +228,8 @@ export default function About() {
       </section>
 
       {/* Principles */}
-      <section className="py-24 border-b border-white/5">
-        <div className="container">
+      <section className="py-24 border-b border-border/60">
+        <div className="section-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -249,7 +249,7 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="p-6 glass rounded-2xl border border-white/10"
+                className="card-nexus p-6"
               >
                 <div className="flex items-start gap-4">
                   <div className="p-2.5 rounded-xl bg-[oklch(0.75_0.18_55_/_0.1)] border border-[oklch(0.75_0.18_55_/_0.2)] shrink-0">
@@ -267,8 +267,8 @@ export default function About() {
       </section>
 
       {/* Research-Backed */}
-      <section className="py-24 border-b border-white/5">
-        <div className="container">
+      <section className="py-24 border-b border-border/60">
+        <div className="section-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -297,7 +297,7 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                className="p-5 glass rounded-xl border border-white/8"
+                className="card-nexus p-5"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles size={12} className="text-[oklch(0.65_0.22_200)]" />
@@ -311,8 +311,8 @@ export default function About() {
       </section>
 
       {/* Who It's For */}
-      <section className="py-24 border-b border-white/5">
-        <div className="container">
+      <section className="py-24 border-b border-border/60">
+        <div className="section-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -342,7 +342,7 @@ export default function About() {
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className="p-4 glass rounded-xl border border-white/8 flex items-center gap-3"
+                  className="card-nexus p-4 flex items-center gap-3"
                 >
                   <Icon size={16} className="text-[oklch(0.75_0.18_55)]" />
                   <span className="text-sm text-foreground">{label}</span>
@@ -365,7 +365,7 @@ export default function About() {
             <div className="flex justify-center gap-3 flex-wrap">
               <Link href="/learn">
                 <motion.button
-                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[oklch(0.75_0.18_55)] text-[oklch(0.08_0.015_260)] font-semibold text-sm hover:bg-[oklch(0.80_0.18_55)] transition-colors"
+                  className="btn-primary flex items-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -374,7 +374,7 @@ export default function About() {
               </Link>
               <Link href="/research">
                 <motion.button
-                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl glass border border-white/15 text-foreground font-medium text-sm hover:border-white/30 transition-all"
+                  className="btn-ghost flex items-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -383,7 +383,7 @@ export default function About() {
               </Link>
               <Link href="/contact">
                 <motion.button
-                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl glass border border-white/10 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
+                  className="btn-ghost flex items-center gap-2 text-muted-foreground"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

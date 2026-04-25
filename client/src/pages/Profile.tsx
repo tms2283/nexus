@@ -39,7 +39,7 @@ export default function ProfilePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-2xl p-8 border border-white/8 text-center"
+            className="card-nexus p-8 text-center"
           >
             <AlertCircle
               size={48}
@@ -61,7 +61,7 @@ export default function ProfilePage() {
               </Link>
               <Link
                 href="/login"
-                className="px-6 py-3 rounded-lg border border-white/15 text-foreground hover:bg-white/5 transition-colors"
+                className="btn-ghost"
               >
                 Sign In
               </Link>
@@ -130,7 +130,7 @@ export default function ProfilePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-6 border border-white/8 flex items-center gap-5"
+          className="card-nexus p-6 flex items-center gap-5"
         >
           {user?.avatarUrl ? (
             <img
@@ -160,7 +160,7 @@ export default function ProfilePage() {
             <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
               Login method
             </div>
-            <span className="text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10 text-muted-foreground capitalize">
+            <span className="text-xs px-2 py-1 rounded-full bg-[var(--surface-1)] border border-border/60 text-muted-foreground capitalize">
               {user?.loginMethod ?? "email"}
             </span>
           </div>
@@ -171,7 +171,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.03 }}
-          className="glass rounded-2xl p-6 border border-white/8"
+          className="card-nexus p-6"
         >
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -186,7 +186,7 @@ export default function ProfilePage() {
             {accountDetails.map(({ label, value, icon: Icon }) => (
               <div
                 key={label}
-                className="rounded-xl border border-white/8 bg-background/35 px-4 py-4"
+                className="rounded-xl border border-border/60 bg-[var(--surface-1)] px-4 py-4"
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <Icon size={14} />
@@ -229,7 +229,7 @@ export default function ProfilePage() {
           ].map(({ label, value, icon: Icon, color }) => (
             <div
               key={label}
-              className="glass rounded-xl p-4 border border-white/8 text-center"
+              className="card-nexus p-4 text-center"
             >
               <Icon size={20} className="mx-auto mb-2" style={{ color }} />
               <div className="text-xl font-bold text-foreground">{value}</div>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass rounded-2xl p-6 border border-white/8 space-y-3"
+          className="card-nexus p-6 space-y-3"
         >
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
             Account

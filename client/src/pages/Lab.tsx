@@ -119,13 +119,13 @@ function ParticleSimExperiment() {
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Click the canvas to spawn particles. Adjust gravity below.</p>
       <canvas ref={canvasRef} width={540} height={300} onClick={e => { const r = canvasRef.current!.getBoundingClientRect(); spawnParticles(e.clientX-r.left, e.clientY-r.top); }}
-        className="w-full rounded-xl border border-white/10 cursor-crosshair" style={{background:"oklch(0.07 0.01 200)"}} />
+        className="w-full rounded-xl border border-border/60 cursor-crosshair" style={{background:"oklch(0.07 0.01 200)"}} />
       <div className="flex items-center gap-6">
         <div className="flex-1">
           <label className="text-xs text-muted-foreground mb-1 block">Gravity: {gravity.toFixed(2)}</label>
           <input type="range" min="0" max="0.5" step="0.01" value={gravity} onChange={e => setGravity(+e.target.value)} className="w-full" />
         </div>
-        <button onClick={() => setRunning(r => !r)} className="px-4 py-2 rounded-lg glass border border-white/10 text-sm hover:border-white/25 transition-colors">
+        <button onClick={() => setRunning(r => !r)} className="px-4 py-2 rounded-lg card-nexus text-sm hover:border-border/60 transition-colors">
           {running ? "⏸ Pause" : "▶ Resume"}
         </button>
       </div>
@@ -223,7 +223,7 @@ function NeuralNetworkExperiment() {
         <button onClick={startTraining} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${training ? "border-[oklch(0.65_0.22_20_/_0.5)] bg-[oklch(0.65_0.22_20_/_0.2)]" : "border-[oklch(0.65_0.22_290_/_0.4)] bg-[oklch(0.65_0.22_290_/_0.15)] hover:bg-[oklch(0.65_0.22_290_/_0.3)]"}`}>
           {training ? "⏹ Stop" : "▶ Train"}
         </button>
-        <button onClick={() => { initWeights(); epochRef.current=0; lossRef.current=1.0; setEpoch(0); setLoss(1.0); setTraining(false); if(timerRef.current) clearInterval(timerRef.current); drawNetwork(); }} className="px-4 py-2 rounded-lg glass border border-white/10 text-sm hover:border-white/25 transition-colors">
+        <button onClick={() => { initWeights(); epochRef.current=0; lossRef.current=1.0; setEpoch(0); setLoss(1.0); setTraining(false); if(timerRef.current) clearInterval(timerRef.current); drawNetwork(); }} className="px-4 py-2 rounded-lg card-nexus text-sm hover:border-border/60 transition-colors">
           <RefreshCw size={13} className="inline mr-1" /> Reset
         </button>
       </div>
@@ -260,10 +260,10 @@ function PromptLabExperiment({ cookieId }: { cookieId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Enter any task, select a prompting technique, and see how the same question gets answered differently. This is the core skill of AI literacy.</p>
-      <input value={task} onChange={e => setTask(e.target.value)} placeholder="Enter any task or question…" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)]" />
+      <input value={task} onChange={e => setTask(e.target.value)} placeholder="Enter any task or question…" className="w-full bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)]" />
       <div className="grid grid-cols-2 gap-2">
         {techniques.map(t => (
-          <button key={t.id} onClick={() => setTechnique(t.id)} className={`p-3 rounded-lg border text-left transition-all ${technique===t.id ? "border-[oklch(0.65_0.22_200_/_0.5)] bg-[oklch(0.65_0.22_200_/_0.1)]" : "border-white/10 hover:border-white/20"}`}>
+          <button key={t.id} onClick={() => setTechnique(t.id)} className={`p-3 rounded-lg border text-left transition-all ${technique===t.id ? "border-[oklch(0.65_0.22_200_/_0.5)] bg-[oklch(0.65_0.22_200_/_0.1)]" : "border-white/10 hover:border-border/60"}`}>
             <div className="text-sm font-medium">{t.label}</div>
             <div className="text-xs text-muted-foreground mt-0.5">{t.desc}</div>
           </button>
@@ -273,8 +273,8 @@ function PromptLabExperiment({ cookieId }: { cookieId: string }) {
         {loading ? <><Loader2 size={14} className="animate-spin" /> Running…</> : <><Play size={14} /> Run Experiment</>}
       </button>
       {result && (
-        <div className="relative glass rounded-xl border border-white/10 p-4">
-          <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(()=>setCopied(false),2000); }} className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground">
+        <div className="relative card-nexus p-4">
+          <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(()=>setCopied(false),2000); }} className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--surface-2)] transition-colors text-muted-foreground">
             {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
           </button>
           <div className="text-xs text-muted-foreground mb-2 font-mono uppercase tracking-wider">{technique} result</div>
@@ -313,10 +313,10 @@ function ChainOfThoughtExperiment({ cookieId }: { cookieId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">See how AI breaks complex problems into explicit reasoning steps. This technique (CoT prompting) dramatically improves accuracy on multi-step problems.</p>
-      <textarea value={problem} onChange={e => setProblem(e.target.value)} rows={3} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.65_0.22_290_/_0.5)] resize-none" />
+      <textarea value={problem} onChange={e => setProblem(e.target.value)} rows={3} className="w-full bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.65_0.22_290_/_0.5)] resize-none" />
       <div className="flex flex-wrap gap-2">
         {examples.map((ex, i) => (
-          <button key={i} onClick={() => setProblem(ex)} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-white/25 text-muted-foreground hover:text-foreground transition-colors">Example {i+1}</button>
+          <button key={i} onClick={() => setProblem(ex)} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-border/60 text-muted-foreground hover:text-foreground transition-colors">Example {i+1}</button>
         ))}
       </div>
       <button onClick={run} disabled={loading || !problem.trim()} className="w-full py-2.5 rounded-lg bg-[oklch(0.65_0.22_290_/_0.2)] border border-[oklch(0.65_0.22_290_/_0.4)] text-sm font-medium hover:bg-[oklch(0.65_0.22_290_/_0.3)] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
@@ -325,7 +325,7 @@ function ChainOfThoughtExperiment({ cookieId }: { cookieId: string }) {
       {steps.length > 0 && (
         <div className="space-y-2">
           {steps.slice(0, visibleSteps).map((step, i) => (
-            <motion.div key={i} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} className="flex gap-3 glass rounded-xl border border-white/10 p-3">
+            <motion.div key={i} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} className="flex gap-3 card-nexus p-3">
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[oklch(0.65_0.22_290_/_0.25)] border border-[oklch(0.65_0.22_290_/_0.4)] flex items-center justify-center text-xs font-bold text-[oklch(0.75_0.18_290)]">{i+1}</div>
               <div className="text-sm text-foreground/90 leading-relaxed">{step}</div>
             </motion.div>
@@ -363,10 +363,10 @@ function TextClassifierExperiment({ cookieId }: { cookieId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Enter any text and see how AI classifies it across multiple dimensions simultaneously. Understand how NLP models interpret language.</p>
-      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste any text to classify…" rows={4} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none" />
+      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste any text to classify…" rows={4} className="w-full bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none" />
       <div className="flex flex-wrap gap-2">
         {examples.map((ex, i) => (
-          <button key={i} onClick={() => setText(ex)} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-white/25 text-muted-foreground hover:text-foreground transition-colors">Example {i+1}</button>
+          <button key={i} onClick={() => setText(ex)} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-border/60 text-muted-foreground hover:text-foreground transition-colors">Example {i+1}</button>
         ))}
       </div>
       <button onClick={run} disabled={loading || !text.trim()} className="w-full py-2.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-sm font-medium hover:bg-[oklch(0.75_0.18_55_/_0.3)] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
@@ -375,12 +375,12 @@ function TextClassifierExperiment({ cookieId }: { cookieId: string }) {
       {result && (
         <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} className="grid grid-cols-2 gap-3">
           {[{label:"Sentiment",value:result.sentiment,color:sentimentColor[result.sentiment.toLowerCase()]||"oklch(0.65 0.22 200)"},{label:"Topic",value:result.topic,color:"oklch(0.65 0.22 200)"},{label:"Intent",value:result.intent,color:"oklch(0.65 0.22 200)"},{label:"Tone",value:result.tone,color:"oklch(0.65 0.22 200)"}].map(item => (
-            <div key={item.label} className="glass rounded-xl border border-white/10 p-3">
+            <div key={item.label} className="card-nexus p-3">
               <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
               <div className="font-semibold capitalize" style={{color:item.color}}>{item.value}</div>
             </div>
           ))}
-          <div className="col-span-2 glass rounded-xl border border-white/10 p-3">
+          <div className="col-span-2 card-nexus p-3">
             <div className="text-xs text-muted-foreground mb-2">Confidence</div>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
@@ -415,9 +415,9 @@ function AIDebateExperiment({ cookieId }: { cookieId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Two AI personas argue opposite sides of a topic. This demonstrates how the same model can construct compelling arguments for any position — and why critical thinking matters.</p>
-      <input value={topic} onChange={e => setTopic(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.70_0.20_150_/_0.5)]" />
+      <input value={topic} onChange={e => setTopic(e.target.value)} className="w-full bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.70_0.20_150_/_0.5)]" />
       <div className="flex flex-wrap gap-2">
-        {topics.map((t, i) => <button key={i} onClick={() => setTopic(t)} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-white/25 text-muted-foreground hover:text-foreground transition-colors">Topic {i+1}</button>)}
+        {topics.map((t, i) => <button key={i} onClick={() => setTopic(t)} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-border/60 text-muted-foreground hover:text-foreground transition-colors">Topic {i+1}</button>)}
       </div>
       <button onClick={run} disabled={loading || !topic.trim()} className="w-full py-2.5 rounded-lg bg-[oklch(0.70_0.20_150_/_0.2)] border border-[oklch(0.70_0.20_150_/_0.4)] text-sm font-medium hover:bg-[oklch(0.70_0.20_150_/_0.3)] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
         {loading ? <><Loader2 size={14} className="animate-spin" /> Generating…</> : <><Layers size={14} /> Start Debate</>}
@@ -458,13 +458,13 @@ function ImageDescriberExperiment({ cookieId }: { cookieId: string }) {
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Paste any public image URL. The AI uses multimodal vision to analyze subjects, composition, colors, mood, and subtle details.</p>
       <div className="flex gap-2">
-        <input value={imageUrl} onChange={e => { setImageUrl(e.target.value); setPreviewOk(true); }} placeholder="https://example.com/image.jpg" className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.72_0.20_310_/_0.5)] min-w-0" />
+        <input value={imageUrl} onChange={e => { setImageUrl(e.target.value); setPreviewOk(true); }} placeholder="https://example.com/image.jpg" className="flex-1 bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.72_0.20_310_/_0.5)] min-w-0" />
       </div>
       <div className="flex flex-wrap gap-2">
-        {samples.map(s => <button key={s.label} onClick={() => { setImageUrl(s.url); setPreviewOk(true); setDescription(""); }} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-white/25 text-muted-foreground hover:text-foreground transition-colors">{s.label}</button>)}
+        {samples.map(s => <button key={s.label} onClick={() => { setImageUrl(s.url); setPreviewOk(true); setDescription(""); }} className="text-xs px-2.5 py-1 rounded-full border border-white/10 hover:border-border/60 text-muted-foreground hover:text-foreground transition-colors">{s.label}</button>)}
       </div>
       {imageUrl && previewOk && (
-        <div className="rounded-xl overflow-hidden border border-white/10 max-h-48 bg-white/5">
+        <div className="rounded-xl overflow-hidden border border-border/60 max-h-48 bg-[var(--surface-1)]">
           <img src={imageUrl} alt="Preview" className="w-full h-full object-contain" onError={() => setPreviewOk(false)} />
         </div>
       )}
@@ -502,10 +502,10 @@ function TokenCounterExperiment({ cookieId }: { cookieId: string }) {
       <p className="text-sm text-muted-foreground">Understand how LLMs tokenize text and estimate API costs. Tokens are the basic units LLMs process — roughly 4 characters each for English text.</p>
       <div className="flex flex-wrap gap-2">
         {models.map(m => (
-          <button key={m} onClick={() => setModel(m)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${model === m ? "border-[oklch(0.75_0.18_55_/_0.6)] bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)]" : "border-white/10 text-muted-foreground hover:border-white/25 hover:text-foreground"}`}>{m}</button>
+          <button key={m} onClick={() => setModel(m)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${model === m ? "border-[oklch(0.75_0.18_55_/_0.6)] bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)]" : "border-white/10 text-muted-foreground hover:border-border/60 hover:text-foreground"}`}>{m}</button>
         ))}
       </div>
-      <textarea value={text} onChange={e => setText(e.target.value)} rows={5} placeholder="Enter any text to count tokens and estimate cost..." className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none font-mono" />
+      <textarea value={text} onChange={e => setText(e.target.value)} rows={5} placeholder="Enter any text to count tokens and estimate cost..." className="w-full bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.5)] resize-none font-mono" />
       <button onClick={run} disabled={loading || !text.trim()} className="w-full py-2.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-sm font-medium hover:bg-[oklch(0.75_0.18_55_/_0.3)] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
         {loading ? <><Loader2 size={14} className="animate-spin" /> Counting…</> : <><Hash size={14} /> Count Tokens</>}
       </button>
@@ -517,13 +517,13 @@ function TokenCounterExperiment({ cookieId }: { cookieId: string }) {
               { label: "Words", value: result.words.toLocaleString(), color: "oklch(0.65 0.22 200)" },
               { label: "Characters", value: result.characters.toLocaleString(), color: "oklch(0.72 0.20 290)" },
             ].map(stat => (
-              <div key={stat.label} className="glass rounded-xl border border-white/10 p-3 text-center">
+              <div key={stat.label} className="card-nexus p-3 text-center">
                 <div className="text-lg font-bold" style={{ color: stat.color }}>{stat.value}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
               </div>
             ))}
           </div>
-          <div className="glass rounded-xl border border-white/10 p-4 space-y-3">
+          <div className="card-nexus p-4 space-y-3">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><DollarSign size={12} /> Cost Estimate ({result.model})</div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -601,7 +601,7 @@ function SocraticTutorExperiment({ cookieId }: { cookieId: string }) {
   if (!started) return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Enter any topic and the AI will guide you to understand it through 6 probing questions — never giving the answer directly.</p>
-      <input value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key === "Enter" && startSession()} placeholder="e.g. Quantum entanglement, The French Revolution, Neural networks..." className="w-full px-4 py-3 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.4)] bg-transparent" />
+      <input value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key === "Enter" && startSession()} placeholder="e.g. Quantum entanglement, The French Revolution, Neural networks..." className="w-full px-4 py-3 rounded-xl card-nexus text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.4)] bg-transparent" />
       {error && <div className="text-sm text-[oklch(0.65_0.22_20)]">{error}</div>}
       <button onClick={startSession} disabled={loading || !topic.trim()} className="w-full py-3 rounded-xl font-semibold text-sm transition-all" style={{background:"oklch(0.72 0.18 150 / 0.15)",border:"1px solid oklch(0.72 0.18 150 / 0.3)",color:"oklch(0.85 0.14 150)"}}>
         {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" /> Starting session...</span> : "Begin Socratic Session"}
@@ -617,7 +617,7 @@ function SocraticTutorExperiment({ cookieId }: { cookieId: string }) {
       <div className="space-y-2 max-h-48 overflow-y-auto">
         {history.map((h,i) => <div key={i} className="text-xs space-y-1"><div className="text-muted-foreground">Q{i+1}: {h.q}</div><div className="text-foreground/80 pl-3 border-l border-white/10">{h.a}</div></div>)}
       </div>
-      <button onClick={reset} className="w-full py-2 rounded-xl text-sm glass border border-white/10 hover:border-white/20 transition-colors">Start New Session</button>
+      <button onClick={reset} className="w-full py-2 rounded-xl text-sm card-nexus hover:border-border/60 transition-colors">Start New Session</button>
     </div>
   );
   return (
@@ -632,7 +632,7 @@ function SocraticTutorExperiment({ cookieId }: { cookieId: string }) {
       </div>
       {history.length > 0 && <div className="space-y-1 max-h-32 overflow-y-auto">{history.map((h,i) => <div key={i} className="text-xs text-muted-foreground">Q{i+1}: {h.a}</div>)}</div>}
       <div className="flex gap-2">
-        <textarea value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Your answer..." rows={2} className="flex-1 px-3 py-2 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.4)] bg-transparent resize-none" />
+        <textarea value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Your answer..." rows={2} className="flex-1 px-3 py-2 rounded-xl card-nexus text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.72_0.18_150_/_0.4)] bg-transparent resize-none" />
         <button onClick={submitAnswer} disabled={loading || !answer.trim()} className="px-4 rounded-xl transition-all" style={{background:"oklch(0.72 0.18 150 / 0.15)",border:"1px solid oklch(0.72 0.18 150 / 0.3)"}}>
           {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} style={{color:"oklch(0.72 0.18 150)"}} />}
         </button>
@@ -672,9 +672,9 @@ function StoryGenExperiment({ cookieId }: { cookieId: string }) {
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Choose a genre and write a premise. The AI writes the opening scene, then you make choices that shape the story.</p>
       <div className="flex flex-wrap gap-2">
-        {genres.map(g => <button key={g} onClick={() => setGenre(g)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${genre===g ? "" : "glass border border-white/8 text-muted-foreground hover:border-white/15"}`} style={genre===g ? {background:"oklch(0.78 0.16 30 / 0.15)",border:"1px solid oklch(0.78 0.16 30 / 0.35)",color:"oklch(0.88 0.12 30)"} : {}}>{g}</button>)}
+        {genres.map(g => <button key={g} onClick={() => setGenre(g)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${genre===g ? "" : "card-nexus text-muted-foreground hover:border-border/60"}`} style={genre===g ? {background:"oklch(0.78 0.16 30 / 0.15)",border:"1px solid oklch(0.78 0.16 30 / 0.35)",color:"oklch(0.88 0.12 30)"} : {}}>{g}</button>)}
       </div>
-      <textarea value={premise} onChange={e => setPremise(e.target.value)} placeholder="e.g. A lone astronaut discovers a signal from a dead civilization..." rows={3} className="w-full px-4 py-3 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.4)] bg-transparent resize-none" />
+      <textarea value={premise} onChange={e => setPremise(e.target.value)} placeholder="e.g. A lone astronaut discovers a signal from a dead civilization..." rows={3} className="w-full px-4 py-3 rounded-xl card-nexus text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.78_0.16_30_/_0.4)] bg-transparent resize-none" />
       <button onClick={startStory} disabled={loading || !premise.trim()} className="w-full py-3 rounded-xl font-semibold text-sm transition-all" style={{background:"oklch(0.78 0.16 30 / 0.15)",border:"1px solid oklch(0.78 0.16 30 / 0.3)",color:"oklch(0.88 0.12 30)"}}>
         {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" /> Writing your story...</span> : "Begin Story"}
       </button>
@@ -689,7 +689,7 @@ function StoryGenExperiment({ cookieId }: { cookieId: string }) {
         <div className="space-y-2">
           <div className="text-xs font-semibold text-muted-foreground">WHAT DO YOU DO?</div>
           {choices.map((c, i) => (
-            <button key={i} onClick={() => makeChoice(c)} className="w-full text-left px-4 py-3 rounded-xl glass border border-white/8 hover:border-white/20 text-sm text-foreground transition-all group">
+            <button key={i} onClick={() => makeChoice(c)} className="w-full text-left px-4 py-3 rounded-xl card-nexus hover:border-border/60 text-sm text-foreground transition-all group">
               <span className="text-xs font-bold mr-2" style={{color:"oklch(0.78 0.16 30)"}}>{String.fromCharCode(65+i)}.</span>{c}
             </button>
           ))}
@@ -715,7 +715,7 @@ function BiasDetectorExperiment({ cookieId }: { cookieId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">Paste any text — news article, essay, tweet thread, political speech. The AI identifies cognitive biases and logical fallacies.</p>
-      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste text to analyze..." rows={5} className="w-full px-4 py-3 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.65_0.22_20_/_0.4)] bg-transparent resize-none" />
+      <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste text to analyze..." rows={5} className="w-full px-4 py-3 rounded-xl card-nexus text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.65_0.22_20_/_0.4)] bg-transparent resize-none" />
       <button onClick={analyze} disabled={loading || !text.trim()} className="w-full py-3 rounded-xl font-semibold text-sm transition-all" style={{background:"oklch(0.65 0.22 20 / 0.15)",border:"1px solid oklch(0.65 0.22 20 / 0.3)",color:"oklch(0.80 0.16 20)"}}>
         {loading ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" /> Analyzing for biases...</span> : "Detect Biases"}
       </button>
@@ -731,7 +731,7 @@ function BiasDetectorExperiment({ cookieId }: { cookieId: string }) {
           {result.biases.length === 0 ? <div className="text-sm text-center text-muted-foreground py-4">No significant biases detected.</div> : (
             <div className="space-y-2">
               {result.biases.map((b,i) => (
-                <div key={i} className="p-3 rounded-xl glass border border-white/8">
+                <div key={i} className="p-3 rounded-xl card-nexus">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-semibold text-foreground">{b.name}</span>
                     <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{color:severityColor[b.severity]||"oklch(0.75 0.18 55)",background:`${severityColor[b.severity]||"oklch(0.75 0.18 55)"}18`,border:`1px solid ${severityColor[b.severity]||"oklch(0.75 0.18 55)"}44`}}>{b.severity}</span>
@@ -767,15 +767,15 @@ function ExperimentModal({ exp, onClose, cookieId }: { exp: typeof experiments[0
   };
   return (
     <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <motion.div initial={{scale:0.95,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.95,opacity:0,y:20}} transition={{type:"spring",bounce:0.15}} className="glass-strong rounded-3xl border border-white/15 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <motion.div initial={{scale:0.95,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.95,opacity:0,y:20}} transition={{type:"spring",bounce:0.15}} className="card-nexus rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{background:`${exp.color}22`,borderColor:`${exp.color}44`}}>
               <exp.icon size={16} style={{color:exp.color}} />
             </div>
             <div><div className="font-bold text-foreground">{exp.title}</div><div className="text-xs text-muted-foreground">{exp.tag}</div></div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground"><X size={18} /></button>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors text-muted-foreground"><X size={18} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-6">{content()}</div>
       </motion.div>
@@ -837,7 +837,7 @@ export default function Lab() {
 
             <div className="flex gap-2 mb-8">
               {(["experiments","challenges"] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all capitalize ${activeTab===tab ? "bg-[oklch(0.65_0.22_200_/_0.2)] border border-[oklch(0.65_0.22_200_/_0.5)] text-[oklch(0.75_0.18_200)]" : "glass border border-white/10 text-muted-foreground hover:text-foreground"}`}>{tab}</button>
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all capitalize ${activeTab===tab ? "bg-[oklch(0.65_0.22_200_/_0.2)] border border-[oklch(0.65_0.22_200_/_0.5)] text-[oklch(0.75_0.18_200)]" : "card-nexus text-muted-foreground hover:text-foreground"}`}>{tab}</button>
               ))}
             </div>
 
@@ -845,7 +845,7 @@ export default function Lab() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {experiments.map((exp, i) => (
                   <motion.div key={exp.id} initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{delay:i*0.06}} onClick={() => setActiveExperiment(exp)}
-                    className="p-6 glass rounded-2xl border border-white/10 hover:border-white/25 cursor-pointer transition-all group" whileHover={{scale:1.01,y:-2}}>
+                    className="p-6 glass rounded-2xl border border-white/10 hover:border-border/60 cursor-pointer transition-all group" whileHover={{scale:1.01,y:-2}}>
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center border" style={{background:`${exp.color}22`,borderColor:`${exp.color}44`}}>
                         <exp.icon size={18} style={{color:exp.color}} />
@@ -870,7 +870,7 @@ export default function Lab() {
                 </div>
                 {challenges.map((ch, i) => (
                   <motion.div key={ch.id} initial={{opacity:0,x:-20}} whileInView={{opacity:1,x:0}} viewport={{once:true}} transition={{delay:i*0.06}}
-                    className={`flex items-center justify-between p-5 glass rounded-2xl border cursor-pointer transition-all group ${completedChallenges.includes(ch.id) ? "border-[oklch(0.70_0.20_150_/_0.3)]" : "border-white/10 hover:border-white/25"}`}
+                    className={`flex items-center justify-between p-5 glass rounded-2xl border cursor-pointer transition-all group ${completedChallenges.includes(ch.id) ? "border-[oklch(0.70_0.20_150_/_0.3)]" : "border-white/10 hover:border-border/60"}`}
                     onClick={() => openChallenge(ch)}>
                     <div className="flex items-center gap-4">
                       {completedChallenges.includes(ch.id) ? <CheckCircle size={20} className="text-[oklch(0.70_0.20_150)] flex-shrink-0" /> : <Code2 size={20} className="text-muted-foreground flex-shrink-0" />}
@@ -897,8 +897,8 @@ export default function Lab() {
         {activeChallenge && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setActiveChallenge(null)}>
             <motion.div initial={{scale:0.95,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.95,opacity:0,y:20}} transition={{type:"spring",bounce:0.15}}
-              className="glass-strong rounded-3xl border border-white/15 w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              className="card-nexus rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-xs font-medium" style={{color:difficultyColors[activeChallenge.difficulty]}}>{activeChallenge.difficulty}</span>
@@ -907,7 +907,7 @@ export default function Lab() {
                   </div>
                   <div className="font-bold text-foreground">{activeChallenge.title}</div>
                 </div>
-                <button onClick={() => setActiveChallenge(null)} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground"><X size={18} /></button>
+                <button onClick={() => setActiveChallenge(null)} className="p-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors text-muted-foreground"><X size={18} /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <p className="text-sm text-muted-foreground whitespace-pre-line">{activeChallenge.description}</p>
@@ -922,21 +922,21 @@ export default function Lab() {
                   </div>
                 )}
                 {showHint && <div className="glass rounded-xl border border-[oklch(0.75_0.18_55_/_0.3)] p-4 text-sm text-[oklch(0.75_0.18_55)]"><Lightbulb size={14} className="inline mr-2" />{activeChallenge.hint}</div>}
-                {showSolution && <div className="glass rounded-xl border border-white/10 p-4"><div className="text-xs text-muted-foreground mb-2 font-mono uppercase tracking-wider">Solution</div><pre className="text-sm font-mono text-foreground whitespace-pre-wrap">{activeChallenge.solution}</pre></div>}
+                {showSolution && <div className="card-nexus p-4"><div className="text-xs text-muted-foreground mb-2 font-mono uppercase tracking-wider">Solution</div><pre className="text-sm font-mono text-foreground whitespace-pre-wrap">{activeChallenge.solution}</pre></div>}
               </div>
               <div className="px-6 py-4 border-t border-white/10 flex items-center gap-3 flex-wrap">
                 <button onClick={runCode} disabled={running} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[oklch(0.65_0.22_200_/_0.2)] border border-[oklch(0.65_0.22_200_/_0.4)] text-sm font-medium hover:bg-[oklch(0.65_0.22_200_/_0.3)] disabled:opacity-50 transition-colors">
                   {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Run Code
                 </button>
                 {output?.type === "error" && (
-                  <button onClick={getAIDebug} disabled={debugMutation.isPending} className="flex items-center gap-2 px-4 py-2 rounded-lg glass border border-white/10 text-sm hover:border-white/25 transition-colors">
+                  <button onClick={getAIDebug} disabled={debugMutation.isPending} className="flex items-center gap-2 px-4 py-2 rounded-lg card-nexus text-sm hover:border-border/60 transition-colors">
                     {debugMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Brain size={14} />} AI Debug
                   </button>
                 )}
-                <button onClick={() => setShowHint(h => !h)} className="flex items-center gap-2 px-4 py-2 rounded-lg glass border border-white/10 text-sm hover:border-white/25 transition-colors">
+                <button onClick={() => setShowHint(h => !h)} className="flex items-center gap-2 px-4 py-2 rounded-lg card-nexus text-sm hover:border-border/60 transition-colors">
                   <Lightbulb size={14} /> {showHint ? "Hide" : "Hint"}
                 </button>
-                <button onClick={() => setShowSolution(s => !s)} className="flex items-center gap-2 px-4 py-2 rounded-lg glass border border-white/10 text-sm hover:border-white/25 transition-colors ml-auto">
+                <button onClick={() => setShowSolution(s => !s)} className="flex items-center gap-2 px-4 py-2 rounded-lg card-nexus text-sm hover:border-border/60 transition-colors ml-auto">
                   <Eye size={14} /> {showSolution ? "Hide" : "Solution"}
                 </button>
               </div>

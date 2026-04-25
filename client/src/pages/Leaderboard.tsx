@@ -58,7 +58,7 @@ export default function Leaderboard() {
       <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
         {/* Header */}
         <div className="text-center space-y-3">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-white/10 text-xs font-medium text-muted-foreground">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full card-nexus text-xs font-medium text-muted-foreground">
             <Users size={12} /> Global Rankings
           </motion.div>
           <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="text-4xl font-bold text-foreground">
@@ -75,7 +75,7 @@ export default function Leaderboard() {
             <button
               key={m.id}
               onClick={() => setMetric(m.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${metric === m.id ? "" : "glass border border-white/8 text-muted-foreground hover:border-white/15"}`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${metric === m.id ? "" : "card-nexus text-muted-foreground hover:border-border/60"}`}
               style={metric === m.id ? { background: `${m.color}18`, border: `1px solid ${m.color}44`, color: m.color } : {}}
             >
               <m.icon size={14} />
@@ -86,7 +86,7 @@ export default function Leaderboard() {
 
         {/* My Rank Card */}
         {myRank && (
-          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="p-4 rounded-2xl glass border border-white/10 flex items-center justify-between">
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="p-4 rounded-2xl card-nexus flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="text-3xl font-black" style={{ color: activeMetric.color }}>#{myRank}</div>
               <div>
@@ -124,7 +124,7 @@ export default function Leaderboard() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: podiumIdx * 0.1 }}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-2xl glass border ${actualRank === 1 ? "border-[oklch(0.85_0.18_55_/_0.3)]" : "border-white/8"}`}
+                      className={`card-nexus flex flex-col items-center gap-2 p-4 ${actualRank === 1 ? "border-[oklch(0.85_0.18_55_/_0.3)]" : "border-white/8"}`}
                       style={actualRank === 1 ? { background: "oklch(0.85 0.18 55 / 0.06)" } : {}}
                     >
                       <BadgeIcon size={20} style={{ color: badge.color }} />
@@ -159,7 +159,7 @@ export default function Leaderboard() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      className={`flex items-center gap-4 p-4 rounded-xl transition-all ${isMe ? "border" : "glass border border-white/8 hover:border-white/15"}`}
+                      className={`flex items-center gap-4 p-4 rounded-xl transition-all ${isMe ? "border" : "card-nexus hover:border-border/60"}`}
                       style={isMe ? { background: `${activeMetric.color}0a`, border: `1px solid ${activeMetric.color}33` } : {}}
                     >
                       <div className="w-8 text-center">
@@ -194,7 +194,7 @@ export default function Leaderboard() {
         )}
 
         {/* Achievement Legend */}
-        <div className="p-5 rounded-2xl glass border border-white/8">
+        <div className="p-5 rounded-2xl card-nexus">
           <div className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2"><Star size={12} /> RANK TIERS</div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {RANK_BADGES.map(b => {

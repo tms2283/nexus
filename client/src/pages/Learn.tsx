@@ -7286,7 +7286,7 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="glass rounded-xl p-5 border border-white/8 hover:border-white/15 transition-all group cursor-pointer relative"
+              className="card-nexus p-5 group cursor-pointer relative"
               onClick={() => path.href ? setLocation(path.href) : onSelectPath(path.title)}
             >
               {path.popular && (
@@ -7392,7 +7392,7 @@ export default function Learn() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-[oklch(0.75_0.18_55_/_0.3)] text-sm text-[oklch(0.75_0.18_55)] mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--nexus-gold-fill)] border border-[var(--nexus-gold-border)] text-sm text-[var(--nexus-gold)] mb-6"
             >
               <Sparkles size={14} />
               <span>AI-Powered Adaptive Learning</span>
@@ -7426,8 +7426,8 @@ export default function Learn() {
                 { label: "Socratic Sessions", value: "8,100+", icon: MessageSquare },
                 { label: "Concepts Mastered", value: "41,000+", icon: CheckCircle2 },
               ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="glass rounded-xl p-4 border border-white/8 text-center">
-                  <Icon size={16} className="text-[oklch(0.75_0.18_55)] mx-auto mb-2" />
+                <div key={label} className="card-nexus p-4 text-center">
+                  <Icon size={16} className="text-[var(--nexus-gold)] mx-auto mb-2" />
                   <div className="text-xl font-bold text-foreground">{value}</div>
                   <div className="text-xs text-muted-foreground">{label}</div>
                 </div>
@@ -7439,15 +7439,15 @@ export default function Learn() {
         {/* Tabs */}
         <section className="pb-4 px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex gap-2 p-1 glass rounded-xl border border-white/8 mb-8">
+            <div className="flex border-b border-border/60 mb-8 overflow-x-auto">
               {tabs.map(({ id, label, icon: Icon, desc }) => (
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 py-3 px-5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px shrink-0 ${
                     activeTab === id
-                      ? "bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.25)] text-[oklch(0.85_0.18_55)]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/3"
+                      ? "border-[var(--nexus-gold)] text-[var(--nexus-gold)]"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Icon size={16} />

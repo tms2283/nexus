@@ -16,7 +16,7 @@ export default function Welcome() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[oklch(0.75_0.18_55)]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--nexus-gold)]" />
       </div>
     );
   }
@@ -25,7 +25,7 @@ export default function Welcome() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[oklch(0.75_0.18_55_/_0.06)] blur-[120px]" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[var(--nexus-gold-fill)] blur-[120px]" />
       </div>
 
       <motion.div
@@ -37,8 +37,8 @@ export default function Welcome() {
         {/* Logo + tagline */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] flex items-center justify-center">
-              <Brain size={26} className="text-[oklch(0.75_0.18_55)]" />
+            <div className="w-12 h-12 rounded-xl bg-[var(--nexus-gold-fill)] border border-[var(--nexus-gold-border)] flex items-center justify-center">
+              <Brain size={26} className="text-[var(--nexus-gold)]" />
             </div>
             <h1 className="text-4xl font-bold text-foreground tracking-tight">
               Nexus
@@ -55,7 +55,7 @@ export default function Welcome() {
           {/* Google */}
           <button
             onClick={() => setLocation("/login?method=google")}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-foreground font-medium"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border/60 bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors text-foreground font-medium"
           >
             <GoogleIcon />
             Continue with Google
@@ -65,7 +65,7 @@ export default function Welcome() {
           <div className="relative group">
             <button
               disabled
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-white/8 bg-white/3 text-muted-foreground font-medium cursor-not-allowed opacity-50"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border/30 bg-[var(--surface-0)] text-muted-foreground font-medium cursor-not-allowed opacity-50"
             >
               <FacebookIcon />
               Continue with Facebook
@@ -78,42 +78,42 @@ export default function Welcome() {
           {/* Email */}
           <button
             onClick={() => setLocation("/login")}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-foreground font-medium"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border/60 bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors text-foreground font-medium"
           >
-            <Sparkles size={18} className="text-[oklch(0.75_0.18_55)]" />
+            <Sparkles size={18} className="text-[var(--nexus-gold)]" />
             Sign in with Email
           </button>
 
           {/* Create account */}
           <button
             onClick={() => setLocation("/register")}
-            className="w-full px-4 py-3 rounded-xl bg-[oklch(0.75_0.18_55)] text-black font-semibold hover:opacity-90 transition-opacity"
+            className="w-full btn-primary"
           >
             Create Account
           </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-1">
-            <div className="flex-1 h-px bg-white/8" />
+            <div className="flex-1 h-px bg-border/60" />
             <span className="text-xs text-muted-foreground">or</span>
-            <div className="flex-1 h-px bg-white/8" />
+            <div className="flex-1 h-px bg-border/60" />
           </div>
 
           {/* Guest */}
           <button
             onClick={continueAsGuest}
-            className="w-full px-4 py-3 rounded-xl border border-white/8 text-muted-foreground hover:text-foreground hover:border-white/20 transition-colors text-sm font-medium"
+            className="w-full btn-ghost text-sm"
           >
             Continue as Guest
           </button>
 
           {/* Guest warning */}
-          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/20">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-[var(--nexus-gold-fill)] border border-[var(--nexus-gold-border)]">
             <AlertTriangle
               size={14}
-              className="text-amber-400 mt-0.5 shrink-0"
+              className="text-[var(--nexus-gold)] mt-0.5 shrink-0"
             />
-            <p className="text-xs text-amber-300/80 leading-relaxed">
+            <p className="text-xs text-[var(--nexus-gold)]/80 leading-relaxed">
               Guest progress and data are not saved. Create an account to keep
               your learning history, XP, and personalized curriculum.
             </p>

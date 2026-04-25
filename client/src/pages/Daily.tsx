@@ -75,7 +75,7 @@ export default function Daily() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-10"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[oklch(0.65_0.22_200_/_0.12)] border border-[oklch(0.65_0.22_200_/_0.3)] text-xs font-semibold text-[oklch(0.65_0.22_200)] mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--nexus-blue-fill)] border border-[var(--nexus-blue-border)] text-xs font-semibold text-[var(--nexus-blue)] mb-4">
               <Flame size={12} />
               Daily Challenge
             </div>
@@ -87,7 +87,7 @@ export default function Daily() {
 
           {/* Loading */}
           {challengeQuery.isLoading && (
-            <div className="glass rounded-2xl border border-white/8 p-8 text-center">
+            <div className="card-nexus p-8 text-center">
               <div className="w-10 h-10 rounded-full border-2 border-[oklch(0.65_0.22_200)] border-t-transparent animate-spin mx-auto mb-4" />
               <p className="text-muted-foreground text-sm">Generating today's challenge...</p>
             </div>
@@ -101,9 +101,9 @@ export default function Daily() {
               transition={{ delay: 0.1 }}
             >
               {/* Main card */}
-              <div className="glass rounded-2xl border border-white/10 overflow-hidden mb-6">
+              <div className="card-nexus overflow-hidden mb-6">
                 {/* Card header */}
-                <div className="relative p-6 pb-5 border-b border-white/8">
+                <div className="relative p-6 pb-5 border-b border-border/60">
                   <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.65_0.22_200_/_0.06)] to-transparent pointer-events-none" />
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
@@ -165,7 +165,7 @@ export default function Daily() {
                         className={`w-full flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all ${
                           completedTasks.has(i)
                             ? "bg-[oklch(0.65_0.22_200_/_0.08)] border-[oklch(0.65_0.22_200_/_0.3)]"
-                            : "bg-white/3 border-white/8 hover:bg-white/5"
+                            : "bg-[var(--surface-2)] border-border/30 hover:bg-[var(--surface-1)]"
                         }`}
                       >
                         <div className="mt-0.5 shrink-0">
@@ -204,8 +204,8 @@ export default function Daily() {
                     whileTap={allTasksDone ? { scale: 0.98 } : {}}
                     className={`w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
                       allTasksDone
-                        ? "bg-[oklch(0.65_0.22_200)] text-white hover:bg-[oklch(0.6_0.22_200)]"
-                        : "bg-white/5 text-muted-foreground cursor-not-allowed"
+                        ? "bg-[var(--nexus-blue)] text-white hover:opacity-90"
+                        : "bg-[var(--surface-1)] text-muted-foreground cursor-not-allowed"
                     }`}
                   >
                     {completeMutation.isPending ? (
@@ -238,7 +238,7 @@ export default function Daily() {
                 <Link href="/research">
                   <motion.div
                     whileHover={{ scale: 1.02 }}
-                    className="glass rounded-xl border border-white/8 p-4 cursor-pointer hover:border-white/15 transition-colors"
+                    className="card-nexus p-4 cursor-pointer"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <RefreshCw size={14} className="text-[oklch(0.65_0.22_200)]" />
@@ -250,7 +250,7 @@ export default function Daily() {
                 <Link href="/lab">
                   <motion.div
                     whileHover={{ scale: 1.02 }}
-                    className="glass rounded-xl border border-white/8 p-4 cursor-pointer hover:border-white/15 transition-colors"
+                    className="card-nexus p-4 cursor-pointer"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <BookOpen size={14} className="text-[oklch(0.75_0.2_280)]" />
@@ -268,7 +268,7 @@ export default function Daily() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="glass rounded-2xl border border-[oklch(0.65_0.22_200_/_0.4)] p-8 text-center"
+              className="card-nexus border-[var(--nexus-blue-border)] p-8 text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}
@@ -296,7 +296,7 @@ export default function Daily() {
                 <Link href="/dashboard">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
-                    className="px-5 py-2.5 rounded-xl bg-[oklch(0.65_0.22_200)] text-white text-sm font-semibold flex items-center gap-2"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--nexus-blue)] text-white font-semibold text-sm"
                   >
                     <BarChart3 size={14} />
                     View My Progress
@@ -305,7 +305,7 @@ export default function Daily() {
                 <Link href="/learn">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
-                    className="px-5 py-2.5 rounded-xl bg-white/8 text-foreground text-sm font-semibold flex items-center gap-2 hover:bg-white/12 transition-colors"
+                    className="btn-ghost flex items-center gap-2"
                   >
                     <ArrowRight size={14} />
                     Continue Learning

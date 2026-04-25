@@ -174,7 +174,7 @@ export default function Flashcards() {
 
                 {/* Stats bar */}
                 {decks && decks.length > 0 && (
-                  <div className="glass rounded-xl p-4 mb-8 flex gap-6">
+                  <div className="card-nexus p-4 mb-8 flex gap-6">
                     <div className="flex items-center gap-2 text-white/70">
                       <Layers className="w-4 h-4 text-violet-400" />
                       <span className="text-sm">{decks.length} decks</span>
@@ -202,7 +202,7 @@ export default function Flashcards() {
                     {(decks as Deck[]).map((deck) => (
                       <motion.div
                         key={deck.id}
-                        className="glass rounded-xl p-6 border border-white/5 hover:border-violet-500/30 transition-all cursor-pointer group"
+                        className="glass rounded-xl p-6 border border-border/60 hover:border-violet-500/30 transition-all cursor-pointer group"
                         whileHover={{ scale: 1.01 }}
                         onClick={() => startReview(deck)}
                       >
@@ -241,7 +241,7 @@ export default function Flashcards() {
                     <h2 className="text-3xl font-bold text-white mb-2">AI Flashcard Generator</h2>
                     <p className="text-white/50">Enter any topic and AI will generate a complete study deck</p>
                   </div>
-                  <div className="glass rounded-2xl p-8 space-y-6">
+                  <div className="card-nexus p-8 space-y-6">
                     <div>
                       <label className="text-white/70 text-sm font-medium block mb-2">Topic or Concept</label>
                       <input
@@ -249,7 +249,7 @@ export default function Flashcards() {
                         onChange={e => setGenerateTopic(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && handleGenerate()}
                         placeholder="e.g. Transformer architecture, React hooks, Stoic philosophy..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors"
+                        className="w-full bg-[var(--surface-1)] border border-border/60 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors"
                       />
                     </div>
                     <div>
@@ -294,7 +294,7 @@ export default function Flashcards() {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-1 bg-white/5 rounded-full mb-8 overflow-hidden">
+                <div className="w-full h-1 bg-[var(--surface-2)] rounded-full mb-8 overflow-hidden">
                   <motion.div className="h-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full" animate={{ width: `${progress}%` }} transition={{ duration: 0.3 }} />
                 </div>
 
@@ -310,13 +310,13 @@ export default function Flashcards() {
                     style={{ transformStyle: "preserve-3d" }}
                   >
                     {/* Front */}
-                    <div className="absolute inset-0 glass rounded-2xl border border-white/10 flex flex-col items-center justify-center p-8 text-center" style={{ backfaceVisibility: "hidden" }}>
+                    <div className="absolute inset-0 card-nexus flex flex-col items-center justify-center p-8 text-center" style={{ backfaceVisibility: "hidden" }}>
                       <div className="text-xs text-violet-400 font-mono uppercase tracking-widest mb-4">Question</div>
                       <p className="text-white text-xl font-medium leading-relaxed">{currentCard.front}</p>
                       <p className="text-white/30 text-sm mt-6">Click to reveal answer</p>
                     </div>
                     {/* Back */}
-                    <div className="absolute inset-0 glass rounded-2xl border border-violet-500/20 bg-violet-950/20 flex flex-col items-center justify-center p-8 text-center" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
+                    <div className="absolute inset-0 card-nexus border-[var(--nexus-purple-border)] bg-[var(--nexus-purple-fill)] flex flex-col items-center justify-center p-8 text-center" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
                       <div className="text-xs text-cyan-400 font-mono uppercase tracking-widest mb-4">Answer</div>
                       <p className="text-white text-xl font-medium leading-relaxed">{currentCard.back}</p>
                     </div>
@@ -363,7 +363,7 @@ export default function Flashcards() {
                 <h2 className="text-3xl font-bold text-white mb-2">Session Complete!</h2>
                 <p className="text-white/50 mb-8">You reviewed {sessionStats.reviewed} cards in {elapsedStr}</p>
 
-                <div className="glass rounded-2xl p-6 max-w-sm mx-auto mb-8">
+                <div className="card-nexus p-6 max-w-sm mx-auto mb-8">
                   <div className="grid grid-cols-4 gap-4 text-center">
                     {[
                       { label: "Again", value: sessionStats.again, color: "text-red-400" },

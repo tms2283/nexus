@@ -143,7 +143,7 @@ export default function Settings() {
           </div>
 
           {/* Current status */}
-          <div className="glass rounded-xl p-4 mb-8 flex items-center gap-4">
+          <div className="card-nexus p-4 mb-8 flex items-center gap-4">
             <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${currentProvider.color} flex items-center justify-center text-white font-bold text-lg`}>
               {currentProvider.icon}
             </div>
@@ -202,7 +202,7 @@ export default function Settings() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="glass rounded-b-xl border border-t-0 border-border/60 p-5 space-y-4">
+                      <div className="bg-[var(--surface-1)] rounded-b-xl border border-t-0 border-border/60 p-5 space-y-4">
                         {/* Strengths */}
                         <div>
                           <p className="text-muted-foreground text-xs uppercase tracking-widest mb-2">Strengths</p>
@@ -303,7 +303,7 @@ export default function Settings() {
           </div>
 
           {/* Info box */}
-          <div className="glass rounded-xl p-5 border border-border/60">
+          <div className="card-nexus p-5">
             <h3 className="text-foreground font-medium mb-2 flex items-center gap-2">
               <Info className="w-4 h-4 text-violet-400" /> How API keys work
             </h3>

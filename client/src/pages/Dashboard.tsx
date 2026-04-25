@@ -30,7 +30,7 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass rounded-2xl border border-white/8 p-5"
+      className="card-nexus p-5"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}22`, color }}>
@@ -218,7 +218,7 @@ export default function Dashboard() {
 
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 text-sm text-muted-foreground mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--surface-1)] border border-border/60 text-sm text-muted-foreground mb-4">
               <BarChart3 size={14} /> <span>Your Learning Journey</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
@@ -234,7 +234,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="glass rounded-2xl border border-white/10 p-6 mb-8"
+            className="card-nexus p-6 mb-8"
           >
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               {/* Level Badge */}
@@ -340,7 +340,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.09 }}
-              className="glass rounded-2xl border border-white/8 p-6 mb-8"
+              className="card-nexus p-6 mb-8"
             >
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
@@ -383,7 +383,7 @@ export default function Dashboard() {
 
                 {/* Knowledge Radar */}
                 {hasRadar && (
-                  <div className="glass rounded-2xl border border-white/8 p-5">
+                  <div className="card-nexus p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-1">Knowledge Profile</h3>
                     <p className="text-xs text-muted-foreground mb-4">Latest score per subject</p>
                     <div className="h-56">
@@ -405,7 +405,7 @@ export default function Dashboard() {
 
                 {/* IQ Trend */}
                 {iqHistory.length > 0 && (
-                  <div className="glass rounded-2xl border border-white/8 p-5">
+                  <div className="card-nexus p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-1">IQ Score Trend</h3>
                     <p className="text-xs text-muted-foreground mb-4">
                       {iqHistory.length === 1 ? "First attempt — take more to see trend" : `${iqHistory.length} attempts`}
@@ -457,7 +457,7 @@ export default function Dashboard() {
                   return point;
                 });
                 return (
-                  <div className="glass rounded-2xl border border-white/8 p-5 mb-6">
+                  <div className="card-nexus p-5 mb-6">
                     <h3 className="text-sm font-semibold text-foreground mb-1">Overall Progress</h3>
                     <p className="text-xs text-muted-foreground mb-4">All subjects compared across attempts</p>
                     <div className="h-64">
@@ -522,7 +522,7 @@ export default function Dashboard() {
                         key={subjectId}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="glass rounded-2xl border border-white/8 p-5"
+                        className="card-nexus p-5"
                       >
                         <div className="flex items-start justify-between mb-1">
                           <div>
@@ -599,7 +599,7 @@ export default function Dashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="glass rounded-2xl border border-[oklch(0.8_0.18_60_/_0.3)] p-6"
+                  className="card-nexus border-[oklch(0.8_0.18_60_/_0.3)] p-6"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-[oklch(0.8_0.18_60_/_0.15)] flex items-center justify-center">
@@ -644,7 +644,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-2xl border border-white/8 p-6"
+                className="card-nexus p-6"
               >
                 <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                   <Target size={16} className="text-[oklch(0.65_0.22_200)]" />
@@ -669,7 +669,7 @@ export default function Dashboard() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.04 }}
-                          className="flex items-center gap-4 p-3 rounded-xl bg-white/3 border border-white/6"
+                          className="flex items-center gap-4 p-3 rounded-xl bg-[var(--surface-2)] border border-border/30"
                         >
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}22`, color }}>
                             {pct >= 80 ? <CheckCircle size={14} /> : <Circle size={14} />}
@@ -696,7 +696,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-2xl border border-white/8 p-6"
+                className="card-nexus p-6"
               >
                 <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                   <FlaskConical size={16} className="text-[oklch(0.75_0.2_280)]" />
@@ -718,7 +718,7 @@ export default function Dashboard() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.04 }}
-                        className="flex items-start gap-3 p-3 rounded-xl bg-white/3 border border-white/6"
+                        className="flex items-start gap-3 p-3 rounded-xl bg-[var(--surface-2)] border border-border/30"
                       >
                         <div className="w-8 h-8 rounded-lg bg-[oklch(0.75_0.2_280_/_0.15)] flex items-center justify-center shrink-0 mt-0.5">
                           <FlaskConical size={14} className="text-[oklch(0.75_0.2_280)]" />
@@ -746,7 +746,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-2xl border border-white/8 p-6"
+                className="card-nexus p-6"
               >
                 <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                   <Award size={16} className="text-[oklch(0.8_0.18_60)]" />
@@ -778,7 +778,7 @@ export default function Dashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="glass rounded-2xl border border-white/8 p-6"
+                  className="card-nexus p-6"
                 >
                   <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                     <TrendingUp size={16} className="text-[oklch(0.72 0.18 150)]" />
@@ -801,7 +801,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-2xl border border-white/8 p-6"
+                className="card-nexus p-6"
               >
                 <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                   <Map size={16} className="text-[oklch(0.65_0.22_200)]" />
@@ -837,7 +837,7 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-2xl border border-white/8 p-6"
+                className="card-nexus p-6"
               >
                 <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                   <Zap size={16} className="text-[oklch(0.8_0.18_60)]" />
@@ -852,7 +852,7 @@ export default function Dashboard() {
                   ].map(({ to, label, icon, color }) => (
                      <Link
                       href={to}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/6 hover:border-white/15 hover:bg-white/5 transition-all group"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-2)] border border-border/30 hover:border-border/60 hover:bg-[var(--surface-1)] transition-all group"
                     >
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}22`, color }}>
                         {icon}

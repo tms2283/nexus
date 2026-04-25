@@ -68,7 +68,7 @@ function AIExplainPanel({ resource, onClose }: { resource: Resource; onClose: ()
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="glass rounded-xl border border-[oklch(0.65_0.22_200_/_0.25)] p-5 mt-3"
+      className="card-nexus border-[var(--nexus-blue-border)] p-5 mt-3"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -162,7 +162,7 @@ function ResourceCard({ resource, index }: { resource: Resource & { ratingSum?: 
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.4 }}
-      className={`glass rounded-xl border p-5 flex flex-col gap-3 group transition-all hover:border-white/15 ${
+      className={`glass rounded-xl border p-5 flex flex-col gap-3 group transition-all hover:border-border/60 ${
         resource.featured ? "border-[oklch(0.75_0.18_55_/_0.25)]" : "border-white/8"
       }`}
     >
@@ -181,7 +181,7 @@ function ResourceCard({ resource, index }: { resource: Resource & { ratingSum?: 
           <button
             onClick={toggleBookmark}
             className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-              isBookmarked ? "bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.75_0.18_55)]" : "bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10"
+              isBookmarked ? "bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.75_0.18_55)]" : "bg-[var(--surface-1)] text-muted-foreground hover:text-foreground hover:bg-[var(--surface-2)]"
             }`}
             title={isBookmarked ? "Remove bookmark" : "Bookmark"}
           >
@@ -191,7 +191,7 @@ function ResourceCard({ resource, index }: { resource: Resource & { ratingSum?: 
             href={resource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all group/link"
+            className="shrink-0 w-7 h-7 rounded-lg bg-[var(--surface-1)] border border-border/60 flex items-center justify-center hover:bg-white/10 hover:border-border/60 transition-all group/link"
             onClick={handleOpenLink}
           >
             <ExternalLink size={13} className="text-muted-foreground group-hover/link:text-foreground transition-colors" />
@@ -208,7 +208,7 @@ function ResourceCard({ resource, index }: { resource: Resource & { ratingSum?: 
           {diff.label}
         </span>
         {resource.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="px-2 py-0.5 rounded-full text-xs bg-white/5 border border-white/8 text-muted-foreground">
+          <span key={tag} className="px-2 py-0.5 rounded-full text-xs bg-[var(--surface-1)] border border-border/60 text-muted-foreground">
             {tag}
           </span>
         ))}
@@ -335,7 +335,7 @@ export default function Library() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-[oklch(0.72_0.18_150_/_0.3)] text-sm text-[oklch(0.72_0.18_150)] mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--nexus-green-fill)] border border-[var(--nexus-green-border)] text-sm text-[var(--nexus-green)] mb-6"
               >
                 <LibraryIcon size={14} />
                 <span>Knowledge Library</span>
@@ -364,7 +364,7 @@ export default function Library() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="glass rounded-2xl border border-[oklch(0.65_0.22_200_/_0.2)] p-6 mb-8"
+              className="card-nexus border-[var(--nexus-blue-border)] p-6 mb-8"
             >
               <div className="flex items-center gap-2 mb-3">
                 <Brain size={15} className="text-[oklch(0.65_0.22_200)]" />
@@ -377,7 +377,7 @@ export default function Library() {
                   onChange={(e) => setAiSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
                   placeholder="e.g., 'What is attention in transformers?' or 'Explain gradient descent'"
-                  className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] transition-colors"
+                  className="flex-1 bg-[var(--surface-2)] border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] transition-colors"
                 />
                 <motion.button
                   onClick={handleAiSearch}
@@ -396,7 +396,7 @@ export default function Library() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 pt-4 border-t border-white/5"
+                    className="mt-4 pt-4 border-t border-border/60"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <Zap size={12} className="text-[oklch(0.75_0.18_55)]" />
@@ -421,8 +421,8 @@ export default function Library() {
                 onClick={() => setActiveView("curated")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
                   activeView === "curated"
-                    ? "bg-white/8 border-white/15 text-foreground"
-                    : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/12 hover:text-foreground"
+                    ? "bg-[var(--surface-2)] border-border/60 text-foreground"
+                    : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-white/12 hover:text-foreground"
                 }`}
               >
                 <Star size={13} className={activeView === "curated" ? "text-[oklch(0.75_0.18_55)]" : ""} />
@@ -432,8 +432,8 @@ export default function Library() {
                 onClick={() => setActiveView("community")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
                   activeView === "community"
-                    ? "bg-white/8 border-white/15 text-foreground"
-                    : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/12 hover:text-foreground"
+                    ? "bg-[var(--surface-2)] border-border/60 text-foreground"
+                    : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-white/12 hover:text-foreground"
                 }`}
               >
                 <Users size={13} className={activeView === "community" ? "text-[oklch(0.65_0.22_200)]" : ""} />
@@ -448,8 +448,8 @@ export default function Library() {
                 onClick={() => setActiveView("bookmarks")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
                   activeView === "bookmarks"
-                    ? "bg-white/8 border-white/15 text-foreground"
-                    : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/12 hover:text-foreground"
+                    ? "bg-[var(--surface-2)] border-border/60 text-foreground"
+                    : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-white/12 hover:text-foreground"
                 }`}
               >
                 <Bookmark size={13} className={activeView === "bookmarks" ? "text-[oklch(0.75_0.18_55)]" : ""} />
@@ -469,7 +469,7 @@ export default function Library() {
                   </div>
                 ) : (communityResources.data?.items.length ?? 0) === 0 ? (
                   <div className="text-center py-20">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/8 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--surface-1)] border border-border/60 flex items-center justify-center mx-auto mb-4">
                       <Users size={24} className="text-muted-foreground" />
                     </div>
                     <p className="text-muted-foreground text-sm font-medium mb-1">No community contributions yet</p>
@@ -492,21 +492,21 @@ export default function Library() {
                           initial={{ opacity: 0, y: 15 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.04 }}
-                          className="glass rounded-xl border border-white/8 p-5 flex flex-col gap-3 hover:border-white/15 transition-all"
+                          className="card-nexus p-5 flex flex-col gap-3 hover:border-border/60 transition-all"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-sm text-foreground truncate mb-1">{r.title}</h3>
                               <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{r.description}</p>
                             </div>
-                            <a href={r.url} target="_blank" rel="noopener noreferrer" className="shrink-0 w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all" onClick={e => e.stopPropagation()}>
+                            <a href={r.url} target="_blank" rel="noopener noreferrer" className="shrink-0 w-8 h-8 rounded-lg bg-[var(--surface-1)] border border-border/60 flex items-center justify-center hover:bg-white/10 transition-all" onClick={e => e.stopPropagation()}>
                               <ExternalLink size={13} className="text-muted-foreground" />
                             </a>
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="px-2 py-0.5 rounded-full text-xs bg-[oklch(0.65_0.22_200_/_0.1)] border border-[oklch(0.65_0.22_200_/_0.2)] text-[oklch(0.65_0.22_200)]">{r.category}</span>
                             {(r.tags ?? []).slice(0, 2).map(tag => (
-                              <span key={tag} className="px-2 py-0.5 rounded-full text-xs bg-white/5 border border-white/8 text-muted-foreground">{tag}</span>
+                              <span key={tag} className="px-2 py-0.5 rounded-full text-xs bg-[var(--surface-1)] border border-border/60 text-muted-foreground">{tag}</span>
                             ))}
                           </div>
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
@@ -524,7 +524,7 @@ export default function Library() {
               <div>
                 {bookmarkedIds.length === 0 ? (
                   <div className="text-center py-20">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/8 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--surface-1)] border border-border/60 flex items-center justify-center mx-auto mb-4">
                       <Bookmark size={24} className="text-muted-foreground" />
                     </div>
                     <p className="text-muted-foreground text-sm font-medium mb-1">No bookmarks yet</p>
@@ -559,8 +559,8 @@ export default function Library() {
                     onClick={() => setActiveCategory(cat.label)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
                       isActive
-                        ? "bg-white/8 border-white/15 text-foreground"
-                        : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/12 hover:text-foreground"
+                        ? "bg-[var(--surface-2)] border-border/60 text-foreground"
+                        : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-white/12 hover:text-foreground"
                     }`}
                   >
                     <Icon size={13} style={{ color: isActive ? cat.color : undefined }} />
@@ -578,15 +578,15 @@ export default function Library() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search resources, tags, topics..."
-                  className="w-full bg-white/3 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-white/20 transition-colors"
+                  className="w-full bg-[var(--surface-2)] border border-border/60 rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-white/20 transition-colors"
                 />
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm border transition-all ${
                   showFilters || selectedDifficulty
-                    ? "bg-white/8 border-white/15 text-foreground"
-                    : "bg-white/3 border-white/8 text-muted-foreground hover:border-white/12"
+                    ? "bg-[var(--surface-2)] border-border/60 text-foreground"
+                    : "bg-[var(--surface-2)] border-border/30 text-muted-foreground hover:border-white/12"
                 }`}
               >
                 <Filter size={13} />
@@ -604,7 +604,7 @@ export default function Library() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="glass rounded-xl border border-white/8 p-4 mb-6"
+                  className="card-nexus p-4 mb-6"
                 >
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-xs font-medium text-muted-foreground">Difficulty:</span>
@@ -682,7 +682,7 @@ export default function Library() {
             {/* Empty state */}
             {!resources.isLoading && filtered.length === 0 && (
               <div className="text-center py-20">
-                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/8 flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-[var(--surface-1)] border border-border/60 flex items-center justify-center mx-auto mb-4">
                   <Search size={24} className="text-muted-foreground" />
                 </div>
                 <p className="text-muted-foreground text-sm">No resources match your search.</p>
@@ -700,7 +700,7 @@ export default function Library() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="mt-12 glass rounded-2xl border border-white/8 p-6 flex flex-col md:flex-row items-center justify-between gap-4"
+              className="mt-12 card-nexus p-6 flex flex-col md:flex-row items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)] flex items-center justify-center shrink-0">
@@ -713,7 +713,7 @@ export default function Library() {
               </div>
               <a
                 href="/contact"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-muted-foreground hover:text-foreground hover:border-white/20 transition-all shrink-0"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--surface-1)] border border-border/60 text-sm text-muted-foreground hover:text-foreground hover:border-border/60 transition-all shrink-0"
               >
                 Suggest a resource <ArrowRight size={13} />
               </a>
