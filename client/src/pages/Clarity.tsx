@@ -31,7 +31,13 @@ type TrainingExercise =
   | "processing-speed"
   | "attention-cpt"
   | "pattern"
-  | "dual-task";
+  | "dual-task"
+  | "flanker"
+  | "gonogo"
+  | "task-switching"
+  | "corsi"
+  | "mental-rotation"
+  | "sustained-attention";
 
 type BreathingPattern = "box" | "478" | "grounding";
 
@@ -62,13 +68,68 @@ const TRAINING_EXERCISES: Array<{
   icon: string;
   ref: string;
   desc: string;
+  science: string;
 }> = [
-  { id: "nback", label: "N-Back", icon: "🧠", ref: "Jaeggi et al. (2008)", desc: "Working memory training" },
-  { id: "stroop", label: "Stroop Test", icon: "🎨", ref: "Stroop (1935)", desc: "Cognitive control & interference" },
-  { id: "processing-speed", label: "Processing Speed", icon: "⚡", ref: "Wechsler (1981)", desc: "Digit-symbol substitution" },
-  { id: "attention-cpt", label: "Attention CPT", icon: "👁", ref: "Rosvold et al. (1956)", desc: "Sustained attention (AX variant)" },
-  { id: "pattern", label: "Pattern Recognition", icon: "🔷", ref: "Raven (1938)", desc: "Fluid intelligence & sequences" },
-  { id: "dual-task", label: "Dual Task", icon: "⚖️", ref: "Pashler (1994)", desc: "Divided attention training" },
+  {
+    id: "nback", label: "N-Back", icon: "🧠", ref: "Jaeggi et al. (2008); Shipstead et al. (2012)",
+    desc: "Working memory training",
+    science: "Repeatedly updating items in short-term memory strengthens the dorsolateral prefrontal and parietal networks—the neural substrate of working memory capacity. Each increase in N raises demands on the brain's ability to simultaneously maintain and manipulate multiple representations.",
+  },
+  {
+    id: "stroop", label: "Stroop Test", icon: "🎨", ref: "Stroop (1935); MacLeod, Psych. Bull. (1991)",
+    desc: "Cognitive control & interference",
+    science: "Naming ink color while suppressing the impulse to read the word forces the anterior cingulate cortex to detect response conflict and the prefrontal cortex to inhibit the faster, automatic reading response. Repeated conflict resolution directly strengthens the executive control circuits underlying attention and impulse regulation.",
+  },
+  {
+    id: "processing-speed", label: "Processing Speed", icon: "⚡", ref: "Wechsler WAIS (1981); Joy et al. (2004)",
+    desc: "Digit-symbol substitution",
+    science: "Rapidly encoding symbols and retrieving memorized digit-symbol pairings requires coordinated activity across occipital, prefrontal, and motor cortices. Processing speed is among the most sensitive markers of overall neural health and predicts real-world functional ability across the lifespan.",
+  },
+  {
+    id: "attention-cpt", label: "Attention CPT", icon: "👁", ref: "Rosvold et al. (1956); Braver et al. (2001)",
+    desc: "Sustained attention & context processing",
+    science: "Maintaining a prior stimulus (A) across a delay and using it to decide whether to respond to the next stimulus taxes both working memory and sustained attention simultaneously. The anterior cingulate monitors for expectation violations while the prefrontal cortex implements context-dependent response rules.",
+  },
+  {
+    id: "pattern", label: "Pattern Recognition", icon: "🔷", ref: "Raven (1938); Carpenter et al. (1990)",
+    desc: "Fluid intelligence & sequences",
+    science: "Identifying rules in visual matrix sequences requires inductive reasoning, spatial representation, and working memory to hold multiple hypotheses at once. This taps fluid intelligence—the brain's capacity to reason in novel situations—rooted in prefrontal-parietal networks.",
+  },
+  {
+    id: "dual-task", label: "Dual Task", icon: "⚖️", ref: "Pashler (1994); Salvucci & Taatgen (2008)",
+    desc: "Divided attention training",
+    science: "Running two simultaneous categorization tasks taxes the central processing bottleneck in the prefrontal cortex. With practice the brain automatizes one task, reducing prefrontal demand, while optimizing attentional allocation between both tasks—directly training multitasking efficiency.",
+  },
+  {
+    id: "flanker", label: "Flanker Task", icon: "🎯", ref: "Eriksen & Eriksen, Percept. Psychophys. (1974)",
+    desc: "Inhibitory control & conflict resolution",
+    science: "Responding to a center arrow while ignoring flanking arrows that often point the opposite way forces the anterior cingulate to detect stimulus-response conflict and the prefrontal cortex to filter irrelevant information. This repeated conflict resolution strengthens the inhibitory control circuits that underlie attention and impulse regulation.",
+  },
+  {
+    id: "gonogo", label: "Go / No-Go", icon: "🛑", ref: "Garavan et al., NeuroImage (1999)",
+    desc: "Response inhibition & impulse control",
+    science: "Responding quickly to frequent stimuli but withholding when a rare stop signal appears trains the right inferior frontal gyrus to actively brake prepotent motor responses—the primary neural substrate of impulse control. Transfer studies show training-induced gains extend to other stop-signal and Stroop interference tasks.",
+  },
+  {
+    id: "task-switching", label: "Task Switching", icon: "🔀", ref: "Monsell, Trends Cogn. Sci. (2003); Rogers & Monsell (1995)",
+    desc: "Cognitive flexibility",
+    science: "Rules alternate unpredictably between trials, forcing rapid disengagement from the current task set and activation of a new one. The prefrontal cortex must quickly reconfigure attentional priorities, directly exercising cognitive flexibility—the capacity to adapt behavior to shifting demands.",
+  },
+  {
+    id: "corsi", label: "Corsi Blocks", icon: "📦", ref: "Corsi (1972); Piccardi & Guaraglia (2015)",
+    desc: "Spatial working memory",
+    science: "Blocks light up in a sequence that must be reproduced from memory, engaging the visuospatial sketchpad maintained by parietal-prefrontal networks—a distinct system from verbal working memory. Training gains transfer to mental rotation and mathematical reasoning, reflecting shared spatial processing circuits.",
+  },
+  {
+    id: "mental-rotation", label: "Mental Rotation", icon: "🔄", ref: "Shepard & Metzler, Science (1971); Zacks (2008)",
+    desc: "Spatial reasoning & visualization",
+    science: "Mentally rotating an asymmetric shape to find its match engages the intraparietal sulcus for coordinate transformation and prefrontal working memory to hold the rotated image. Of all cognitive training types, spatial training shows the broadest transfer—gains predict improvements in geometry, mathematics, and science problem-solving.",
+  },
+  {
+    id: "sustained-attention", label: "Vigilance", icon: "⏱️", ref: "Mackworth (1948); Nuechterlein et al. (1983)",
+    desc: "Sustained attention over time",
+    science: "Detecting infrequent targets in a stream of stimuli over several minutes strengthens the right-lateralized vigilance network spanning prefrontal cortex, anterior insula, and intraparietal sulcus. Regular practice reduces the vigilance decrement—the natural drop in detection accuracy over time—and builds resistance to mind-wandering.",
+  },
 ];
 
 const INSTRUMENT_CATEGORIES: Record<string, string[]> = {
@@ -1341,6 +1402,618 @@ function DualTaskExercise({ onFinish }: { onFinish: (acc: number, rt: number, le
   );
 }
 
+// ── Flanker Task ───────────────────────────────────────────────────────────────
+function FlankerExercise({ onFinish }: { onFinish: (acc: number, rt: number, level: number) => void }) {
+  const TRIALS = 24;
+  const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
+  const [trialNum, setTrialNum] = useState(0);
+  const [arrows, setArrows] = useState<string[]>([]);
+  const [responded, setResponded] = useState(false);
+  const correctRef = useRef(0);
+  const totalRTRef = useRef(0);
+  const trialNumRef = useRef(0);
+  const arrowsRef = useRef<string[]>([]);
+  const trialStart = useRef(0);
+
+  const nextTrial = useCallback((num: number) => {
+    const congruent = Math.random() > 0.4;
+    const dir = Math.random() > 0.5 ? "→" : "←";
+    const opp = dir === "→" ? "←" : "→";
+    const arr = congruent ? [dir, dir, dir, dir, dir] : [opp, opp, dir, opp, opp];
+    arrowsRef.current = arr;
+    trialNumRef.current = num;
+    setArrows(arr);
+    setTrialNum(num);
+    setResponded(false);
+    trialStart.current = Date.now();
+  }, []);
+
+  const start = () => {
+    correctRef.current = 0;
+    totalRTRef.current = 0;
+    setPhase("running");
+    nextTrial(0);
+  };
+
+  const handle = (goRight: boolean) => {
+    if (responded) return;
+    const rt = Date.now() - trialStart.current;
+    const center = arrowsRef.current[2];
+    const isCorrect = (center === "→") === goRight;
+    if (isCorrect) correctRef.current++;
+    totalRTRef.current += rt;
+    setResponded(true);
+    const next = trialNumRef.current + 1;
+    setTimeout(() => {
+      if (next >= TRIALS) {
+        setPhase("done");
+        onFinish(Math.round((correctRef.current / TRIALS) * 100), Math.round(totalRTRef.current / TRIALS), 2);
+      } else {
+        nextTrial(next);
+      }
+    }, 350);
+  };
+
+  if (phase === "intro") return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: 12 }}>
+        Five arrows appear in a row. Press <strong>← Left</strong> or <strong>Right →</strong> based on which way the <strong>center arrow</strong> points — ignore the flankers.
+      </p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>{TRIALS} trials · ~1 min</p>
+      <button className="btn-primary" onClick={start}>Start Flanker</button>
+    </div>
+  );
+
+  if (phase === "done") return <p style={{ textAlign: "center", color: "var(--muted-foreground)" }}>Calculating results...</p>;
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 20 }}>Trial {trialNum + 1} / {TRIALS}</p>
+      <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 36, fontSize: 40, letterSpacing: 2 }}>
+        {arrows.map((a, i) => (
+          <span key={i} style={{ color: i === 2 ? "var(--nexus-purple)" : "var(--muted-foreground)", fontWeight: i === 2 ? 900 : 400 }}>{a}</span>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+        <button onClick={() => handle(false)} disabled={responded} className="btn-ghost" style={{ padding: "10px 32px", fontSize: 18, opacity: responded ? 0.4 : 1 }}>← Left</button>
+        <button onClick={() => handle(true)} disabled={responded} className="btn-ghost" style={{ padding: "10px 32px", fontSize: 18, opacity: responded ? 0.4 : 1 }}>Right →</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Go / No-Go ─────────────────────────────────────────────────────────────────
+function GoNoGoExercise({ onFinish }: { onFinish: (acc: number, rt: number, level: number) => void }) {
+  const TRIALS = 32;
+  const DISPLAY_MS = 700;
+  const ISI_MS = 500;
+  const NOGO = "X";
+  const LETTERS = "BCDFGHJKLMNPQRSTVWYZ".split("");
+
+  const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
+  const [idx, setIdx] = useState(0);
+  const [stimulus, setStimulus] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<"hit" | "miss" | "fa" | null>(null);
+
+  const seqRef = useRef<string[]>([]);
+  const respondedRef = useRef(false);
+  const correctRef = useRef(0);
+  const rtSumRef = useRef(0);
+  const rtCountRef = useRef(0);
+  const trialStartRef = useRef(0);
+
+  const buildSeq = () => {
+    const s: string[] = [];
+    for (let i = 0; i < TRIALS; i++) {
+      s.push(Math.random() < 0.25 ? NOGO : LETTERS[Math.floor(Math.random() * LETTERS.length)]);
+    }
+    return s;
+  };
+
+  useEffect(() => {
+    if (phase !== "running") return;
+    if (idx >= TRIALS) {
+      setPhase("done");
+      onFinish(Math.round((correctRef.current / TRIALS) * 100), rtCountRef.current > 0 ? Math.round(rtSumRef.current / rtCountRef.current) : 0, 1);
+      return;
+    }
+    const stim = seqRef.current[idx];
+    respondedRef.current = false;
+    setStimulus(stim);
+    setFeedback(null);
+    trialStartRef.current = Date.now();
+
+    const hideTimer = setTimeout(() => {
+      if (!respondedRef.current) {
+        if (stim === NOGO) { correctRef.current++; } // correct withhold
+        else { setFeedback("miss"); }
+      }
+      setStimulus(null);
+      const advTimer = setTimeout(() => setIdx((i) => i + 1), ISI_MS);
+      return () => clearTimeout(advTimer);
+    }, DISPLAY_MS);
+    return () => clearTimeout(hideTimer);
+  }, [phase, idx, onFinish]);
+
+  const start = () => {
+    correctRef.current = 0; rtSumRef.current = 0; rtCountRef.current = 0;
+    seqRef.current = buildSeq();
+    setIdx(0); setStimulus(null); setFeedback(null);
+    setPhase("running");
+  };
+
+  const handleGo = () => {
+    if (respondedRef.current || phase !== "running") return;
+    respondedRef.current = true;
+    const stim = seqRef.current[idx];
+    if (stim && stim !== NOGO) {
+      correctRef.current++;
+      rtSumRef.current += Date.now() - trialStartRef.current;
+      rtCountRef.current++;
+      setFeedback("hit");
+    } else {
+      setFeedback("fa");
+    }
+  };
+
+  if (phase === "intro") return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: 12 }}>
+        Letters flash one at a time. Press <strong>GO!</strong> for any letter — but <strong>do NOT press</strong> when you see <strong style={{ color: "var(--nexus-purple)" }}>X</strong>.
+      </p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>{TRIALS} trials · ~45 sec</p>
+      <button className="btn-primary" onClick={start}>Start Go/No-Go</button>
+    </div>
+  );
+
+  if (phase === "done") return <p style={{ textAlign: "center", color: "var(--muted-foreground)" }}>Calculating results...</p>;
+
+  const fbColor = feedback === "hit" ? "#22c55e" : feedback === "fa" ? "#ef4444" : feedback === "miss" ? "#f59e0b" : "var(--foreground)";
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>Trial {idx + 1} / {TRIALS}</p>
+      <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+        {stimulus ? (
+          <span style={{ fontSize: 72, fontWeight: 900, color: stimulus === NOGO ? "#ef4444" : "var(--foreground)" }}>{stimulus}</span>
+        ) : (
+          <span style={{ fontSize: 14, color: fbColor }}>{feedback === "hit" ? "✓ Hit!" : feedback === "miss" ? "Miss" : feedback === "fa" ? "False alarm!" : ""}</span>
+        )}
+      </div>
+      <button onClick={handleGo} className="btn-primary" style={{ padding: "14px 48px", fontSize: 18 }}>GO!</button>
+    </div>
+  );
+}
+
+// ── Task Switching ─────────────────────────────────────────────────────────────
+function TaskSwitchingExercise({ onFinish }: { onFinish: (acc: number, rt: number, level: number) => void }) {
+  const TRIALS = 24;
+  const SWITCH_EVERY = 6;
+  type Rule = "odd" | "gt5";
+
+  const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
+  const [trialNum, setTrialNum] = useState(0);
+  const [digit, setDigit] = useState(0);
+  const [rule, setRule] = useState<Rule>("odd");
+  const [ruleJustSwitched, setRuleJustSwitched] = useState(false);
+  const [responded, setResponded] = useState(false);
+
+  const correctRef = useRef(0);
+  const rtSumRef = useRef(0);
+  const trialNumRef = useRef(0);
+  const ruleRef = useRef<Rule>("odd");
+  const digitRef = useRef(0);
+  const trialStart = useRef(0);
+
+  const nextTrial = useCallback((num: number) => {
+    const newRule: Rule = Math.floor(num / SWITCH_EVERY) % 2 === 0 ? "odd" : "gt5";
+    const switched = num > 0 && newRule !== ruleRef.current;
+    ruleRef.current = newRule;
+    const d = Math.ceil(Math.random() * 9);
+    digitRef.current = d;
+    trialNumRef.current = num;
+    setDigit(d);
+    setRule(newRule);
+    setTrialNum(num);
+    setRuleJustSwitched(switched);
+    setResponded(false);
+    trialStart.current = Date.now();
+  }, []);
+
+  const start = () => {
+    correctRef.current = 0; rtSumRef.current = 0;
+    ruleRef.current = "odd";
+    setPhase("running");
+    nextTrial(0);
+  };
+
+  const handle = (yes: boolean) => {
+    if (responded) return;
+    const rt = Date.now() - trialStart.current;
+    const d = digitRef.current;
+    const r = ruleRef.current;
+    const correct = r === "odd" ? (d % 2 !== 0) === yes : (d > 5) === yes;
+    if (correct) correctRef.current++;
+    rtSumRef.current += rt;
+    setResponded(true);
+    const next = trialNumRef.current + 1;
+    setTimeout(() => {
+      if (next >= TRIALS) {
+        setPhase("done");
+        onFinish(Math.round((correctRef.current / TRIALS) * 100), Math.round(rtSumRef.current / TRIALS), 2);
+      } else {
+        nextTrial(next);
+      }
+    }, 350);
+  };
+
+  if (phase === "intro") return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: 12 }}>
+        A digit (1–9) appears. Answer <strong>Yes</strong> or <strong>No</strong> based on the current rule. The rule switches every {SWITCH_EVERY} trials — watch for the highlight!
+      </p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>Rules: "Is it odd?" · "Is it greater than 5?" · {TRIALS} trials</p>
+      <button className="btn-primary" onClick={start}>Start Task Switching</button>
+    </div>
+  );
+
+  if (phase === "done") return <p style={{ textAlign: "center", color: "var(--muted-foreground)" }}>Calculating results...</p>;
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ marginBottom: 16, padding: "8px 20px", borderRadius: 8, background: ruleJustSwitched ? "var(--nexus-purple)" : "var(--surface-2)", display: "inline-block", transition: "background 0.3s" }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: ruleJustSwitched ? "#fff" : "var(--foreground)" }}>
+          {ruleJustSwitched ? "⚡ RULE SWITCH! " : ""}Rule: {rule === "odd" ? "Is it ODD?" : "Is it GREATER THAN 5?"}
+        </p>
+      </div>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 16 }}>Trial {trialNum + 1} / {TRIALS}</p>
+      <div style={{ fontSize: 80, fontWeight: 900, color: "var(--nexus-purple)", marginBottom: 32, lineHeight: 1 }}>{digit}</div>
+      <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+        <button onClick={() => handle(true)} disabled={responded} className="btn-primary" style={{ padding: "12px 40px", fontSize: 16, opacity: responded ? 0.4 : 1 }}>Yes</button>
+        <button onClick={() => handle(false)} disabled={responded} className="btn-ghost" style={{ padding: "12px 40px", fontSize: 16, opacity: responded ? 0.4 : 1 }}>No</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Corsi Blocks ───────────────────────────────────────────────────────────────
+function CorsiExercise({ onFinish }: { onFinish: (acc: number, rt: number, level: number) => void }) {
+  const POSITIONS = [
+    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 },
+    { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 },
+    { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
+  ];
+  const BLOCK_SIZE = 60;
+  const GAP = 14;
+
+  type SubPhase = "intro" | "showing" | "recall" | "feedback" | "done";
+  const [phase, setPhase] = useState<SubPhase>("intro");
+  const [span, setSpan] = useState(3);
+  const [litIdx, setLitIdx] = useState<number | null>(null);
+  const [sequence, setSequence] = useState<number[]>([]);
+  const [userSeq, setUserSeq] = useState<number[]>([]);
+  const [correct, setCorrect] = useState(0);
+  const [rounds, setRounds] = useState(0);
+  const [fbOk, setFbOk] = useState(false);
+
+  const genSeq = (length: number) =>
+    Array.from({ length }, () => Math.floor(Math.random() * 9));
+
+  const showSequence = useCallback((seq: number[]) => {
+    setPhase("showing");
+    setUserSeq([]);
+    let i = 0;
+    const step = () => {
+      if (i >= seq.length) {
+        setTimeout(() => { setLitIdx(null); setPhase("recall"); }, 500);
+        return;
+      }
+      setLitIdx(seq[i]);
+      i++;
+      setTimeout(() => { setLitIdx(null); setTimeout(step, 300); }, 600);
+    };
+    setTimeout(step, 500);
+  }, []);
+
+  const startRound = useCallback((s: number) => {
+    const seq = genSeq(s);
+    setSequence(seq);
+    showSequence(seq);
+  }, [showSequence]);
+
+  const start = () => {
+    setSpan(3); setCorrect(0); setRounds(0);
+    startRound(3);
+  };
+
+  const handleBlock = (blockIdx: number) => {
+    if (phase !== "recall") return;
+    const next = [...userSeq, blockIdx];
+    setUserSeq(next);
+    if (next.length === sequence.length) {
+      const ok = next.every((v, i) => v === sequence[i]);
+      setFbOk(ok);
+      setPhase("feedback");
+      const newRounds = rounds + 1;
+      setRounds(newRounds);
+      if (newRounds >= 8) {
+        const finalSpan = ok ? span + 1 : span;
+        setTimeout(() => { setPhase("done"); onFinish(Math.round((correct + (ok ? 1 : 0)) / newRounds * 100), 0, finalSpan); }, 900);
+      } else {
+        const newSpan = ok ? Math.min(span + 1, 8) : Math.max(span - 1, 2);
+        if (ok) setCorrect((c) => c + 1);
+        setSpan(newSpan);
+        setTimeout(() => startRound(newSpan), 1000);
+      }
+    }
+  };
+
+  if (phase === "intro") return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: 12 }}>
+        Watch blocks light up in sequence, then click them in the <strong>same order</strong> from memory. The sequence gets longer as you improve.
+      </p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>Starts at span 3 · 8 rounds</p>
+      <button className="btn-primary" onClick={start}>Start Corsi</button>
+    </div>
+  );
+
+  if (phase === "done") return <p style={{ textAlign: "center", color: "var(--muted-foreground)" }}>Calculating results...</p>;
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 6 }}>Round {rounds + 1} / 8 · Span {span}</p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 16, minHeight: 18 }}>
+        {phase === "showing" ? "Watch the sequence..." : phase === "recall" ? `Click the blocks in order (${userSeq.length}/${sequence.length})` : phase === "feedback" ? (fbOk ? "✓ Correct!" : "✗ Incorrect") : ""}
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: GAP, width: BLOCK_SIZE * 3 + GAP * 2, margin: "0 auto" }}>
+        {POSITIONS.map((_, i) => (
+          <div
+            key={i}
+            onClick={() => handleBlock(i)}
+            style={{
+              width: BLOCK_SIZE, height: BLOCK_SIZE, borderRadius: 10,
+              background: litIdx === i ? "var(--nexus-purple)" : userSeq.includes(i) ? "var(--nexus-purple-muted, #6d28d9aa)" : "var(--surface-2)",
+              cursor: phase === "recall" ? "pointer" : "default",
+              transition: "background 0.15s",
+              border: phase === "recall" ? "2px solid var(--border)" : "2px solid transparent",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Mental Rotation ────────────────────────────────────────────────────────────
+function MentalRotationExercise({ onFinish }: { onFinish: (acc: number, rt: number, level: number) => void }) {
+  const ROUNDS = 10;
+  const SIZE = 4;
+
+  const BASE_SHAPES: number[][][] = [
+    [[1,1,0,0],[1,0,0,0],[1,0,0,0],[0,0,0,0]],
+    [[1,0,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+    [[1,1,1,0],[1,0,0,0],[0,0,0,0],[0,0,0,0]],
+    [[1,1,0,0],[0,1,0,0],[0,1,1,0],[0,0,0,0]],
+    [[1,0,0,0],[1,1,0,0],[1,0,0,0],[0,0,0,0]],
+    [[0,1,0,0],[1,1,0,0],[0,1,0,0],[0,1,0,0]],
+    [[1,1,1,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]],
+    [[1,0,1,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+    [[1,1,0,0],[1,0,0,0],[1,1,0,0],[0,0,0,0]],
+    [[0,1,1,0],[0,1,0,0],[1,1,0,0],[0,0,0,0]],
+  ];
+
+  const rot90CW = (g: number[][]) => {
+    const r = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+    for (let row = 0; row < SIZE; row++)
+      for (let col = 0; col < SIZE; col++)
+        r[col][SIZE - 1 - row] = g[row][col];
+    return r;
+  };
+  const mirrorH = (g: number[][]) => g.map((row) => [...row].reverse());
+
+  const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
+  const [roundNum, setRoundNum] = useState(0);
+  const [reference, setReference] = useState<number[][]>([]);
+  const [candidates, setCandidates] = useState<number[][][]>([]);
+  const [correctIdx, setCorrectIdx] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const correctRef = useRef(0);
+  const rtSumRef = useRef(0);
+  const roundStart = useRef(0);
+
+  const buildRound = useCallback((num: number) => {
+    const shape = BASE_SHAPES[num % BASE_SHAPES.length];
+    const rotations = [rot90CW, (g: number[][]) => rot90CW(rot90CW(g)), (g: number[][]) => rot90CW(rot90CW(rot90CW(g)))];
+    const correct = rot90CW(shape);
+    const wrongs = [rotations[1](shape), rotations[2](shape), mirrorH(shape)];
+    const pool = [...wrongs.slice(0, 3)];
+    const ci = Math.floor(Math.random() * 4);
+    pool.splice(ci, 0, correct);
+    setReference(shape);
+    setCandidates(pool);
+    setCorrectIdx(ci);
+    setRoundNum(num);
+    setSelected(null);
+    roundStart.current = Date.now();
+  }, []);
+
+  const start = () => {
+    correctRef.current = 0; rtSumRef.current = 0;
+    setPhase("running");
+    buildRound(0);
+  };
+
+  const handleSelect = (i: number) => {
+    if (selected !== null) return;
+    const rt = Date.now() - roundStart.current;
+    rtSumRef.current += rt;
+    if (i === correctIdx) correctRef.current++;
+    setSelected(i);
+    const next = roundNum + 1;
+    setTimeout(() => {
+      if (next >= ROUNDS) {
+        setPhase("done");
+        onFinish(Math.round((correctRef.current / ROUNDS) * 100), Math.round(rtSumRef.current / ROUNDS), 2);
+      } else {
+        buildRound(next);
+      }
+    }, 700);
+  };
+
+  const ShapeGrid = ({ grid, highlight }: { grid: number[][]; highlight?: "correct" | "wrong" }) => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 3, width: 76 }}>
+      {grid.map((row, r) => row.map((cell, c) => (
+        <div key={`${r}-${c}`} style={{ width: 16, height: 16, borderRadius: 3, background: cell ? (highlight === "correct" ? "#22c55e" : highlight === "wrong" ? "#ef4444" : "var(--nexus-purple)") : "var(--surface-2)" }} />
+      )))}
+    </div>
+  );
+
+  if (phase === "intro") return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: 12 }}>
+        A shape is shown on the left. Pick the candidate on the right that is the <strong>90° clockwise rotation</strong> of that shape.
+      </p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>{ROUNDS} rounds · no time limit</p>
+      <button className="btn-primary" onClick={start}>Start Mental Rotation</button>
+    </div>
+  );
+
+  if (phase === "done") return <p style={{ textAlign: "center", color: "var(--muted-foreground)" }}>Calculating results...</p>;
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 20 }}>Round {roundNum + 1} / {ROUNDS} · Which is 90° clockwise?</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ fontSize: 11, color: "var(--muted-foreground)", marginBottom: 8 }}>Reference</p>
+          <ShapeGrid grid={reference} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          {candidates.map((cand, i) => (
+            <div key={i} onClick={() => handleSelect(i)} style={{ cursor: selected !== null ? "default" : "pointer", padding: 10, borderRadius: 10, border: `2px solid ${selected === i ? (i === correctIdx ? "#22c55e" : "#ef4444") : "var(--border)"}`, background: "var(--surface-2)", transition: "border 0.2s" }}>
+              <ShapeGrid grid={cand} highlight={selected !== null ? (i === correctIdx ? "correct" : undefined) : undefined} />
+              <p style={{ fontSize: 11, marginTop: 6, color: "var(--muted-foreground)" }}>{["A","B","C","D"][i]}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Sustained Attention (Vigilance) ───────────────────────────────────────────
+function SustainedAttentionExercise({ onFinish }: { onFinish: (acc: number, rt: number, level: number) => void }) {
+  const TRIALS = 40;
+  const DISPLAY_MS = 600;
+  const ISI_MS = 400;
+  // Target: current digit is LESS than the previous digit
+  const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
+  const [idx, setIdx] = useState(0);
+  const [currentDigit, setCurrentDigit] = useState<number | null>(null);
+  const [prevDigit, setPrevDigit] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const seqRef = useRef<number[]>([]);
+  const respondedRef = useRef(false);
+  const hitsRef = useRef(0);
+  const falseAlarmsRef = useRef(0);
+  const totalTargetsRef = useRef(0);
+  const rtSumRef = useRef(0);
+  const rtCountRef = useRef(0);
+  const trialStartRef = useRef(0);
+
+  const buildSeq = () => Array.from({ length: TRIALS }, () => Math.ceil(Math.random() * 9));
+
+  useEffect(() => {
+    if (phase !== "running") return;
+    if (idx >= TRIALS) {
+      setPhase("done");
+      const totalCorrect = hitsRef.current + (totalTargetsRef.current - hitsRef.current > 0 ? 0 : 0);
+      const accuracy = totalTargetsRef.current > 0
+        ? Math.round((hitsRef.current / (hitsRef.current + falseAlarmsRef.current + (totalTargetsRef.current - hitsRef.current))) * 100)
+        : Math.round(((TRIALS - falseAlarmsRef.current) / TRIALS) * 100);
+      const avgRT = rtCountRef.current > 0 ? Math.round(rtSumRef.current / rtCountRef.current) : 0;
+      onFinish(accuracy, avgRT, 1);
+      return;
+    }
+    const digit = seqRef.current[idx];
+    const prev = idx > 0 ? seqRef.current[idx - 1] : null;
+    respondedRef.current = false;
+    setCurrentDigit(digit);
+    setPrevDigit(prev);
+    setFeedback(null);
+    trialStartRef.current = Date.now();
+    if (prev !== null && digit < prev) totalTargetsRef.current++;
+
+    const hideTimer = setTimeout(() => {
+      if (!respondedRef.current && prev !== null && digit < prev) {
+        setFeedback("miss");
+      }
+      setCurrentDigit(null);
+      const adv = setTimeout(() => setIdx((i) => i + 1), ISI_MS);
+      return () => clearTimeout(adv);
+    }, DISPLAY_MS);
+    return () => clearTimeout(hideTimer);
+  }, [phase, idx, onFinish]);
+
+  const start = () => {
+    hitsRef.current = 0; falseAlarmsRef.current = 0;
+    totalTargetsRef.current = 0; rtSumRef.current = 0; rtCountRef.current = 0;
+    seqRef.current = buildSeq();
+    setIdx(0); setCurrentDigit(null); setFeedback(null);
+    setPhase("running");
+  };
+
+  const handleTarget = () => {
+    if (respondedRef.current || phase !== "running") return;
+    respondedRef.current = true;
+    const digit = seqRef.current[idx];
+    const prev = idx > 0 ? seqRef.current[idx - 1] : null;
+    const isTarget = prev !== null && digit < prev;
+    if (isTarget) {
+      hitsRef.current++;
+      rtSumRef.current += Date.now() - trialStartRef.current;
+      rtCountRef.current++;
+      setFeedback("✓");
+    } else {
+      falseAlarmsRef.current++;
+      setFeedback("✗");
+    }
+  };
+
+  if (phase === "intro") return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: 12 }}>
+        Digits flash one at a time. Press <strong>TARGET!</strong> whenever the current number is <strong>lower</strong> than the previous number. Ignore all other digits.
+      </p>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 24 }}>{TRIALS} trials · ~45 sec · tests vigilance over time</p>
+      <button className="btn-primary" onClick={start}>Start Vigilance</button>
+    </div>
+  );
+
+  if (phase === "done") return <p style={{ textAlign: "center", color: "var(--muted-foreground)" }}>Calculating results...</p>;
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 8 }}>Trial {idx + 1} / {TRIALS}</p>
+      {prevDigit !== null && (
+        <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 4 }}>Previous: <strong>{prevDigit}</strong></p>
+      )}
+      <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+        {currentDigit !== null ? (
+          <span style={{ fontSize: 80, fontWeight: 900, color: "var(--nexus-purple)" }}>{currentDigit}</span>
+        ) : (
+          <span style={{ fontSize: 16, color: feedback === "✓" ? "#22c55e" : feedback === "✗" ? "#ef4444" : feedback === "miss" ? "#f59e0b" : "var(--muted-foreground)" }}>
+            {feedback === "✓" ? "✓ Hit!" : feedback === "✗" ? "✗ False alarm" : feedback === "miss" ? "Missed target" : "·"}
+          </span>
+        )}
+      </div>
+      <button onClick={handleTarget} className="btn-primary" style={{ padding: "14px 48px", fontSize: 18 }}>TARGET!</button>
+    </div>
+  );
+}
+
 // ── Training Results ────────────────────────────────────────────────────────────
 function TrainingResult({
   exerciseMeta,
@@ -1413,8 +2086,9 @@ function TrainingSection({ cookieId }: { cookieId: string }) {
           >
             <p style={{ fontSize: 28, marginBottom: 8 }}>{ex.icon}</p>
             <p style={{ fontWeight: 700, fontSize: 15, color: "var(--foreground)", marginBottom: 4 }}>{ex.label}</p>
-            <p style={{ fontSize: 12, color: "var(--nexus-purple)", marginBottom: 4 }}>{ex.desc}</p>
-            <p style={{ fontSize: 11, color: "var(--muted-foreground)" }}>Ref: {ex.ref}</p>
+            <p style={{ fontSize: 12, color: "var(--nexus-purple)", marginBottom: 6 }}>{ex.desc}</p>
+            <p style={{ fontSize: 11, color: "var(--muted-foreground)", lineHeight: 1.5, marginBottom: 8 }}>{ex.science}</p>
+            <p style={{ fontSize: 10, color: "var(--muted-foreground)", fontStyle: "italic" }}>📚 {ex.ref}</p>
           </div>
         ))}
       </div>
@@ -1427,9 +2101,11 @@ function TrainingSection({ cookieId }: { cookieId: string }) {
     <div className="card-nexus" style={{ maxWidth: 520, margin: "0 auto", padding: 28 }}>
       {phase === "running" ? (
         <div>
-          <div style={{ marginBottom: 20 }}>
-            <p style={{ fontWeight: 700, fontSize: 16, color: "var(--nexus-purple)" }}>{exMeta.icon} {exMeta.label}</p>
-            <p style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{exMeta.desc} · {exMeta.ref}</p>
+          <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--border)" }}>
+            <p style={{ fontWeight: 700, fontSize: 16, color: "var(--nexus-purple)", marginBottom: 4 }}>{exMeta.icon} {exMeta.label}</p>
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 6 }}>{exMeta.desc}</p>
+            <p style={{ fontSize: 11, color: "var(--muted-foreground)", lineHeight: 1.5, marginBottom: 4 }}>{exMeta.science}</p>
+            <p style={{ fontSize: 10, color: "var(--muted-foreground)", fontStyle: "italic" }}>📚 {exMeta.ref}</p>
           </div>
           {activeEx === "nback" && <NBackExercise onFinish={handleFinish} />}
           {activeEx === "stroop" && <StroopExercise onFinish={handleFinish} />}
@@ -1437,6 +2113,12 @@ function TrainingSection({ cookieId }: { cookieId: string }) {
           {activeEx === "attention-cpt" && <AttentionCPTExercise onFinish={handleFinish} />}
           {activeEx === "pattern" && <PatternExercise onFinish={handleFinish} />}
           {activeEx === "dual-task" && <DualTaskExercise onFinish={handleFinish} />}
+          {activeEx === "flanker" && <FlankerExercise onFinish={handleFinish} />}
+          {activeEx === "gonogo" && <GoNoGoExercise onFinish={handleFinish} />}
+          {activeEx === "task-switching" && <TaskSwitchingExercise onFinish={handleFinish} />}
+          {activeEx === "corsi" && <CorsiExercise onFinish={handleFinish} />}
+          {activeEx === "mental-rotation" && <MentalRotationExercise onFinish={handleFinish} />}
+          {activeEx === "sustained-attention" && <SustainedAttentionExercise onFinish={handleFinish} />}
         </div>
       ) : phase === "result" && lastResult ? (
         <TrainingResult
