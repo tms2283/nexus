@@ -3697,23 +3697,38 @@ const CT_LESSON_META = [
 ];
 
 const FALLACIES: Fallacy[] = [
-  { id: "f1", name: "Ad Hominem", definition: "Attacking the person making the argument instead of the argument itself.", example: "\"You can't trust his views on climate policy — he's been divorced twice.\"", rebuttal: "A person's character or personal life is irrelevant to whether their argument is logically sound. Address the claim, not the claimant." },
-  { id: "f2", name: "Straw Man", definition: "Misrepresenting someone's position to make it easier to attack.", example: "Person A: 'We should reduce military spending.' Person B: 'So you want to leave the country completely defenseless?'", rebuttal: "Person A never said that. Identify the misrepresentation and restate the actual position before responding to it." },
-  { id: "f3", name: "False Dilemma", definition: "Presenting only two options when more exist.", example: "\"You're either with us or against us.\"", rebuttal: "Ask: are these really the only options? Almost always, there are middle positions, third paths, or more nuanced stances available." },
-  { id: "f4", name: "Appeal to Authority", definition: "Using an authority's endorsement as a substitute for evidence — especially when the authority is outside their area of expertise.", example: "\"This celebrity doctor says vaccines cause autism, so it must be true.\"", rebuttal: "Expertise is domain-specific. Evaluate the actual evidence, not just who endorses it. Even credible experts can be wrong." },
-  { id: "f5", name: "Slippery Slope", definition: "Claiming that one event will inevitably lead to extreme consequences, without evidence of that chain.", example: "\"If we allow same-sex marriage, next people will want to marry animals.\"", rebuttal: "Each step in a chain requires its own evidence. Naming the slope doesn't prove you'll slide all the way down it." },
-  { id: "f6", name: "Circular Reasoning", definition: "Using the conclusion as a premise — the argument assumes what it's trying to prove.", example: "\"The Bible is true because the Bible says it is true.\"", rebuttal: "Ask: what independent evidence supports the premise? If the only support is the conclusion itself, the argument is circular." },
-  { id: "f7", name: "Bandwagon", definition: "Arguing something is true or good because many people believe or do it.", example: "\"A billion people can't be wrong — this must be the best diet.\"", rebuttal: "Popular belief is not evidence of truth. Historical consensus has been wrong repeatedly. Evaluate the evidence independently." },
-  { id: "f8", name: "Appeal to Nature", definition: "Claiming something is good or safe because it is 'natural,' or bad because it is 'artificial.'", example: "\"This herbal remedy is completely natural, so it can't hurt you.\"", rebuttal: "Natural does not mean safe (arsenic is natural; penicillin is synthetic). Judge by evidence, not origin." },
+  { id: "f1", name: "Ad Hominem", definition: "Attacking the person making the argument instead of the argument itself. The attack can target character, appearance, past behavior, or personal life — anything but the actual argument.", example: "\"You can't trust his views on climate policy — he's been divorced twice and filed for bankruptcy.\"", rebuttal: "A person's character or personal life is entirely irrelevant to whether their argument is logically sound. A corrupt person can still make a true claim. Address the argument on its merits, then optionally note why the source's credibility matters separately." },
+  { id: "f2", name: "Straw Man", definition: "Misrepresenting someone's position — usually making it weaker or more extreme — then attacking that distorted version instead of the actual claim.", example: "Person A: 'We should reduce military spending by 5%.' Person B: 'So you want to leave the country completely defenseless and surrender to our enemies?'", rebuttal: "Identify the misrepresentation explicitly: 'That's not what was said. The actual claim was X.' Restate the true position accurately before engaging with it." },
+  { id: "f3", name: "False Dilemma", definition: "Presenting a situation as though only two options exist when in reality there are more — forcing a choice between extremes and hiding the middle ground.", example: "\"You're either with us or against us. If you're not supporting our policy, you're supporting terrorism.\"", rebuttal: "Ask: are these really the only options? Name the missing options. 'I can oppose this policy while also opposing terrorism — those aren't the only two choices.'" },
+  { id: "f4", name: "Appeal to Authority", definition: "Using an authority's endorsement as a substitute for actual evidence — especially when the authority is outside their domain, or when experts are divided.", example: "\"This celebrity wellness doctor says the COVID vaccine has microchips. He has a medical degree, so it must be true.\"", rebuttal: "Expertise is domain-specific and not infallible. Ask: is this person an expert in this specific area? Is there expert consensus? What does the primary evidence say, independent of who endorses it?" },
+  { id: "f5", name: "Slippery Slope", definition: "Claiming that one event or decision will inevitably lead to a series of extreme consequences — without providing evidence of that causal chain.", example: "\"If we allow doctor-assisted dying for the terminally ill, next they'll be euthanizing the elderly and disabled against their will.\"", rebuttal: "Each step in the chain requires its own independent evidence. Name the specific mechanism by which step A leads to step B. The slope metaphor doesn't make the slide inevitable." },
+  { id: "f6", name: "Circular Reasoning", definition: "Using the conclusion of an argument as one of its premises — the argument assumes what it's trying to prove, going in a logical circle.", example: "\"The Bible is true because it is the Word of God. How do we know it is the Word of God? Because the Bible says so.\"", rebuttal: "Ask: what independent evidence — outside the circle — supports the premise? If the only support is the conclusion itself, the argument has zero explanatory power. Demand external evidence." },
+  { id: "f7", name: "Bandwagon", definition: "Arguing that something is true, good, or correct because a large number of people believe it or do it — popularity as a substitute for evidence.", example: "\"A billion people practice this diet — a billion people can't be wrong. It must be the healthiest way to eat.\"", rebuttal: "Popular belief is historically unreliable as evidence — majorities have endorsed slavery, geocentrism, and bloodletting. Evaluate the independent evidence, not the headcount." },
+  { id: "f8", name: "Appeal to Nature", definition: "Claiming something is good, safe, or true because it is 'natural,' or bad because it is 'artificial' or 'synthetic' — using natural origin as a quality signal.", example: "\"This herbal remedy is completely natural, so it can't hurt you. Unlike those chemical drugs from Big Pharma.\"", rebuttal: "Natural does not mean safe: arsenic, hemlock, and botulinum toxin are all natural. Artificial does not mean harmful: surgery, vaccines, and eyeglasses are artificial. Judge by evidence of safety and efficacy, not origin." },
+  { id: "f9", name: "Appeal to Emotion", definition: "Manipulating the audience's emotions — fear, pity, outrage, pride — to win agreement without providing logical evidence.", example: "\"Think of the children exposed to this! Any parent with an ounce of humanity would vote for this policy.\"", rebuttal: "Emotional appeals can accompany legitimate arguments, but they cannot replace evidence. Ask: if I remove the emotional framing, is there actually a logical argument here? What is the evidence?" },
+  { id: "f10", name: "Red Herring", definition: "Introducing an irrelevant topic or piece of information to divert attention from the actual issue — deliberately or accidentally changing the subject.", example: "\"Why are you worried about government surveillance? Thousands of people die in car accidents every year.\"", rebuttal: "Name the pivot: 'That's a different issue. We were discussing surveillance. Can you respond to the actual claim?' Both issues can be important — that doesn't make them the same issue." },
+  { id: "f11", name: "Hasty Generalization", definition: "Drawing a broad conclusion from an unrepresentative or too-small sample — treating individual cases as universal rules.", example: "\"My grandfather smoked his whole life and lived to 96. Cigarettes can't be that dangerous.\"", rebuttal: "One case (or a few) cannot override population-level evidence. Ask: what is the actual rate across a representative sample? Individual exceptions don't refute statistical patterns." },
+  { id: "f12", name: "False Cause (Post Hoc)", definition: "Assuming that because one thing followed another, the first thing caused the second. Correlation is mistaken for causation.", example: "\"We introduced the new CEO, and sales went up 30%. She clearly caused the improvement.\"", rebuttal: "Ask: what other factors changed simultaneously? Is there a plausible causal mechanism? Have similar interventions produced similar results elsewhere? Correlation requires a lot more work to become causation." },
+  { id: "f13", name: "Tu Quoque", definition: "Deflecting a criticism by pointing out that the critic is guilty of the same thing — 'you do it too.' This avoids engaging with the actual argument.", example: "\"You say I shouldn't eat fast food, but I saw you at McDonald's last week.\"", rebuttal: "Whether the critic is hypocritical is a separate question from whether the argument is correct. The validity of the claim doesn't depend on the critic's behavior. Engage with the argument itself." },
+  { id: "f14", name: "Equivocation", definition: "Using the same word in two different senses within one argument — exploiting the ambiguity of language to make an invalid inference seem valid.", example: "\"A bank is a place to store things. A river has banks. Therefore a river is a place to store things.\"", rebuttal: "Identify the word that shifts meaning and clarify which definition applies at each step. Replace the ambiguous term with a precise definition and see if the argument still holds." },
+  { id: "f15", name: "No True Scotsman", definition: "Redefining a group's membership after a counterexample is provided, to protect an unfalsifiable claim about that group.", example: "A: 'No real Scotsman would behave that way.' B: 'But Angus MacDonald did exactly that.' A: 'Well, no true Scotsman would.'", rebuttal: "Ask for the definition of the group to be stated before the counterexample is introduced. If the definition shifts to exclude every counterexample, the claim is unfalsifiable and therefore meaningless." },
+  { id: "f16", name: "Moving the Goalposts", definition: "Changing the criteria for what would count as evidence or proof after the original criteria have been met — demanding increasingly impossible standards.", example: "A: 'If we find a transitional fossil, you'll accept evolution?' B: 'We found one.' A: 'That's just one — I need ten.' [after ten] 'I need a hundred.'", rebuttal: "Agree on criteria for evidence before it is presented. When goalposts shift, name it explicitly: 'This is the third set of criteria you've demanded. We agreed on X. That evidence has been provided.'" },
+  { id: "f17", name: "Gambler's Fallacy", definition: "Believing that past random events affect future probabilities of independent events — that 'luck evens out' in ways it mathematically doesn't.", example: "\"This coin has landed heads 8 times in a row. It's due for tails — I'll bet everything on tails.\"", rebuttal: "Independent random events have no memory. A fair coin is always 50/50 regardless of history. The gambler's fallacy conflates random processes with deterministic ones. Past results are irrelevant to future probabilities of independent events." },
 ];
 
 const BIASES: Bias[] = [
-  { id: "b1", name: "Confirmation Bias", definition: "The tendency to search for, interpret, and remember information in a way that confirms what we already believe.", trigger: "You read three articles supporting your existing view and feel vindicated — but you didn't notice the seven that challenged it.", antidote: "Deliberately seek out the strongest counterargument to your position. If you can't steelman the other side, you don't understand the issue yet." },
-  { id: "b2", name: "Availability Heuristic", definition: "Judging how likely something is based on how easily an example comes to mind — usually because it was recent or dramatic.", trigger: "Plane crashes dominate the news, so you overestimate flying risk while underestimating car crash risk, which kills far more people.", antidote: "Ask: am I relying on vivid examples or actual statistics? Look up base rates before forming probability judgments." },
-  { id: "b3", name: "Anchoring Bias", definition: "Over-relying on the first piece of information you encounter when making decisions.", trigger: "A jacket is 'on sale' from $300 to $150. It feels like a deal — even if $150 is still overpriced for what it is.", antidote: "Establish your own reference point before receiving external information. Ask: what would I pay for this if I saw no original price?" },
-  { id: "b4", name: "Dunning-Kruger Effect", definition: "People with limited knowledge in a domain overestimate their competence; genuine experts often underestimate theirs.", trigger: "After reading one article on economics, you feel confident debating professional economists.", antidote: "Calibrate confidence to actual evidence of competence. Track your predictions and see how they land. Expertise is earned, not felt." },
-  { id: "b5", name: "Sunk Cost Fallacy", definition: "Continuing a course of action because of past investment (time, money, effort) rather than future value.", trigger: "You stay in a bad job for two more years because 'I've already given them six years of my life.'", antidote: "Ask: if I were deciding today from scratch — with no past investment — would I still choose this? Only future value should drive future decisions." },
-  { id: "b6", name: "In-Group Bias", definition: "Favoring members of your own group and viewing their actions more charitably than those of outsiders.", trigger: "When your team makes a mistake, it's a misunderstanding. When the rival team does the same thing, it reveals their true character.", antidote: "Apply the same evaluative standard to both groups. Ask: would I interpret this action the same way if the other group did it?" },
+  { id: "b1", name: "Confirmation Bias", definition: "The tendency to search for, interpret, favor, and remember information in a way that confirms or supports what we already believe — while discounting or ignoring information that challenges it.", trigger: "You research a health supplement you're already excited about, reading 3 glowing reviews and skipping the 7 critical ones. You feel more confident in your decision than before you searched.", antidote: "Deliberately seek the strongest counterargument to your position before forming a final view. If you can't steelman the opposing side accurately, you haven't understood the issue. Try the 'red team' exercise: argue the opposite position for 5 minutes." },
+  { id: "b2", name: "Availability Heuristic", definition: "Judging the likelihood or frequency of events based on how easily examples come to mind — usually because they were recent, dramatic, or emotionally vivid, regardless of their actual frequency.", trigger: "After seeing extensive news coverage of shark attacks, you feel afraid to swim in the ocean — despite the fact that you're statistically more likely to be killed by a vending machine.", antidote: "Ask: am I relying on vivid, memorable examples or on actual base rates? Before forming probability estimates, look up the actual statistical frequency. Separate emotional salience from evidential weight." },
+  { id: "b3", name: "Anchoring Bias", definition: "Over-relying on the first piece of numerical or comparative information encountered when making a decision — subsequent judgments are 'anchored' to that initial figure even when it's irrelevant.", trigger: "A car is listed at $45,000, then 'discounted' to $38,000. You feel you're getting a deal — but you never independently established what the car is actually worth.", antidote: "Establish your own reference point before receiving external information. Ask: if I had no starting price, what range would I independently estimate? Arrive at a value before negotiating, not after you've seen the anchor." },
+  { id: "b4", name: "Dunning-Kruger Effect", definition: "A cognitive bias in which people with limited competence in a domain significantly overestimate their ability — while highly skilled people often underestimate their competence relative to others.", trigger: "After spending a weekend learning about nutrition, you feel qualified to dismiss the dietary advice of registered dietitians. A medical student with 3 months of training feels more confident than a physician with 20 years.", antidote: "Calibrate confidence to evidence of competence: track predictions and measure outcomes. Expertise is demonstrated, not felt. When you feel very confident about a complex domain, that's precisely when to slow down and seek expert input." },
+  { id: "b5", name: "Sunk Cost Fallacy", definition: "Continuing a course of action because of past investment — time, money, or emotional energy — rather than because of its future value. The past investment is 'sunk' and cannot be recovered regardless of future choice.", trigger: "You've spent $800 on a gym membership and attended twice. You keep the membership 'to get your money's worth' even though you genuinely don't enjoy it and won't use it.", antidote: "Ask: if I were deciding today from scratch — with no past investment — would I still choose this? Only future expected value should drive future decisions. The money is already gone; the only question is whether continuing costs more than stopping." },
+  { id: "b6", name: "In-Group Bias", definition: "Automatically favoring members of groups we belong to — applying more charitable interpretations to their actions and holding higher standards for outsiders — regardless of the actual merits of individual behavior.", trigger: "When a politician from your party is caught in a scandal, it's a 'mistake' or 'misrepresentation.' When a politician from the opposing party does the same thing, it 'reveals their true character.'", antidote: "Apply the identical evaluative standard to both groups. Ask: would I interpret this exact action the same way if someone from the other group did it? If not, you're seeing through bias, not evidence." },
+  { id: "b7", name: "Hindsight Bias", definition: "After learning an outcome, believing you would have predicted it all along — 'I knew it!' — even when you couldn't have, making past events feel more predictable than they actually were.", trigger: "After a stock market crash, you're convinced you 'saw it coming' and 'knew the bubble would pop' — but before the crash, you had your money fully invested.", antidote: "Keep written records of your predictions before events happen. This creates an honest baseline against which to measure your actual forecasting ability, rather than retrofitting memory to match outcomes." },
+  { id: "b8", name: "Status Quo Bias", definition: "Preferring the current state of affairs over alternatives — treating the existing situation as the default 'good' and change as inherently risky, even when the evidence suggests change would be beneficial.", trigger: "You keep a financial advisor who has underperformed the market for 5 years because switching 'feels risky' — even though staying with underperformance is the actual risk.", antidote: "Evaluate the status quo by the same standards you'd apply to alternatives. Ask: if today's situation were a proposal rather than the existing state, would you vote for it? Doing nothing is always a choice with its own risks." },
+  { id: "b9", name: "Framing Effect", definition: "Making different decisions based on how the same information is presented — positive framing ('95% survival rate') versus negative framing ('5% mortality rate') produces different choices even with identical underlying facts.", trigger: "Patients are more likely to choose surgery when told it has a '90% survival rate' than when told it has a '10% mortality rate' — the statistical reality is identical.", antidote: "Deliberately reframe information in multiple ways before deciding. Convert percentages to absolute numbers. Present both the positive and negative version of the same statistic to yourself. The underlying reality shouldn't change with the framing." },
+  { id: "b10", name: "Planning Fallacy", definition: "Systematically underestimating the time, cost, and risks of planned actions while overestimating their benefits — this bias affects individuals and organizations equally.", trigger: "You budget 2 hours to complete a project that ends up taking 8. You tell yourself you'll finish the book in 3 months; it takes 2 years. Despite this pattern repeating, your next estimate is just as optimistic.", antidote: "Use 'reference class forecasting': look at how long similar projects actually took, not how long this one feels like it should take. Add a minimum 50% buffer to your time estimates. Track your history and update your calibration." },
+  { id: "b11", name: "Negativity Bias", definition: "Giving disproportionately more weight to negative experiences, information, and predictions than to positive ones of equivalent magnitude — bad events feel larger than equivalently good ones.", trigger: "One critical comment from a colleague affects your mood far more powerfully than five compliments. You remember insults from a decade ago vividly while positive feedback fades within days.", antidote: "Actively counteract by noting that your emotional weight on negative events doesn't reflect their objective importance. Practice deliberate recall of positive evidence when evaluating your performance or a situation." },
+  { id: "b12", name: "Actor-Observer Asymmetry", definition: "Explaining your own failures as caused by circumstances, while explaining others' identical failures as caused by their character or personality — a systematic double standard in attribution.", trigger: "You're late to a meeting: 'There was terrible traffic.' Your colleague is late: 'He's so disorganized and disrespectful of others' time.' The actual causes might have been identical.", antidote: "Apply the charitable interpretation you use for yourself to others: 'What external factors might explain their behavior?' Conversely, when you fail, ask: 'What internal factors contributed, beyond just circumstances?'" },
 ];
 
 const EVIDENCE_ITEMS: EvidenceItem[] = [
@@ -3742,24 +3757,32 @@ const CT_QUIZ_L1: QuizQuestion[] = [
   { id: "ct1q1", question: "An argument requires which three components?", options: ["Opinion, feeling, and tone", "Claim, evidence, and inference", "Introduction, body, and conclusion", "Facts, statistics, and examples"], correct: 1, explanation: "Every argument has a claim (what you're asserting), evidence (the support for it), and an inference (the logical bridge connecting the two). Without all three, something may sound persuasive without actually being an argument." },
   { id: "ct1q2", question: "What is the difference between a claim and a fact?", options: ["Claims are always false; facts are always true", "A claim requires acceptance; a fact is independently verifiable", "They mean the same thing in formal logic", "Claims are shorter than facts"], correct: 1, explanation: "A fact can be verified independently of who asserts it. A claim requires someone to accept it — it may be true or false, and requires evidence and reasoning to evaluate." },
   { id: "ct1q3", question: "Which of these is a conclusion, not a premise?", options: ["Studies show a link between sleep and memory", "Therefore, improving sleep should be a health priority", "The average adult sleeps 6.8 hours per night", "Chronic sleep deprivation raises disease risk"], correct: 1, explanation: "The conclusion is what the premises are trying to establish — it follows from the evidence. 'Therefore' is a classic conclusion indicator. The other three are premises (evidence/reasons)." },
+  { id: "ct1q4", question: "A valid argument is one where:", options: ["All premises are true", "The conclusion follows logically from the premises, whether or not the premises are true", "The conclusion is true", "The argument has been verified by an expert"], correct: 1, explanation: "Validity is a structural property — it says: IF the premises were true, the conclusion would have to be true. An argument can be valid with false premises (and therefore unsound). Soundness requires both validity AND true premises." },
+  { id: "ct1q5", question: "What is a hidden premise (unstated assumption)?", options: ["A premise the author forgot to include", "An assumption the argument requires to be true, but which is not made explicit", "A premise that is provably false", "Jargon the audience doesn't understand"], correct: 1, explanation: "Many arguments depend on unstated assumptions that do real logical work. Finding them is critical: once exposed, a hidden premise can be challenged directly, often collapsing the argument. Ask: 'What else must be true for this inference to work?'" },
 ];
 
 const CT_QUIZ_L2: QuizQuestion[] = [
   { id: "ct2q1", question: "Which fallacy is this? 'You shouldn't listen to her argument about tax policy — she's never even run a business.'", options: ["Straw Man", "Ad Hominem", "Appeal to Authority", "Bandwagon"], correct: 1, explanation: "Ad hominem attacks the person rather than the argument. Whether she's run a business is irrelevant to whether her reasoning about tax policy is correct — evaluate the argument on its merits." },
   { id: "ct2q2", question: "'If we legalize marijuana, next everyone will be doing heroin.' This is:", options: ["A valid causal chain", "Slippery Slope fallacy", "False Dilemma", "Appeal to Nature"], correct: 1, explanation: "Slippery slope assumes a chain of inevitable consequences without providing evidence for each step. Naming a possible downstream outcome doesn't prove it will occur." },
   { id: "ct2q3", question: "'Nine out of ten dentists recommend this toothpaste.' Even if true, what makes this potentially misleading?", options: ["Dentists aren't experts in toothpaste", "We don't know what question was asked, or which toothpaste alternatives they compared it to", "Nine is not a significant sample size", "Appeal to authority is always a fallacy"], correct: 1, explanation: "Statistics can be technically true but deeply misleading depending on framing. 'Recommend' could mean 'over no toothpaste at all,' not 'over all competing brands.' Context and methodology matter enormously." },
+  { id: "ct2q4", question: "'You can't trust my opponent's environmental policy — he drives a gas-powered car.' This is:", options: ["A valid point about hypocrisy", "Tu Quoque — using the critic's behavior to deflect from the argument", "Red Herring", "Straw Man"], correct: 1, explanation: "Tu Quoque ('you do it too') deflects by pointing to the critic's behavior rather than addressing the argument. Whether the critic is hypocritical is completely separate from whether their argument is correct. Hypocrisy doesn't invalidate logic." },
+  { id: "ct2q5", question: "After presenting strong evidence, your opponent says 'OK, but I need peer-reviewed meta-analyses from five different countries.' This is:", options: ["A reasonable evidentiary standard", "Moving the Goalposts — changing the criteria after original criteria were met", "Hasty Generalization", "False Cause"], correct: 1, explanation: "Moving the goalposts happens when someone continually raises the evidential bar after each standard is met. The key signal: the criteria weren't specified in advance — they appear only after evidence is produced. Agree on standards before presenting evidence." },
 ];
 
 const CT_QUIZ_L3: QuizQuestion[] = [
   { id: "ct3q1", question: "A single dramatic personal story is shared to oppose a vaccine. Why is this weak evidence?", options: ["Personal stories are always fabricated", "Anecdotes tell us nothing about frequency, causation, or whether the event was typical", "The person sharing it isn't a doctor", "It's strong evidence — lived experience counts"], correct: 1, explanation: "Anecdotes are real and emotionally compelling, but they tell us nothing about how common an outcome is, what caused it, or whether millions of other people had the opposite experience. Evidence quality requires data at scale, not individual cases." },
   { id: "ct3q2", question: "Which type of study provides the strongest evidence that X causes Y?", options: ["A survey of public opinion", "An expert panel consensus statement", "A randomized controlled trial with a large sample", "A compelling case study"], correct: 2, explanation: "RCTs randomly assign participants to conditions, which controls for confounding variables that observational studies cannot eliminate. They are the closest we can get to demonstrating causation rather than correlation." },
   { id: "ct3q3", question: "A study shows that people who drink coffee live longer. The best conclusion is:", options: ["Coffee causes longevity", "There is an association between coffee drinking and longevity that warrants further investigation", "Everyone should drink more coffee", "The study is wrong"], correct: 1, explanation: "Correlation does not imply causation. Coffee drinkers may have other lifestyle factors (income, health habits) that explain the difference. Association is a starting point for investigation, not a conclusion." },
+  { id: "ct3q4", question: "What does the SIFT method stand for?", options: ["Search, Investigate, Fact-check, Trust", "Stop, Investigate the source, Find better coverage, Trace claims", "Source, Identity, Framing, Truth", "Scan, Identify, Filter, Test"], correct: 1, explanation: "SIFT (Stop, Investigate the source, Find better coverage, Trace claims to their origin) is a four-step framework for evaluating information before sharing or acting on it. 'Stop' is the most important step — it breaks the automatic impulse to react." },
+  { id: "ct3q5", question: "A health article claims a study of 24 people found dramatic results. What is the primary concern?", options: ["The study wasn't peer-reviewed", "The sample is too small to draw reliable conclusions", "Medical studies need 10,000 participants minimum", "You can't trust health journalism"], correct: 1, explanation: "Small samples produce highly variable results — the same study run with a different 24 people might show the opposite. Larger representative samples are necessary to detect real effects and rule out chance. Very small studies generate hypotheses, not conclusions." },
 ];
 
 const CT_QUIZ_L4: QuizQuestion[] = [
   { id: "ct4q1", question: "You've been working on a failing project for 18 months. The rational reason to continue is:", options: ["The 18 months of work already invested", "Evidence that future effort will produce future value", "Your team's emotional attachment to it", "Fairness to past effort"], correct: 1, explanation: "The sunk cost fallacy causes people to continue losing endeavors because of past investment. Rational decision-making is forward-looking — only future costs and future benefits should drive future choices." },
   { id: "ct4q2", question: "Which describes the Dunning-Kruger effect?", options: ["Experts overestimate how much others know", "Low-knowledge individuals overestimate their own competence", "Competent people refuse to share their knowledge", "Learning reduces confidence permanently"], correct: 1, explanation: "People with limited knowledge in a domain often lack the metacognitive ability to recognize what they don't know — producing unearned confidence. Expertise develops alongside the ability to recognize complexity and uncertainty." },
   { id: "ct4q3", question: "Your political party's candidate makes a mistake. You call it a misunderstanding. The rival party's candidate makes the same mistake. You call it incompetence. This illustrates:", options: ["Confirmation Bias", "Availability Heuristic", "In-Group Bias", "Anchoring"], correct: 2, explanation: "In-group bias causes us to apply different interpretive standards to the same behavior depending on who performs it. Recognizing this requires deliberately applying consistent standards regardless of group membership." },
+  { id: "ct4q4", question: "You've only seen news about shark attacks this summer and estimate your ocean swimming risk as very high. The actual rate is 1 per 11.5 million ocean visits. Which bias explains this?", options: ["Confirmation Bias", "Framing Effect", "Availability Heuristic", "Anchoring Bias"], correct: 2, explanation: "The availability heuristic judges probability by how easily examples come to mind. Dramatic news coverage makes shark attacks highly memorable and cognitively available, causing systematic overestimation of a rare risk." },
+  { id: "ct4q5", question: "The best antidote to confirmation bias is:", options: ["Reading more news sources", "Actively seeking the strongest version of the opposing argument", "Trusting your intuition less", "Avoiding controversial topics"], correct: 1, explanation: "Confirmation bias is defeated by steel-manning: deliberately constructing the strongest possible counterargument to your position. If you can't accurately represent the opposing view, you haven't engaged with it — you've only engaged with your own version of it." },
 ];
 
 const CT_CAPSTONE_STEPS = [
@@ -3775,8 +3798,11 @@ function ClearThinkingTab() {
   const [activeModule, setActiveModule] = useState<1 | 2 | 3 | null>(null);
   const { addXP } = usePersonalization();
 
-  // L1 state — segmented
+  // L1 state — segmented + analysis lab
   const [ct1Seg, setCt1Seg] = useState(0);
+  const [ct1LabInput, setCt1LabInput] = useState("");
+  const [ct1LabResult, setCt1LabResult] = useState("");
+  const [ct1LabLoading, setCt1LabLoading] = useState(false);
 
   // L2 state — fallacy explorer + identifier game
   const [activeFallacy, setActiveFallacy] = useState<string | null>(null);
@@ -3807,6 +3833,20 @@ function ClearThinkingTab() {
     onSuccess: (data) => { setGameResult(data.explanation); setGameLoading(false); },
     onError: (err: { message: string }) => { toast.error(err.message); setGameLoading(false); },
   });
+
+  const ct1LabMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setCt1LabResult(data.explanation); setCt1LabLoading(false); },
+    onError: (err: { message: string }) => { toast.error(err.message); setCt1LabLoading(false); },
+  });
+
+  const handleCt1Lab = () => {
+    if (!ct1LabInput.trim()) { toast.error("Enter some text first."); return; }
+    setCt1LabLoading(true); setCt1LabResult("");
+    ct1LabMutation.mutate({
+      concept: `Analyze this text as an argument. Identify: (1) the main CLAIM being made, (2) the EVIDENCE provided (or note if none is given), (3) the INFERENCE — the logical bridge connecting evidence to claim, (4) any hidden premises or unstated assumptions. Format clearly with bold labels. Text: "${ct1LabInput}"`,
+      level: "student",
+    });
+  };
 
   const sourceMutation = trpc.ai.explainConcept.useMutation({
     onSuccess: (data) => { setSourceResult(data.explanation); setSourceLoading(false); },
@@ -3919,6 +3959,112 @@ function ClearThinkingTab() {
         </div>
       ),
       topics: ["What indicator words signal conclusions vs. premises", "How to diagram a complex argument", "Why appeals to emotion aren't inherently fallacious", "The difference between an argument and an explanation"],
+    },
+    {
+      title: "Deductive vs. Inductive Reasoning",
+      narration: "There are two fundamentally different ways to build an argument. Deductive reasoning guarantees the conclusion if premises are true. Inductive reasoning makes conclusions probable — never certain. Understanding which type you're dealing with changes how you evaluate it.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              {
+                label: "Deductive", color: "oklch(0.72_0.2_260)",
+                desc: "Moves from general premises to a specific conclusion. If premises are true and the argument is valid, the conclusion is guaranteed — it cannot be false.",
+                example: "All humans are mortal.\nSocrates is human.\n∴ Socrates is mortal.\n\n(If both premises are true, the conclusion is certain.)",
+                strength: "The conclusion follows necessarily",
+                weakness: "Only as strong as its weakest premise"
+              },
+              {
+                label: "Inductive", color: "oklch(0.72_0.18_150)",
+                desc: "Moves from specific observations to a general conclusion. Even a perfect inductive argument cannot guarantee its conclusion — it only makes it more probable.",
+                example: "Every crow we've ever observed is black.\nTherefore, all crows are probably black.\n\n(In 1697, Europeans discovered black swans. The conclusion failed.)",
+                strength: "Grounds conclusions in real observations",
+                weakness: "Can be overturned by a single counterexample"
+              },
+            ].map(({ label, color, desc, example, strength, weakness }) => (
+              <div key={label} className="glass rounded-xl p-4 border border-white/8 space-y-2">
+                <div className="text-sm font-bold" style={{ color }}>{label}</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                <div className="font-mono text-xs text-foreground/70 bg-white/3 rounded-lg p-3 whitespace-pre leading-relaxed">{example}</div>
+                <div className="flex flex-col gap-1">
+                  <div className="text-xs text-[oklch(0.72_0.18_150)]">✓ {strength}</div>
+                  <div className="text-xs text-[oklch(0.68_0.22_20)]">✗ {weakness}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-white/10 space-y-2">
+            <div className="text-xs font-semibold text-foreground">Most arguments in real life are inductive</div>
+            <p className="text-xs text-muted-foreground leading-relaxed">Science, policy, medicine, and daily decision-making mostly use inductive reasoning — building probable conclusions from evidence. The question is never "is this certain?" but "is the evidence strong enough to justify this level of confidence?" The strength of an inductive argument depends on the sample size, representativeness, and whether alternative explanations have been ruled out.</p>
+          </div>
+          <div className="glass rounded-xl p-4 border border-white/10">
+            <div className="text-xs font-semibold text-foreground mb-2">Abductive Reasoning — the third type</div>
+            <p className="text-xs text-muted-foreground leading-relaxed">Abduction reasons to the <em>best explanation</em>: "The ground is wet — it probably rained." It doesn't guarantee the conclusion (the sprinklers might have run) but picks the most plausible explanation given available evidence. Doctors, detectives, and scientists use abduction constantly — it's how diagnosis works.</p>
+          </div>
+        </div>
+      ),
+      topics: ["Why inductive arguments can't be 'valid' in the formal sense", "Abductive reasoning and inference to the best explanation", "How scientific methodology handles inductive uncertainty", "The role of Bayesian updating in inductive thinking"],
+    },
+    {
+      title: "Hidden Premises & Burden of Proof",
+      narration: "The most dangerous parts of an argument are the parts that aren't there. Hidden premises do real logical work while staying invisible — and whoever makes a claim bears the burden of proving it, not the other way around.",
+      body: (
+        <div className="space-y-4 mt-4">
+          <div className="glass rounded-xl p-5 border border-white/8">
+            <div className="text-sm font-semibold text-foreground mb-3">Surfacing Hidden Premises</div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">A hidden premise is an assumption the argument requires to be valid but never states. Finding it is critical — it converts an air-tight-sounding argument into something that can be challenged directly.</p>
+            <div className="space-y-3">
+              {[
+                {
+                  argument: "\"Women make worse engineers because they're more emotional.\"",
+                  surface: "Women → emotional → worse engineers",
+                  hidden: [
+                    "1. Emotion is incompatible with engineering (not argued, just assumed)",
+                    "2. Women are more emotional than men on average (disputed empirically)",
+                    "3. Individual differences don't override group averages in performance (false)"
+                  ],
+                  color: "oklch(0.68_0.22_20)"
+                },
+                {
+                  argument: "\"We shouldn't fund the arts — people need jobs, not paintings.\"",
+                  surface: "Jobs > arts → don't fund arts",
+                  hidden: [
+                    "1. Funding arts prevents job creation (false — arts sector employs 5M+ in the US)",
+                    "2. Arts and economic support are mutually exclusive (false)",
+                    "3. Cultural value has no economic or social benefit (empirically contested)"
+                  ],
+                  color: "oklch(0.72_0.2_260)"
+                },
+              ].map(({ argument, surface, hidden, color }) => (
+                <div key={argument} className="glass rounded-xl p-4 border border-white/8">
+                  <div className="text-xs font-semibold mb-1" style={{ color }}>Argument</div>
+                  <p className="text-sm text-foreground italic mb-3">{argument}</p>
+                  <div className="text-xs font-semibold text-muted-foreground mb-1">Surface logic: {surface}</div>
+                  <div className="text-xs font-semibold mb-1" style={{ color }}>Hidden premises exposed:</div>
+                  {hidden.map((h, i) => <p key={i} className="text-xs text-muted-foreground leading-relaxed">{h}</p>)}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="glass rounded-xl p-5 border border-white/8">
+            <div className="text-sm font-semibold text-foreground mb-2">Burden of Proof</div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-3">Whoever makes a claim bears the burden of proving it. This is not just a legal principle — it's a logical necessity. Without it, every unfalsifiable claim becomes equally valid by default.</p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { rule: "Positive claims need positive evidence", ex: "'X causes cancer' requires evidence that it does — not absence of evidence that it doesn't.", color: "oklch(0.68_0.22_20)" },
+                { rule: "The default is skepticism, not belief", ex: "'Extraordinary claims require extraordinary evidence' (Sagan). The bigger the claim, the stronger the evidence required.", color: "oklch(0.72_0.2_260)" },
+                { rule: "Unfalsifiability is not strength", ex: "If a claim cannot possibly be tested or disproven, it is not a scientific or logical claim — it is a belief or assertion.", color: "oklch(0.72_0.18_150)" },
+              ].map(({ rule, ex, color }) => (
+                <div key={rule} className="glass rounded-lg p-3 border border-white/8">
+                  <div className="text-xs font-semibold mb-1" style={{ color }}>{rule}</div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{ex}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ),
+      topics: ["How to find hidden premises in any argument", "The difference between burden of proof and shifting the burden", "Russell's Teapot and unfalsifiable claims", "How to respond to 'prove it doesn't exist'"],
     },
   ];
 
@@ -4144,6 +4290,42 @@ function ClearThinkingTab() {
                 </button>
               )}
             </div>
+            {/* Argument Analysis Lab */}
+            <div className="glass rounded-2xl p-5 border border-[oklch(0.72_0.2_260_/_0.2)]">
+              <div className="text-xs font-semibold text-[oklch(0.82_0.2_260)] mb-1">ARGUMENT ANALYSIS LAB</div>
+              <p className="text-xs text-muted-foreground mb-3">Paste any argument, news headline, or claim. The AI will dissect it into claim, evidence, inference, and hidden premises — and show you exactly how its structure works.</p>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {[
+                  "\"Organic food is healthier because it doesn't contain pesticides.\"",
+                  "\"Crime went up after the new policy, so the policy must have caused it.\"",
+                  "\"This supplement is safe — my doctor said natural ingredients are always fine.\"",
+                  "\"Everyone is moving to electric cars, so they must be clearly better.\"",
+                ].map(ex => (
+                  <button key={ex} onClick={() => setCt1LabInput(ex.replace(/^"|"$/g, ""))}
+                    className="text-xs text-left px-3 py-2 rounded-lg glass border border-white/8 text-muted-foreground hover:border-[oklch(0.72_0.2_260_/_0.4)] hover:text-foreground transition-all">
+                    {ex}
+                  </button>
+                ))}
+              </div>
+              <textarea value={ct1LabInput} onChange={e => setCt1LabInput(e.target.value)}
+                placeholder="Or type your own argument, headline, or claim here..."
+                rows={3} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.2_260_/_0.5)] resize-none mb-3" />
+              <motion.button onClick={handleCt1Lab} disabled={ct1LabLoading || !ct1LabInput.trim()}
+                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                style={{ background: "oklch(0.72_0.2_260)" }}>
+                {ct1LabLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Search size={13} /> Analyze Argument</>}
+              </motion.button>
+              <AnimatePresence>
+                {ct1LabResult && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-xl bg-[oklch(0.72_0.2_260_/_0.08)] border border-[oklch(0.72_0.2_260_/_0.25)]">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{ct1LabResult}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div className="glass rounded-2xl p-5 border border-white/8">
               <h4 className="font-semibold text-foreground mb-3">Knowledge Check</h4>
               <QuizBlock questions={CT_QUIZ_L1} accentColor="oklch(0.72_0.2_260)" />
