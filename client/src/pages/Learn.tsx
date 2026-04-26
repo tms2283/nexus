@@ -4339,27 +4339,59 @@ function ClearThinkingTab() {
         <CTLessonShell key="ct2" id="ct2">
           <div className="space-y-5">
             <div className="glass rounded-2xl p-6 border border-white/8">
-              <Narrator text="A logical fallacy is a flaw in reasoning that makes an argument invalid — even when the conclusion might happen to be true. Learning to name fallacies gives you the vocabulary to dismantle bad arguments without losing your temper." />
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Narrator text="A logical fallacy is a flaw in reasoning that makes an argument invalid — even when the conclusion might happen to be true. Fallacies are not just academic curiosities: politicians, advertisers, and debaters use them constantly, often unconsciously. Learning to name them gives you the vocabulary to dismantle bad arguments without losing your temper — and to avoid using them yourself." />
+              <div className="mt-4 space-y-3">
                 {[
-                  { label: "Attack the person", name: "Ad Hominem", icon: <Users size={14} /> },
-                  { label: "Misrepresent position", name: "Straw Man", icon: <Flame size={14} /> },
-                  { label: "Only two options", name: "False Dilemma", icon: <Scale size={14} /> },
-                  { label: "Popular = true", name: "Bandwagon", icon: <TrendingUp size={14} /> },
-                ].map(({ label, name, icon }) => (
-                  <div key={name} className="glass rounded-xl p-3 border border-white/8 text-center">
-                    <div className="flex justify-center mb-1.5 text-[oklch(0.68_0.22_20)]">{icon}</div>
-                    <div className="text-xs font-semibold text-foreground">{name}</div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+                  {
+                    category: "Attacks & Deflections",
+                    color: "oklch(0.68_0.22_20)",
+                    fallacies: ["Ad Hominem", "Tu Quoque", "Red Herring", "Straw Man"],
+                    desc: "These avoid engaging with the argument by attacking the person, deflecting to a side issue, or misrepresenting the opponent's position."
+                  },
+                  {
+                    category: "False Structure",
+                    color: "oklch(0.72_0.2_260)",
+                    fallacies: ["False Dilemma", "Circular Reasoning", "Equivocation", "Moving the Goalposts"],
+                    desc: "These arguments appear logically structured but rely on faulty reasoning — false binaries, circular definitions, or shifting standards."
+                  },
+                  {
+                    category: "Bad Evidence",
+                    color: "oklch(0.72_0.18_150)",
+                    fallacies: ["Appeal to Authority", "Bandwagon", "Hasty Generalization", "False Cause", "Gambler's Fallacy"],
+                    desc: "These treat insufficient, irrelevant, or misleading evidence as though it proves a conclusion."
+                  },
+                  {
+                    category: "Manipulation",
+                    color: "oklch(0.78_0.16_30)",
+                    fallacies: ["Appeal to Emotion", "Appeal to Nature", "Slippery Slope", "No True Scotsman"],
+                    desc: "These bypass logic entirely — exploiting emotions, natural origin, fear of extremes, or unfalsifiable group definitions."
+                  },
+                ].map(({ category, color, fallacies, desc }) => (
+                  <div key={category} className="glass rounded-xl p-4 border border-white/8">
+                    <div className="text-xs font-bold mb-1" style={{ color }}>{category}</div>
+                    <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{desc}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {fallacies.map(name => (
+                        <span key={name} className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ background: `oklch(from ${color} l c h / 0.12)`, color, border: `1px solid oklch(from ${color} l c h / 0.3)` }}>
+                          {name}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
+              <div className="mt-4 glass rounded-xl p-4 border border-white/10">
+                <div className="flex items-start gap-2"><Info size={13} className="text-[oklch(0.68_0.22_20)] mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground"><strong className="text-foreground">Important:</strong> A fallacious argument can accidentally reach a true conclusion. The point is not whether the conclusion is correct — it's whether the reasoning used to get there actually supports it. Bad reasoning that leads to a true conclusion is still bad reasoning; it just got lucky.</p>
+                </div>
+              </div>
               <SegmentFooter accentColor="oklch(0.68_0.22_20)"
-                topics={["Why fallacies can still lead to true conclusions", "The difference between informal and formal fallacies", "How to respond to a fallacy without sounding condescending", "Why ad hominem is sometimes relevant (character witnesses)"]} />
+                topics={["Why fallacies can still lead to true conclusions", "The difference between informal and formal fallacies", "How to respond to a fallacy without sounding condescending", "Why ad hominem is sometimes contextually relevant (credibility of testimony)"]} />
             </div>
 
             {/* Fallacy explorer */}
-            <div className="text-sm font-semibold text-foreground">Click any fallacy to study it in depth:</div>
+            <div className="text-sm font-semibold text-foreground">Click any of the 17 fallacies to study it in depth:</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {FALLACIES.map((f) => (
                 <button key={f.id} onClick={() => setActiveFallacy(activeFallacy === f.id ? null : f.id)}
@@ -4962,24 +4994,32 @@ const CT2_QUIZ_L6: QuizQuestion[] = [
   { id: "ct6q1", question: "The Illusory Truth Effect means:", options: ["People believe things that are told to them by authority figures", "Repeated exposure to a false claim makes it feel more true over time", "Emotional content is more likely to be remembered", "Misinformation only affects people with low education"], correct: 1, explanation: "The Illusory Truth Effect is one of the most robustly replicated findings in cognitive psychology: repeated exposure increases processing fluency, which the brain interprets as a signal of truth. This is why propaganda relies on repetition rather than argument." },
   { id: "ct6q2", question: "Source laundering works because:", options: ["People are too lazy to read original sources", "A chain of citations creates an appearance of independent corroboration even when all sources trace back to one original claim", "Mainstream media outlets deliberately spread misinformation", "False claims are more interesting than true ones"], correct: 1, explanation: "When multiple outlets report on something, readers assume independent verification has occurred. Source laundering exploits this by seeding a single claim that gets amplified up through a citation chain — giving one claim the appearance of many." },
   { id: "ct6q3", question: "When you feel a strong urge to share something immediately because it's outrageous, the critical thinking response is:", options: ["Share it — if it feels true, it probably is", "Check whether the emotional response is the content's delivery mechanism, not evidence of its accuracy", "Only share if you personally agree with it", "Share with a disclaimer"], correct: 1, explanation: "Misinformation is engineered to trigger emotional responses that bypass deliberate reasoning. The intensity of your emotional reaction is not correlated with the accuracy of the content — it's correlated with how viral it was designed to be." },
+  { id: "ct6q4", question: "Context collapse describes:", options: ["Information becoming less relevant over time", "Real content (images, quotes, video) reused in a new framing that changes its meaning entirely", "When a source loses credibility after being caught in a lie", "The tendency to share only partial information"], correct: 1, explanation: "Context collapse is particularly dangerous because the underlying content is genuine — making it harder to identify as misinformation. A real photo from a 2015 event can be falsely presented as evidence of a 2024 event. Always ask: does this content mean what this post claims it means?" },
+  { id: "ct6q5", question: "The most reliable first step when encountering a shocking claim is:", options: ["Immediately search for confirming evidence", "Stop — recognize the emotional reaction as a potential signal of manipulative design, before doing anything else", "Check how many people have shared it", "Look for the original source URL"], correct: 1, explanation: "The 'Stop' in SIFT is the hardest and most important step. Pausing before engaging interrupts the automatic emotional processing that misinformation exploits. All fact-checking techniques are useless if you never pause to apply them." },
 ];
 
 const CT2_QUIZ_L7: QuizQuestion[] = [
   { id: "ct7q1", question: "A drug 'reduces risk by 50%.' Without knowing the baseline risk, this statistic is:", options: ["Highly informative — 50% is significant", "Meaningless — a 50% reduction of 0.2% is a different outcome than 50% of 20%", "Misleading only if the drug has side effects", "Acceptable shorthand in scientific communication"], correct: 1, explanation: "Relative risk reductions without baselines are one of the most common statistical deceptions in health journalism. A 50% reduction of a 0.1% risk (to 0.05%) is nearly irrelevant clinically. Context determines significance." },
   { id: "ct7q2", question: "Survivorship bias causes us to:", options: ["Overestimate how often survivors make good decisions", "Systematically overestimate success rates because failures are invisible", "Underestimate the value of perseverance", "Correctly identify patterns in outcomes"], correct: 1, explanation: "We study and celebrate visible successes while the much larger population of similar failures remains invisible. This distorts our picture of which strategies actually work — we're only seeing the tip of the iceberg." },
   { id: "ct7q3", question: "Simpson's Paradox demonstrates that:", options: ["Simple statistics are more reliable than complex ones", "Aggregate data can show the opposite trend of every subgroup it contains", "Statistical analysis always requires large sample sizes", "Averages are never accurate"], correct: 1, explanation: "Simpson's Paradox is a real phenomenon with major real-world implications — including in clinical trials, hiring discrimination cases, and educational data. Aggregating across non-comparable groups can produce conclusions that reverse entirely when examined properly." },
+  { id: "ct7q4", question: "A headline says 'Crime rose 15% in 3 years!' The most important question to ask is:", options: ["Which types of crime?", "What is the full historical trend — is this 3-year rise within a long-term decline?", "Who funded the study?", "Was it reported in national media?"], correct: 1, explanation: "Short-window trends are almost always misleading without context. Violent crime in the US peaked in 1991, fell dramatically for 25 years, then briefly rose. A 3-year window presented without that context produces the opposite impression of the long-run reality." },
+  { id: "ct7q5", question: "When a statistic says '15% faster growth than men,' the first question should be:", options: ["Is 15% a large difference?", "What are the actual absolute numbers this percentage describes?", "Who conducted the study?", "Was the finding peer-reviewed?"], correct: 1, explanation: "Percentage-of-percentage statistics are the most common form of statistical manipulation in journalism. 15% faster could describe a 3% vs 2.6% difference — barely noticeable in real terms. Always convert to absolute numbers before evaluating significance." },
 ];
 
 const CT2_QUIZ_L8: QuizQuestion[] = [
   { id: "ct8q1", question: "Ethical persuasion differs from manipulation in that:", options: ["Ethical persuasion uses emotions; manipulation uses facts", "Ethical persuasion respects the audience's ability to reason and choose freely; manipulation exploits cognitive vulnerabilities", "Manipulation is always illegal", "Ethical persuasion never uses social proof"], correct: 1, explanation: "The core ethical distinction is consent and autonomy. Ethical persuasion provides accurate information and legitimate emotional appeals — it works with the audience's reasoning. Manipulation bypasses reasoning by exploiting cognitive shortcuts, fear, or social pressure." },
   { id: "ct8q2", question: "A countdown timer on a purchase page is manipulative when:", options: ["The deadline is real and clearly communicated", "The timer resets after it reaches zero — creating artificial urgency where none exists", "It causes you to decide quickly", "The product is genuinely limited"], correct: 1, explanation: "Artificial urgency is designed to prevent deliberate reasoning. When a countdown is fake (it resets, or the 'sale' is permanent), it's not providing information — it's exploiting the fear of missing out to override your rational decision-making process." },
   { id: "ct8q3", question: "Identity appeals become manipulative when they:", options: ["Connect a product to values the audience genuinely holds", "Frame a choice as a test of group loyalty to prevent independent evaluation of the merits", "Use testimonials from people in the target group", "Acknowledge that other groups may prefer different options"], correct: 1, explanation: "Connecting choices to genuine values is legitimate. Using tribal identity to short-circuit reasoning — 'real patriots buy X' — is manipulation because it substitutes group belonging for evidence. It makes you afraid to evaluate independently." },
+  { id: "ct8q4", question: "A genuine use of reciprocity (giving before asking) differs from its manipulative form in that:", options: ["Genuine reciprocity gives more expensive gifts", "Genuine reciprocity provides real value freely with no obligation attached; manipulation creates manufactured obligation", "Only commercial transactions can be reciprocal", "Genuine reciprocity always involves a written agreement"], correct: 1, explanation: "Reciprocity becomes manipulation when the 'gift' is used to create social pressure to comply. Free educational content with an optional offer is genuine. Sending unsolicited items then using guilt to pressure a response is manipulation that exploits the norm of reciprocity." },
+  { id: "ct8q5", question: "The signal that you are being manipulated (rather than legitimately persuaded) is:", options: ["You feel persuaded quickly", "The communication is designed to prevent you from taking time to think, access other information, or consult others", "The person is enthusiastic about their product", "Strong emotional content is used"], correct: 1, explanation: "Legitimate persuasion is comfortable with your deliberation — it gives you time to think, welcomes comparison, and respects a 'no.' Manipulation consistently creates pressure against deliberation: artificial urgency, isolation from alternative perspectives, fear of missing the offer." },
 ];
 
 const CT2_QUIZ_L9: QuizQuestion[] = [
   { id: "ct9q1", question: "A pre-mortem is most useful because it:", options: ["Helps you feel more confident about a decision", "Forces explicit consideration of failure modes before they happen, while there's still time to act on that analysis", "Identifies the single most likely cause of failure", "Is performed after a project fails"], correct: 1, explanation: "The pre-mortem (imagining the project has already failed and asking why) bypasses the optimism bias that causes teams to underweight failure scenarios. It produces specific, actionable risks — not vague concerns — when you can still adjust the plan." },
   { id: "ct9q2", question: "Calibrated uncertainty means:", options: ["Always saying 'I'm not sure' to avoid being wrong", "Your confidence in a belief should match the actual evidence for it — neither overconfident nor underconfident", "Making decisions only when you have more than 90% certainty", "Expressing all beliefs as probability percentages"], correct: 1, explanation: "Good decision-making requires calibration: 70% confident beliefs should be right about 70% of the time. Overconfidence and underconfidence are both calibration errors. Tracking predictions and outcomes is the only reliable way to improve calibration." },
   { id: "ct9q3", question: "When two options have similar expected values, the rational tiebreaker is usually:", options: ["Go with your gut — intuition knows things analysis misses", "Choose the option with lower variance (more predictable outcomes), especially under resource constraints", "Flip a coin — expected values are equal so it doesn't matter", "Always choose the higher-upside option regardless of downside"], correct: 1, explanation: "When expected values are equal, variance matters enormously — especially when you can't afford the downside. A coin flip between $100 and $0 has the same expected value as $50 guaranteed, but if you need at least $50 to survive the month, the guaranteed option is rationally superior." },
+  { id: "ct9q4", question: "Reversible decisions should be made:", options: ["With the same care as irreversible ones", "Faster — with lower information requirements, since you can adjust if wrong", "Only after extensive analysis", "With committee consensus"], correct: 1, explanation: "Decision quality should be proportional to reversibility and stakes. Reversible, low-stakes decisions made with excessive deliberation waste cognitive resources. Irreversible, high-stakes decisions made hastily are catastrophic. Calibrate your process to the actual consequences of being wrong." },
+  { id: "ct9q5", question: "Expected value thinking is most dangerous when:", options: ["Applied to financial decisions", "Applied to decisions with catastrophic-but-rare downside scenarios that exceed your risk tolerance", "The probabilities are uncertain", "You are making group decisions"], correct: 1, explanation: "Pure expected value ignores variance and catastrophic risk. A 10% chance of total ruin might have a positive expected value on paper but be personally unacceptable. Kelly criterion, risk of ruin analysis, and variance-weighting exist precisely because EV alone doesn't account for survival constraints." },
 ];
 
 const CT2_CAPSTONE_CASES = [
@@ -5953,6 +5993,30 @@ const CT3_QUIZ_L11 = [
     correct: 1,
     explanation: "Every model — economic, scientific, social, cognitive — is a simplification. The danger is mistaking the model for the thing it represents. Optimizing for the metric (the map) instead of the underlying reality (the territory) is one of the most common institutional failures.",
   },
+  {
+    id: "ct11q4",
+    question: "Occam's Razor says that when two explanations fit the evidence equally well, you should prefer:",
+    options: [
+      "The more creative one",
+      "The one with fewer unsupported assumptions",
+      "The one endorsed by authority",
+      "The one that appeared first in the literature",
+    ],
+    correct: 1,
+    explanation: "Occam's Razor is a principle of parsimony — simpler explanations are preferred not because they're definitely correct, but because extra assumptions compound uncertainty. An explanation that requires fewer unverified assumptions is more robust and easier to test.",
+  },
+  {
+    id: "ct11q5",
+    question: "Second-order thinking asks:",
+    options: [
+      "'What will happen?' (the immediate effect)",
+      "'And then what?' — the consequences of the consequences",
+      "'What happened before?' — the historical precedent",
+      "'Who else benefits?' — the stakeholder analysis",
+    ],
+    correct: 1,
+    explanation: "Most people stop at first-order effects ('the policy will reduce X'). Second-order thinking asks what happens as a result of that change — which is where unintended consequences, adaptive responses, and systemic effects live. The chess player who only thinks one move ahead loses.",
+  },
 ];
 
 const CT3_ARGUMENT_MAP_EXAMPLES = [
@@ -6024,6 +6088,28 @@ const CT3_QUIZ_L12 = [
     ],
     correct: 1,
     explanation: "Argument maps force you to identify which claims support which conclusions — making the logical structure visible. This allows each premise to be challenged or validated individually, without the rhetorical packaging of the original text.",
+  },
+  {
+    id: "ct12q4",
+    question: "You've steel-manned an opponent's position when:",
+    options: [
+      "You can recite their exact words back",
+      "They would agree that your version of their argument is stronger than the original",
+      "You've identified all their factual errors",
+      "You've found at least three weaknesses in their case"],
+    correct: 1,
+    explanation: "The test of a good steelman is whether the opponent endorses it. If they say 'that's not my argument' or 'that's even better than how I put it,' you're in range. If they object to your characterization, you haven't steel-manned — you've straw-manned with more effort.",
+  },
+  {
+    id: "ct12q5",
+    question: "Convergent validity in argument evaluation means:",
+    options: [
+      "Multiple independent lines of evidence point toward the same conclusion",
+      "The argument is accepted by the scientific community",
+      "The conclusion is consistent with your prior beliefs",
+      "The argument has been peer-reviewed"],
+    correct: 0,
+    explanation: "Convergent validity — when multiple independent methods, sources, or lines of reasoning all reach the same conclusion — is one of the strongest signals of a robust claim. This is different from source laundering (same claim cited multiple times) because the independence is real.",
   },
 ];
 
@@ -6098,6 +6184,28 @@ const CT3_QUIZ_L13 = [
     ],
     correct: 2,
     explanation: "Emergence is why reductionism has limits. The wetness of water is not a property of H2O molecules in isolation. Consciousness is not a property of a single neuron. The price signal in a market is not held by any one trader. The system level has properties that parts do not.",
+  },
+  {
+    id: "ct13q4",
+    question: "The best response to unintended consequences of a complex policy is:",
+    options: [
+      "Abandon the policy immediately",
+      "Double down — unintended consequences prove the policy was right",
+      "Monitor, identify which feedback loops produced the unintended effect, and iterate",
+      "Ignore them — all policies have side effects"],
+    correct: 2,
+    explanation: "Complex systems require iteration, not abandonment or doubling-down. The unintended consequence is information — it reveals which feedback loops were missed in the design. The right response is to monitor, diagnose, and adjust the intervention rather than treating the initial design as either perfect or failed.",
+  },
+  {
+    id: "ct13q5",
+    question: "Stock and flow thinking is useful because:",
+    options: [
+      "It separates the amount of something (stock) from the rate of change (flow), revealing why systems are slow to respond to intervention",
+      "It applies only to financial systems",
+      "It simplifies complex systems into two variables",
+      "It predicts when a system will reach equilibrium"],
+    correct: 0,
+    explanation: "Stocks (the accumulation) and flows (the rate of change) explain why complex systems have delays. Reducing pollution inflow today doesn't immediately clean a lake — the accumulated stock takes time to drain. This is why systemic problems persist even after their causes are addressed.",
   },
 ];
 
@@ -6176,6 +6284,28 @@ const CT3_QUIZ_L14 = [
     ],
     correct: 2,
     explanation: "Strong moral intuitions are evidence. They represent accumulated human wisdom about consequences and values. In ethics especially, when a valid argument produces a repugnant conclusion (tollensing the ponens), the right move is often to reject a premise — not accept the conclusion because the logic is clean.",
+  },
+  {
+    id: "ct14q4",
+    question: "The 'galaxy-brained' reasoning failure occurs when:",
+    options: [
+      "Arguments are too abstract to be understood",
+      "A chain of individually plausible steps leads to a conclusion that should have been rejected at the start",
+      "Experts use jargon to obscure weak arguments",
+      "Complex analysis produces accurate predictions"],
+    correct: 1,
+    explanation: "Galaxy-brained reasoning is sophisticated motivated reasoning: each step seems locally valid, but the conclusion reveals that the entire chain was constructed backward from a desired endpoint. The antidote is to check whether you would have accepted each premise independently before seeing the conclusion.",
+  },
+  {
+    id: "ct14q5",
+    question: "The best signal that you are reasoning rather than rationalizing is:",
+    options: [
+      "Your conclusion agrees with expert consensus",
+      "You would update your position if certain specific evidence emerged — and you can name what that evidence would be",
+      "Your reasoning is complex and nuanced",
+      "Your conclusion makes you uncomfortable"],
+    correct: 1,
+    explanation: "Pre-committing to what would change your mind is the strongest test of genuine reasoning. If you cannot name any possible evidence that would update your position, you are likely not reasoning — you are rationalizing a conclusion you've already committed to.",
   },
 ];
 
