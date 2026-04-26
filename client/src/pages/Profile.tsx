@@ -15,6 +15,7 @@ import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { trpc } from "@/lib/trpc";
 import PageWrapper from "@/components/PageWrapper";
 import { Link } from "wouter";
+import { resetTour } from "@/components/TourOverlay";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -630,9 +631,18 @@ export default function ProfilePage() {
               <h1 className="text-3xl font-bold text-foreground">Your Profile</h1>
               <p className="text-muted-foreground text-sm mt-1">Mind map, behavioral insights, and progress</p>
             </div>
-            <button onClick={logout} className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors">
-              <LogOut size={15} /> Sign Out
-            </button>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <button
+                onClick={() => { resetTour(); window.location.reload(); }}
+                style={{ fontSize: 12, color: "var(--muted-foreground)", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 12px", cursor: "pointer" }}
+                title="Replay the onboarding tour"
+              >
+                🗺️ Restart Tour
+              </button>
+              <button onClick={logout} className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors">
+                <LogOut size={15} /> Sign Out
+              </button>
+            </div>
           </div>
         </motion.div>
 

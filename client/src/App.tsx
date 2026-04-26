@@ -14,6 +14,7 @@ import GamificationHUD from "./components/GamificationHUD";
 import AIChat from "./components/AIChat";
 import CommandPalette from "./components/CommandPalette";
 import EditModeOverlay from "./components/EditModeOverlay";
+import TourOverlay from "./components/TourOverlay";
 
 // ─── Eagerly loaded ───────────────────────────────────────────────────────────
 import Welcome from "./pages/Welcome";
@@ -219,6 +220,7 @@ function AppShell() {
       <Router />
       {showNav && <GamificationHUD />}
       {showNav && <AIChat />}
+      {showNav && <TourOverlay />}
     </TooltipProvider>
   );
 }
