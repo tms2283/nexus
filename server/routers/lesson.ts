@@ -1024,4 +1024,13 @@ Sections and answers:\n${synthesisInput}`;
       if (result.success) await addXP(input.cookieId, 20);
       return result;
     }),
+
+  textToSpeech: publicProcedure
+    .input(z.object({ text: z.string().max(2000) }))
+    .mutation(async ({ input }) => {
+      const { synthesizeTTS } = await import("../audio");
+      const result = await synthesizeTTS(input.text);
+      if (!result) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "TTS generation failed." });
+      return result;
+    }),
 });

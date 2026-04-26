@@ -111,6 +111,28 @@ function concatMp3Buffers(buffers: Buffer[]): Buffer {
   return Buffer.concat(buffers.filter(b => b.length > 0));
 }
 
+// ─── Single-voice TTS for lesson snippets ────────────────────────────────────
+export async function synthesizeTTS(text: string): Promise<{ audioUrl: string } | null> {
+  if (!ELEVENLABS_API_KEY) return null;
+  const hash = createHash("sha256").update(text).digest("hex").slice(0, 16);
+  const filename = `tts-${hash}.mp3`;
+  const filePath = path.join(AUDIO_DIR, filename);
+  const audioUrl = `${AUDIO_URL_BASE}/${filename}`;
+
+  // Return cached file if it exists
+  try {
+    await fs.access(filePath);
+    return { audioUrl };
+  } catch { /* not cached yet */ }
+
+  const buffer = await synthesizeLine(text, VOICE_A_ID);
+  if (!buffer) return null;
+
+  await fs.mkdir(AUDIO_DIR, { recursive: true });
+  await fs.writeFile(filePath, buffer);
+  return { audioUrl };
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 export async function generateAudioOverview(input: AudioOverviewInput): Promise<AudioOverviewResult> {
   if (!ELEVENLABS_API_KEY) {

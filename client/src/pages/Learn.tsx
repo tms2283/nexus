@@ -261,19 +261,53 @@ function PromptSandbox({ placeholder, systemHint, color, label = "Try it live" }
 
 // Narrator with Web Speech API
 function AIVoice({ text }: { text: string }) {
-  const [speaking, setSpeaking] = useState(false);
-  const speak = useCallback(() => {
-    window.speechSynthesis?.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.92; u.onend = () => setSpeaking(false);
-    setSpeaking(true);
-    window.speechSynthesis?.speak(u);
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ttsMutation = trpc.lesson.textToSpeech.useMutation();
+
+  const play = useCallback(async () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      setPlaying(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { audioUrl } = await ttsMutation.mutateAsync({ text });
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = () => setPlaying(false);
+      audio.onerror = () => setPlaying(false);
+      await audio.play();
+      setPlaying(true);
+    } catch {
+      // Fallback to browser TTS
+      window.speechSynthesis?.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.92; u.onend = () => setPlaying(false);
+      setPlaying(true);
+      window.speechSynthesis?.speak(u);
+    } finally {
+      setLoading(false);
+    }
   }, [text]);
-  const stop = useCallback(() => { window.speechSynthesis?.cancel(); setSpeaking(false); }, []);
-  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
+
+  const stop = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+    window.speechSynthesis?.cancel();
+    setPlaying(false);
+  }, []);
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    window.speechSynthesis?.cancel();
+  }, []);
+
   return (
     <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.07)] border border-[oklch(0.75_0.18_55_/_0.18)] mb-3">
-      {speaking ? (
+      {playing ? (
         <div className="flex items-end gap-0.5 h-3">
           {[0, 1, 2, 3].map(i => (
             <motion.div key={i} className="w-0.5 bg-[oklch(0.75_0.18_55)] rounded-full"
@@ -281,11 +315,17 @@ function AIVoice({ text }: { text: string }) {
               transition={{ repeat: Infinity, duration: 0.55, delay: i * 0.1 }} />
           ))}
         </div>
-      ) : <Volume2 size={11} className="text-[oklch(0.75_0.18_55)]" />}
+      ) : loading ? (
+        <Loader2 size={11} className="text-[oklch(0.75_0.18_55)] animate-spin" />
+      ) : (
+        <Volume2 size={11} className="text-[oklch(0.75_0.18_55)]" />
+      )}
       <span className="text-xs text-muted-foreground flex-1 leading-snug">{text.slice(0, 80)}{text.length > 80 ? "…" : ""}</span>
-      {speaking
+      {playing
         ? <button onClick={stop} className="px-2 py-0.5 rounded text-[10px] bg-white/10 text-muted-foreground"><Pause size={9} className="inline mr-0.5" />Stop</button>
-        : <button onClick={speak} className="px-2 py-0.5 rounded text-[10px] bg-[oklch(0.75_0.18_55_/_0.2)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)]"><Play size={9} className="inline mr-0.5" />Listen</button>
+        : <button onClick={play} disabled={loading} className="px-2 py-0.5 rounded text-[10px] bg-[oklch(0.75_0.18_55_/_0.2)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)] disabled:opacity-50">
+            {loading ? "…" : <><Play size={9} className="inline mr-0.5" />Listen</>}
+          </button>
       }
     </div>
   );
@@ -7388,7 +7428,7 @@ export default function Learn() {
       <div className="min-h-screen pt-20" onKeyDownCapture={handleLearnKeyDownCapture}>
         {/* Hero */}
         <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-6xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -7419,7 +7459,7 @@ export default function Learn() {
 
         {/* Stats bar */}
         <section className="pb-8 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Curricula Generated", value: "2,400+", icon: Target },
@@ -7438,7 +7478,7 @@ export default function Learn() {
 
         {/* Tabs */}
         <section className="pb-4 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="flex border-b border-border/60 mb-8 overflow-x-auto">
               {tabs.map(({ id, label, icon: Icon, desc }) => (
                 <button

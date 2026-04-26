@@ -56,10 +56,14 @@ export function BehavioralTracker() {
     };
 
     const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Never track clicks on form inputs — avoids re-renders that break focus
+      const tag = target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable) return;
+
       clickCount.current += 1;
       // Identify CTA clicks
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'BUTTON' || target.closest('button') || target.tagName === 'A') {
+      if (tag === 'BUTTON' || target.closest('button') || tag === 'A') {
         trackEvent.mutate({
           type: "NEXUS_CTA_CLICKED",
           source: "browser",

@@ -237,7 +237,7 @@ html:not(.dark) .hover\:border-white\/20:hover { border-color: oklch(0.62 0.02 2
     .container { padding-left: 1.5rem; padding-right: 1.5rem; }
   }
   @media (min-width: 1024px) {
-    .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; }
+    .container { padding-left: 2rem; padding-right: 2rem; max-width: 1600px; }
   }
 
   /* Glass morphism */
@@ -351,7 +351,7 @@ html:not(.dark) .hover\:border-white\/20:hover { border-color: oklch(0.62 0.02 2
 
   /* ── New 2026 design utilities ──────────────────────────────────────────── */
   .section-container {
-    max-width: 1120px;
+    max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 1.5rem;
