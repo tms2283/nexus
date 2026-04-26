@@ -1033,4 +1033,55 @@ Sections and answers:\n${synthesisInput}`;
       if (!result) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "TTS generation failed." });
       return result;
     }),
+
+  generateModulePodcast: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      moduleNum: z.number().int().min(1).max(9),
+      moduleTitle: z.string(),
+      content: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      const sourceId = 90000 + input.moduleNum;
+
+      if (db) {
+        const { audioOverviews } = await import("../../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const cached = await db.select().from(audioOverviews)
+          .where(and(eq(audioOverviews.sourceType, "lesson"), eq(audioOverviews.sourceId, sourceId)))
+          .limit(1);
+        if (cached.length > 0 && cached[0].audioUrl) {
+          return { success: true, audioUrl: cached[0].audioUrl, cached: true };
+        }
+      }
+
+      const { generateAudioOverview } = await import("../audio");
+      return generateAudioOverview({
+        cookieId: input.cookieId,
+        sourceType: "lesson",
+        sourceId,
+        title: input.moduleTitle,
+        content: input.content,
+      });
+    }),
+
+  callInQuestion: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      question: z.string().max(500),
+      moduleTitle: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const answer = await callAI(
+        input.cookieId,
+        `A student is listening to a podcast about "${input.moduleTitle}" and called in with this question: "${input.question}"\n\nAnswer in 2-3 sentences as Morgan, the knowledgeable host.`,
+        "You are Morgan, a warm and practical podcast host. Be concise.",
+        150
+      );
+      const { synthesizeTTS } = await import("../audio");
+      const result = await synthesizeTTS(answer.trim());
+      if (!result) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Response audio failed." });
+      return { audioUrl: result.audioUrl, responseText: answer.trim() };
+    }),
 });

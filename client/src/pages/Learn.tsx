@@ -331,6 +331,105 @@ function AIVoice({ text }: { text: string }) {
   );
 }
 
+// ─── Module Podcast ───────────────────────────────────────────────────────────
+function ModulePodcast({ moduleNum, moduleTitle, content, cookieId }: {
+  moduleNum: number; moduleTitle: string; content: string; cookieId: string;
+}) {
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [callInText, setCallInText] = useState("");
+  const [callInLoading, setCallInLoading] = useState(false);
+  const [callInResponse, setCallInResponse] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const podcastMut = trpc.lesson.generateModulePodcast.useMutation();
+  const callInMut = trpc.lesson.callInQuestion.useMutation();
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const r = await podcastMut.mutateAsync({ cookieId, moduleNum, moduleTitle, content });
+      if (r.success && r.audioUrl) {
+        setAudioUrl(r.audioUrl);
+        const audio = new Audio(r.audioUrl);
+        audioRef.current = audio;
+        audio.ontimeupdate = () => setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0);
+        audio.onended = () => setPlaying(false);
+      }
+    } catch { toast.error("Podcast generation failed."); }
+    finally { setLoading(false); }
+  };
+
+  const togglePlay = () => {
+    const a = audioRef.current; if (!a) return;
+    if (playing) { a.pause(); setPlaying(false); } else { a.play(); setPlaying(true); }
+  };
+
+  const submitCallIn = async () => {
+    if (!callInText.trim()) return;
+    setCallInLoading(true);
+    try {
+      const r = await callInMut.mutateAsync({ cookieId, question: callInText, moduleTitle });
+      setCallInResponse(r.responseText);
+      const extra = new Audio(r.audioUrl);
+      extra.play();
+      extra.onended = () => {};
+    } catch { toast.error("Call-in failed."); }
+    finally { setCallInLoading(false); }
+  };
+
+  return (
+    <div className="mt-4 p-4 rounded-2xl bg-[var(--nexus-gold-fill)] border border-[var(--nexus-gold-border)]">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-7 h-7 rounded-lg bg-[var(--nexus-gold-fill)] border border-[var(--nexus-gold-border)] flex items-center justify-center">
+          <Volume2 size={13} className="text-[var(--nexus-gold)]" />
+        </div>
+        <div>
+          <div className="text-xs font-semibold text-[var(--nexus-gold)]">Module Podcast</div>
+          <div className="text-[10px] text-muted-foreground">AI hosts discuss every lesson — ElevenLabs voices</div>
+        </div>
+      </div>
+      {!audioUrl ? (
+        <button onClick={generate} disabled={loading}
+          className="w-full py-2 rounded-xl text-sm font-medium bg-[oklch(0.75_0.18_55_/_0.15)] border border-[var(--nexus-gold-border)] text-[var(--nexus-gold)] hover:bg-[oklch(0.75_0.18_55_/_0.25)] disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+          {loading ? <><Loader2 size={13} className="animate-spin" />Generating podcast… (~30s)</> : <><Play size={13} />Listen to Full Module</>}
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-[var(--nexus-gold)] flex items-center justify-center shrink-0">
+              {playing ? <Pause size={14} className="text-black" /> : <Play size={14} className="text-black ml-0.5" />}
+            </button>
+            <div className="flex-1 h-1.5 rounded-full bg-[oklch(0.75_0.18_55_/_0.15)] overflow-hidden cursor-pointer"
+              onClick={e => { const a = audioRef.current; if (!a) return; const r = e.currentTarget.getBoundingClientRect(); a.currentTime = ((e.clientX - r.left) / r.width) * a.duration; }}>
+              <div className="h-full bg-[var(--nexus-gold)] rounded-full transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+          <div className="border-t border-[var(--nexus-gold-border)] pt-3">
+            <div className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wider">📞 Call In — Ask a question</div>
+            <div className="flex gap-2">
+              <input value={callInText} onChange={e => setCallInText(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && submitCallIn()}
+                placeholder="Ask the hosts anything about this module…"
+                className="flex-1 bg-[var(--surface-1)] border border-border/60 rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--nexus-gold)]" />
+              <button onClick={submitCallIn} disabled={callInLoading || !callInText.trim()}
+                className="px-3 py-1.5 rounded-lg bg-[var(--nexus-gold)] text-black text-xs font-semibold disabled:opacity-50 flex items-center gap-1">
+                {callInLoading ? <Loader2 size={11} className="animate-spin" /> : <Send size={11} />}
+              </button>
+            </div>
+            {callInResponse && (
+              <div className="mt-2 p-2.5 rounded-lg bg-[var(--surface-1)] border border-border/60 text-xs text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-[var(--nexus-gold)]">Morgan: </span>{callInResponse}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE 1: "The AI Toolkit" — Understanding the tools you have access to
 // Lessons 1-5
@@ -463,8 +562,10 @@ const CONTEXT_WINDOW_SIZES = [
 ];
 
 // ─── Module 1 Component ───────────────────────────────────────────────────────
+const M1_PODCAST_CONTENT = `Module: The AI Toolkit. Lesson 1: Every major category of AI tool exists for a different reason. Understanding the map first means you'll never wonder 'which AI should I use for this?' again. Lesson 2: The gap between free and paid AI has never been smaller — but for professional work, the difference still matters. Lesson 3: Tokens are AI's unit of currency — they determine what the AI can read, what it costs, and how much of your conversation it can remember. Lesson 4: Temperature, model selection, and system prompts are the three levers that most users never touch — and it's costing them half the power of AI. Lesson 5: Uploading a file, granting web access, or connecting a tool transforms AI from a conversation into a workflow. This is where AI becomes genuinely powerful for real work.`;
+
 function AILiteracyModule1({ onBack }: { onBack: () => void }) {
-  const { addXP } = usePersonalization();
+  const { addXP, cookieId } = usePersonalization();
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
 
@@ -1288,6 +1389,7 @@ function AILiteracyModule1({ onBack }: { onBack: () => void }) {
           );
         })}
       </div>
+      <ModulePodcast moduleNum={1} moduleTitle="The AI Toolkit" content={M1_PODCAST_CONTENT} cookieId={cookieId} />
     </div>
   );
 
@@ -1424,8 +1526,10 @@ const BROKEN_PROMPTS = [
 ];
 
 // ─── Module 2 Component ───────────────────────────────────────────────────────
+const M2_PODCAST_CONTENT = `Module: Prompting Mastery. Lesson 6: Every great prompt has the same DNA. Once you see it, you'll never write a vague prompt again — and you'll immediately recognize why a prompt failed. Lesson 7: These four techniques are what separate casual AI users from power users. Chain-of-thought alone can double the accuracy of complex reasoning tasks. Lesson 8: This is where you build real skill. Five live exercises, real AI responses. Write your own prompt for each scenario, then compare with the expert example. Lesson 9: The fastest way to improve your prompting is to study broken prompts. Each one has a specific failure mode — and once you can name the failure, you can fix it anywhere. Lesson 10: Custom GPTs, Projects, persistent memory, and AI agents are where the power users live. These aren't features — they're workflows. Set them up once, benefit from them forever.`;
+
 function AILiteracyModule2({ onBack }: { onBack: () => void }) {
-  const { addXP } = usePersonalization();
+  const { addXP, cookieId } = usePersonalization();
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
 
@@ -2173,6 +2277,7 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
           })}
         </div>
       </div>
+      <ModulePodcast moduleNum={2} moduleTitle="Prompting Mastery" content={M2_PODCAST_CONTENT} cookieId={cookieId} />
     </div>
   );
 }
@@ -2298,8 +2403,10 @@ const WORKFLOW_TOOLS = [
 
 
 // ─── Module 3 Component ───────────────────────────────────────────────────────
+const M3_PODCAST_CONTENT = `Module: Power User Workflows. Lesson 11: Image and video generation — prompt anatomy, parameters, styles, and how to create anything you can describe. Lesson 12: Voice, audio, and multimodal AI — ElevenLabs, Whisper, transcription, and AI that hears and speaks. Lesson 13: Automation and AI pipelines — how to use Tasks, Zapier, n8n, and make AI work for you around the clock. Lesson 14: Verifying and fact-checking AI output — hallucination detection, source verification, and output scoring techniques. Lesson 15: Your personal AI blueprint — designing your own AI system and becoming a genuine power user.`;
+
 function AILiteracyModule3({ onBack }: { onBack: () => void }) {
-  const { addXP } = usePersonalization();
+  const { addXP, cookieId } = usePersonalization();
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
 
@@ -3154,6 +3261,7 @@ function AILiteracyModule3({ onBack }: { onBack: () => void }) {
           })}
         </div>
       </div>
+      <ModulePodcast moduleNum={3} moduleTitle="Power User Workflows" content={M3_PODCAST_CONTENT} cookieId={cookieId} />
     </div>
   );
 }
