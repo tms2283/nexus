@@ -7391,99 +7391,206 @@ function SocraticTutor() {
 function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCourse, setActiveCourse] = useState<"ailiteracy" | "clearthinking" | null>(null);
   const [, setLocation] = useLocation();
+
+  // If a curated course is open, show it inline with a back button
+  if (activeCourse === "ailiteracy") {
+    return (
+      <div>
+        <button onClick={() => setActiveCourse(null)}
+          className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to Learning Paths
+        </button>
+        <AILiteracyTab />
+      </div>
+    );
+  }
+  if (activeCourse === "clearthinking") {
+    return (
+      <div>
+        <button onClick={() => setActiveCourse(null)}
+          className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to Learning Paths
+        </button>
+        <ClearThinkingTab />
+      </div>
+    );
+  }
+
   const categories = ["All", ...Array.from(new Set(featuredPaths.map(p => p.category)))];
   const filtered = featuredPaths.filter(p => {
     const matchCat = activeCategory === "All" || p.category === activeCategory;
     const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
+
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <input
-          type="text"
-          placeholder="Search learning paths..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="flex-1 px-4 py-2.5 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.4)] bg-transparent"
-        />
-      </div>
-      <div className="flex gap-2 flex-wrap mb-5">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              activeCategory === cat
-                ? "bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]"
-                : "glass border border-white/8 text-muted-foreground hover:border-white/15"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-      {filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">No paths match your search.</div>
-      ) : (
+    <div className="space-y-8">
+      {/* ── Curated Courses ── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <GraduationCap size={15} className="text-[var(--nexus-gold)]" />
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-widest">Curated Courses</h3>
+          <span className="text-xs text-muted-foreground">— fully built, start immediately</span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((path, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
-              className="card-nexus p-5 group cursor-pointer relative"
-              onClick={() => path.href ? setLocation(path.href) : onSelectPath(path.title)}
-            >
-              {path.popular && (
-                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
-                  Popular
-                </span>
-              )}
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/5 border border-white/8 text-muted-foreground">
-                  {path.category}
-                </span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1 mr-16">
-                  <Clock size={10} /> {path.duration}
-                </span>
+          {/* AI Literacy */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="card-nexus p-6 group cursor-pointer relative overflow-hidden"
+            onClick={() => setActiveCourse("ailiteracy")}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.75_0.18_55_/_0.06)] to-transparent pointer-events-none" />
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)]">
+                <Brain size={20} className="text-[oklch(0.85_0.18_55)]" />
               </div>
-              <h4 className="font-semibold text-foreground mb-2 group-hover:text-[oklch(0.85_0.18_55)] transition-colors pr-4">
-                {path.title}
-              </h4>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><BookOpen size={10} /> {path.modules} modules</span>
-                  <span className="flex items-center gap-1"><Star size={10} /> {path.level}</span>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xs font-bold text-[oklch(0.85_0.18_55)]">AI Mastery</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)] font-semibold">POPULAR</span>
                 </div>
-                <motion.button
-                  whileHover={{ x: 3 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (path.href) {
-                      setLocation(path.href);
-                      return;
-                    }
-                    onSelectPath(path.title);
-                  }}
-                  className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  {path.href ? "Open course" : "Generate path"} <ArrowRight size={12} />
-                </motion.button>
+                <h4 className="font-bold text-foreground group-hover:text-[oklch(0.85_0.18_55)] transition-colors">AI Literacy for Adults</h4>
               </div>
-            </motion.div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">From zero to power user. How AI actually works, how to use it at work, and how to stay in control — 3 modules, 15 lessons.</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules · 15 lessons</span>
+                <span className="flex items-center gap-1"><Zap size={10} /> 1,100 XP</span>
+                <span className="flex items-center gap-1"><Clock size={10} /> ~3 hrs</span>
+              </div>
+              <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity">
+                Start <ArrowRight size={11} />
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Clear Thinking */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
+            className="card-nexus p-6 group cursor-pointer relative overflow-hidden"
+            onClick={() => setActiveCourse("clearthinking")}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.72_0.2_260_/_0.06)] to-transparent pointer-events-none" />
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.72_0.2_260_/_0.15)] border border-[oklch(0.72_0.2_260_/_0.3)]">
+                <Scale size={20} className="text-[oklch(0.82_0.2_260)]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xs font-bold text-[oklch(0.82_0.2_260)]">Logic & Reasoning</span>
+                </div>
+                <h4 className="font-bold text-foreground group-hover:text-[oklch(0.82_0.2_260)] transition-colors">Clear Thinking</h4>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">Fallacies, cognitive biases, statistical traps, systems thinking, and argument mapping — 3 modules, 15 lessons of rigorous training.</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules · 15 lessons</span>
+                <span className="flex items-center gap-1"><Zap size={10} /> 1,110 XP</span>
+                <span className="flex items-center gap-1"><Clock size={10} /> ~3 hrs</span>
+              </div>
+              <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.72_0.2_260)] opacity-0 group-hover:opacity-100 transition-opacity">
+                Start <ArrowRight size={11} />
+              </span>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── Browse All Paths ── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles size={15} className="text-[var(--nexus-gold)]" />
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-widest">Generate a Custom Path</h3>
+          <span className="text-xs text-muted-foreground">— pick a topic, we build your curriculum</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <input
+            type="text"
+            placeholder="Search learning paths..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="flex-1 px-4 py-2.5 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.4)] bg-transparent"
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap mb-5">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeCategory === cat
+                  ? "bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]"
+                  : "glass border border-white/8 text-muted-foreground hover:border-white/15"
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
-      )}
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">No paths match your search.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filtered.map((path, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                className="card-nexus p-5 group cursor-pointer relative"
+                onClick={() => path.href ? setLocation(path.href) : onSelectPath(path.title)}
+              >
+                {path.popular && (
+                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
+                    Popular
+                  </span>
+                )}
+                <div className="flex items-start justify-between mb-3">
+                  <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/5 border border-white/8 text-muted-foreground">
+                    {path.category}
+                  </span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1 mr-16">
+                    <Clock size={10} /> {path.duration}
+                  </span>
+                </div>
+                <h4 className="font-semibold text-foreground mb-2 group-hover:text-[oklch(0.85_0.18_55)] transition-colors pr-4">
+                  {path.title}
+                </h4>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><BookOpen size={10} /> {path.modules} modules</span>
+                    <span className="flex items-center gap-1"><Star size={10} /> {path.level}</span>
+                  </div>
+                  <motion.button
+                    whileHover={{ x: 3 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (path.href) {
+                        setLocation(path.href);
+                        return;
+                      }
+                      onSelectPath(path.title);
+                    }}
+                    className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    {path.href ? "Open course" : "Generate path"} <ArrowRight size={12} />
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 // ─── Featured Learning Paths ────────────────────────────────────────────
-const featuredPaths = [
-  { title: "AI Literacy for Adults - Full Course", level: "Beginner", duration: "3 hours", modules: 5, category: "AI", color: "oklch(0.75_0.18_55)", popular: true, href: "/ai-literacy" },
+const featuredPaths: { title: string; level: string; duration: string; modules: number; category: string; color: string; popular: boolean; href?: string }[] = [
   { title: "Full-Stack Web Development", level: "Intermediate", duration: "12 weeks", modules: 16, category: "Engineering", color: "oklch(0.65_0.22_200)", popular: true },
   { title: "Data Science & Analytics", level: "Beginner", duration: "10 weeks", modules: 14, category: "Data", color: "oklch(0.72_0.2_290)", popular: false },
   { title: "Systems Thinking & Design", level: "Advanced", duration: "6 weeks", modules: 8, category: "Strategy", color: "oklch(0.72_0.18_150)", popular: false },
@@ -7503,7 +7610,7 @@ const featuredPaths = [
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Learn() {
-  const [activeTab, setActiveTab] = useState<"ailiteracy" | "clearthinking" | "curriculum" | "socratic" | "paths">("ailiteracy");
+  const [activeTab, setActiveTab] = useState<"curriculum" | "socratic" | "paths">("curriculum");
   const [prefillGoal, setPrefillGoal] = useState("");
   const handleLearnKeyDownCapture = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement | null;
@@ -7524,11 +7631,9 @@ export default function Learn() {
     setActiveTab("curriculum");
   };
   const tabs = [
-    { id: "ailiteracy" as const, label: "AI Literacy", icon: BookOpen, desc: "Intro to AI for Adults" },
-    { id: "clearthinking" as const, label: "Clear Thinking", icon: Lightbulb, desc: "Logic & critical reasoning" },
     { id: "curriculum" as const, label: "AI Curriculum", icon: Target, desc: "Build your personalized path" },
     { id: "socratic" as const, label: "Socratic Mode", icon: MessageSquare, desc: "Learn by questioning" },
-    { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated starting points" },
+    { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated courses & paths" },
   ];
 
   return (
@@ -7613,8 +7718,6 @@ export default function Learn() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {activeTab === "ailiteracy" && <AILiteracyTab />}
-                {activeTab === "clearthinking" && <ClearThinkingTab />}
                 {activeTab === "curriculum" && <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />}
                 {activeTab === "socratic" && <SocraticTutor />}
                 {activeTab === "paths" && <PathsTab onSelectPath={handleSelectPath} />}
