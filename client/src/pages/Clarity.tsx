@@ -2150,7 +2150,8 @@ function TrainingSection({ cookieId }: { cookieId: string }) {
     );
   }
 
-  const exMeta = TRAINING_EXERCISES.find((e) => e.id === activeEx)!;
+  const exMeta = TRAINING_EXERCISES.find((e) => e.id === activeEx);
+  if (!exMeta) return null;
 
   return (
     <div className="card-nexus" style={{ maxWidth: 520, margin: "0 auto", padding: 28 }}>

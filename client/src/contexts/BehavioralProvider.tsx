@@ -53,8 +53,7 @@ export function BehavioralProvider({ children }: { children: ReactNode }) {
           
           // Optionally trigger global toast notifications or UI hints based on insight type
           if (insight.type === 'HIGH_STRUGGLE_DETECTED') {
-            console.log("Socratic Hint Triggered:", insight.message);
-            // Example: toast.info("Are you stuck? Try reviewing the previous section.");
+            // TODO: toast.info("Are you stuck? Try reviewing the previous section.");
           }
         }
       } catch (e) {

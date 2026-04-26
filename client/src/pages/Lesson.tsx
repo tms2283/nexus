@@ -450,7 +450,7 @@ export default function LessonPage() {
                       </div>
                     )}
 
-                    {section.svgContent && (
+                    {section.svgContent && /^<svg[\s>]/i.test(section.svgContent.trimStart()) && (
                       <div className="mb-4 rounded-xl overflow-hidden border border-white/8 bg-[oklch(0.23_0.02_250)] p-3" dangerouslySetInnerHTML={{ __html: section.svgContent }} />
                     )}
 

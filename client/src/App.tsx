@@ -130,7 +130,9 @@ function Router() {
           <Route path="/dashboard">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Dashboard /></Suspense></RequireAuth>
           </Route>
-          <Route path="/leaderboard" component={Leaderboard} />
+          <Route path="/leaderboard">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><Leaderboard /></Suspense></RequireAuth>
+          </Route>
           <Route path="/study-buddy">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><StudyBuddy /></Suspense></RequireAuth>
           </Route>
