@@ -998,3 +998,71 @@ export const adaptiveLessonProgress = mysqlTable("adaptive_lesson_progress", {
 }));
 export type AdaptiveLessonProgress = typeof adaptiveLessonProgress.$inferSelect;
 export type InsertAdaptiveLessonProgress = typeof adaptiveLessonProgress.$inferInsert;
+
+// ─── Clarity: Mental Health & Cognitive Training ──────────────────────────────
+
+export const clarityMoodCheckins = mysqlTable("clarity_mood_checkins", {
+  id: int("id").autoincrement().primaryKey(),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  mood: int("mood").notNull(), // 1–5
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieIdx: index("clarity_mood_cookie_idx").on(t.cookieId),
+  createdIdx: index("clarity_mood_created_idx").on(t.createdAt),
+}));
+export type ClarityMoodCheckin = typeof clarityMoodCheckins.$inferSelect;
+export type InsertClarityMoodCheckin = typeof clarityMoodCheckins.$inferInsert;
+
+export const clarityAssessmentResults = mysqlTable("clarity_assessment_results", {
+  id: int("id").autoincrement().primaryKey(),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  instrumentId: varchar("instrumentId", { length: 128 }).notNull(),
+  instrumentVersion: varchar("instrumentVersion", { length: 32 }).notNull(),
+  totalScore: float("totalScore"),
+  severity: varchar("severity", { length: 64 }),
+  subscalesJson: text("subscalesJson"), // JSON stringified Record<string, number>
+  durationSeconds: int("durationSeconds").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieIdx: index("clarity_assessment_cookie_idx").on(t.cookieId),
+  instrumentIdx: index("clarity_assessment_instrument_idx").on(t.instrumentId),
+  createdIdx: index("clarity_assessment_created_idx").on(t.createdAt),
+}));
+export type ClarityAssessmentResult = typeof clarityAssessmentResults.$inferSelect;
+export type InsertClarityAssessmentResult = typeof clarityAssessmentResults.$inferInsert;
+
+export const clarityCogTrainingSessions = mysqlTable("clarity_cog_training_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  exerciseId: varchar("exerciseId", { length: 64 }).notNull(),
+  accuracyPct: float("accuracyPct").notNull(),
+  reactionMs: float("reactionMs"),
+  difficultyLevel: int("difficultyLevel").notNull(),
+  durationSeconds: int("durationSeconds").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieIdx: index("clarity_cog_cookie_idx").on(t.cookieId),
+  exerciseIdx: index("clarity_cog_exercise_idx").on(t.exerciseId),
+  createdIdx: index("clarity_cog_created_idx").on(t.createdAt),
+}));
+export type ClarityCogTrainingSession = typeof clarityCogTrainingSessions.$inferSelect;
+export type InsertClarityCogTrainingSession = typeof clarityCogTrainingSessions.$inferInsert;
+
+export const clarityThoughtRecords = mysqlTable("clarity_thought_records", {
+  id: int("id").autoincrement().primaryKey(),
+  cookieId: varchar("cookieId", { length: 128 }).notNull(),
+  situation: text("situation").notNull(),
+  automaticThought: text("automaticThought").notNull(),
+  emotionsJson: text("emotionsJson").notNull(), // JSON: Array<{ name: string; intensity: number }>
+  distortions: text("distortions").notNull(),   // JSON: string[]
+  evidenceFor: text("evidenceFor").notNull(),
+  evidenceAgainst: text("evidenceAgainst").notNull(),
+  balancedThought: text("balancedThought").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  cookieIdx: index("clarity_thought_cookie_idx").on(t.cookieId),
+  createdIdx: index("clarity_thought_created_idx").on(t.createdAt),
+}));
+export type ClarityThoughtRecord = typeof clarityThoughtRecords.$inferSelect;
+export type InsertClarityThoughtRecord = typeof clarityThoughtRecords.$inferInsert;

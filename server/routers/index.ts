@@ -21,6 +21,7 @@ import { psychRouter } from "./psych";
 import { learnerRouter } from "./learner";
 import { behavioralRouter } from "./behavioral";
 import { curriculumRouter } from "./curriculum";
+import { clarityRouter } from "./clarity";
 
 export const appRouter = router({
   system: systemRouter,
@@ -48,6 +49,7 @@ export const appRouter = router({
   studio: studioRouter,
   behavioral: behavioralRouter,
   curriculum: curriculumRouter,
+  clarity: clarityRouter,
 });
 
 export type AppRouter = typeof appRouter;

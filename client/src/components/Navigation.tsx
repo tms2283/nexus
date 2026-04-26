@@ -6,7 +6,7 @@ import {
   BookOpen, Search, Flame, GraduationCap, TrendingUp, User,
   BookMarked, Layers, LogOut, PenSquare, Sun, Moon, Sparkles,
   FlaskConical, Network, Code2, ChevronRight, MessageSquare,
-  Lightbulb, Home, Library, Map,
+  Lightbulb, Home, Library, Map, HeartPulse,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +42,7 @@ const NAV_SECTIONS = [
     items: [
       { href: "/research", label: "Research Forge", icon: FlaskConical, desc: "Document intelligence & summarization" },
       { href: "/library", label: "Knowledge Library", icon: Library, desc: "Curated resources with AI context" },
+      { href: "/clarity", label: "Clarity", icon: HeartPulse, desc: "Mental health assessments & cognitive training" },
       { href: "/about", label: "About Nexus", icon: Map, desc: "What this platform is and why it exists" },
       { href: "/contact", label: "Contact", icon: MessageSquare, desc: "Get in touch" },
     ],

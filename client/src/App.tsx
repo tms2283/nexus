@@ -58,6 +58,7 @@ const PathView          = lazy(() => import("./pages/PathView"));
 const AdaptiveLesson    = lazy(() => import("./pages/AdaptiveLesson"));
 const AdminConcepts     = lazy(() => import("./pages/AdminConcepts"));
 const MasteryDashboard  = lazy(() => import("./pages/MasteryDashboard"));
+const Clarity           = lazy(() => import("./pages/Clarity"));
 
 function PageSkeleton() {
   return (
@@ -191,6 +192,9 @@ function Router() {
           </Route>
           <Route path="/studio">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Studio /></Suspense></RequireAuth>
+          </Route>
+          <Route path="/clarity">
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><Clarity /></Suspense></RequireAuth>
           </Route>
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
