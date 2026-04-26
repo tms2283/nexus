@@ -4,7 +4,7 @@ import { publicProcedure, router } from "../_core/trpc";
 import {
   createUser, getUserByEmail,
   updateUserLastSignedIn, markOnboardingComplete,
-  upsertGoogleUser,
+  upsertGoogleUser, getDb,
 } from "../db";
 import {
   hashPassword, verifyPassword, createSessionToken,
@@ -109,6 +109,18 @@ export const authRouter = router({
     await savePsychProfileFromQuiz(ctx.user.id, input.quizAnswers);
     await markOnboardingComplete(ctx.user.id);
     return { success: true };
+  }),
+
+  getMyPsychProfile: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) return null;
+    const db = await getDb();
+    if (!db) return null;
+    const { userPsychProfiles } = await import("../../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db.select().from(userPsychProfiles).where(eq(userPsychProfiles.userId, ctx.user.id)).limit(1);
+    if (!rows.length) return null;
+    const { id: _, userId: __, ...safe } = rows[0];
+    return safe;
   }),
 
   // Google OAuth — verifies ID token from frontend Google Sign-In

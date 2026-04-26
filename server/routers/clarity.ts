@@ -121,7 +121,7 @@ export const clarityRouter = router({
     }),
 
   getAssessmentHistory: publicProcedure
-    .input(z.object({ cookieId: z.string() }))
+    .input(z.object({ cookieId: z.string(), limit: z.number().int().min(1).max(200).optional() }))
     .query(async ({ input }) => {
       try {
         const db = await getDb();
@@ -131,7 +131,7 @@ export const clarityRouter = router({
           .from(clarityAssessmentResults)
           .where(eq(clarityAssessmentResults.cookieId, input.cookieId))
           .orderBy(desc(clarityAssessmentResults.createdAt))
-          .limit(50);
+          .limit(input.limit ?? 50);
         return rows.map((r) => ({
           ...r,
           subscales: r.subscalesJson
@@ -140,6 +140,25 @@ export const clarityRouter = router({
         }));
       } catch (err) {
         console.error("[clarity] getAssessmentHistory error:", err);
+        return [];
+      }
+    }),
+
+  getCogTrainingHistory: publicProcedure
+    .input(z.object({ cookieId: z.string(), limit: z.number().int().min(1).max(500).optional() }))
+    .query(async ({ input }) => {
+      try {
+        const db = await getDb();
+        if (!db) return [];
+        const rows = await db
+          .select()
+          .from(clarityCogTrainingSessions)
+          .where(eq(clarityCogTrainingSessions.cookieId, input.cookieId))
+          .orderBy(desc(clarityCogTrainingSessions.createdAt))
+          .limit(input.limit ?? 100);
+        return rows;
+      } catch (err) {
+        console.error("[clarity] getCogTrainingHistory error:", err);
         return [];
       }
     }),
@@ -226,6 +245,43 @@ export const clarityRouter = router({
           narration:
             "Unable to generate an AI interpretation at this time. Please review your score in the context of the instrument's official scoring guide, and consider speaking with a qualified mental health professional.",
         };
+      }
+    }),
+
+  diveDeeperScience: publicProcedure
+    .input(z.object({
+      cookieId: z.string(),
+      exerciseId: z.string(),
+      exerciseLabel: z.string(),
+      scienceSummary: z.string(),
+      citation: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const prompt = `A user is reading about the "${input.exerciseLabel}" cognitive training exercise. Here is the brief science summary they already saw:
+
+"${input.scienceSummary}"
+
+Citation: ${input.citation}
+
+Please write a rich, deeper explanation (3-4 paragraphs) covering:
+1. The specific brain regions and neural circuits involved, and how repeated practice changes them
+2. The cognitive mechanisms in plain language — what exactly the brain is "doing" during this task
+3. Key research findings and what the evidence says about real-world transfer effects
+4. Practical tips for maximizing benefit from this exercise
+
+Write in an engaging, scientifically accurate but accessible tone. Use clear language. Do not repeat the brief summary verbatim.`;
+
+      try {
+        const explanation = await callAI(
+          input.cookieId,
+          prompt,
+          "You are a neuroscience educator writing accessible, evidence-based explanations of cognitive training research.",
+          800,
+        );
+        return { explanation };
+      } catch (err) {
+        console.error("[clarity] diveDeeperScience error:", err);
+        return { explanation: "Unable to generate a deeper explanation right now. Please try again shortly." };
       }
     }),
 });

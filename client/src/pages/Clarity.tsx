@@ -2014,6 +2014,72 @@ function SustainedAttentionExercise({ onFinish }: { onFinish: (acc: number, rt: 
   );
 }
 
+// ── Exercise Card (with Dive Deeper AI) ────────────────────────────────────────
+function ExerciseCard({
+  ex,
+  cookieId,
+  onStart,
+}: {
+  ex: (typeof TRAINING_EXERCISES)[number];
+  cookieId: string;
+  onStart: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [deepText, setDeepText] = useState<string | null>(null);
+
+  const diveMut = trpc.clarity.diveDeeperScience.useMutation({
+    onSuccess: (data) => setDeepText(data.explanation),
+  });
+
+  const handleDive = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (deepText) { setExpanded((v) => !v); return; }
+    setExpanded(true);
+    diveMut.mutate({ cookieId, exerciseId: ex.id, exerciseLabel: ex.label, scienceSummary: ex.science, citation: ex.ref });
+  };
+
+  return (
+    <div className="card-nexus" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 0 }}>
+      <div style={{ cursor: "pointer" }} onClick={onStart}>
+        <p style={{ fontSize: 28, marginBottom: 8 }}>{ex.icon}</p>
+        <p style={{ fontWeight: 700, fontSize: 15, color: "var(--foreground)", marginBottom: 4 }}>{ex.label}</p>
+        <p style={{ fontSize: 12, color: "var(--nexus-purple)", marginBottom: 6 }}>{ex.desc}</p>
+        <p style={{ fontSize: 11, color: "var(--muted-foreground)", lineHeight: 1.5, marginBottom: 8 }}>{ex.science}</p>
+        <p style={{ fontSize: 10, color: "var(--muted-foreground)", fontStyle: "italic", marginBottom: 10 }}>📚 {ex.ref}</p>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+        <button
+          className="btn-primary"
+          style={{ flex: 1, padding: "8px 12px", fontSize: 13 }}
+          onClick={onStart}
+        >
+          Start
+        </button>
+        <button
+          onClick={handleDive}
+          style={{
+            padding: "8px 12px", fontSize: 12, borderRadius: 8, border: "1px solid var(--border)",
+            background: expanded ? "var(--nexus-purple)" : "transparent",
+            color: expanded ? "#fff" : "var(--muted-foreground)",
+            cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          {diveMut.isPending ? "..." : expanded ? "Hide" : "🔬 Dive Deeper"}
+        </button>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 10, background: "var(--surface-2)", borderLeft: "3px solid var(--nexus-purple)" }}>
+          {diveMut.isPending ? (
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Generating deeper explanation...</p>
+          ) : deepText ? (
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{deepText}</p>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Training Results ────────────────────────────────────────────────────────────
 function TrainingResult({
   exerciseMeta,
@@ -2078,18 +2144,7 @@ function TrainingSection({ cookieId }: { cookieId: string }) {
     return (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
         {TRAINING_EXERCISES.map((ex) => (
-          <div
-            key={ex.id}
-            className="card-nexus"
-            style={{ padding: "18px 20px", cursor: "pointer" }}
-            onClick={() => { setActiveEx(ex.id); setPhase("running"); setLastResult(null); }}
-          >
-            <p style={{ fontSize: 28, marginBottom: 8 }}>{ex.icon}</p>
-            <p style={{ fontWeight: 700, fontSize: 15, color: "var(--foreground)", marginBottom: 4 }}>{ex.label}</p>
-            <p style={{ fontSize: 12, color: "var(--nexus-purple)", marginBottom: 6 }}>{ex.desc}</p>
-            <p style={{ fontSize: 11, color: "var(--muted-foreground)", lineHeight: 1.5, marginBottom: 8 }}>{ex.science}</p>
-            <p style={{ fontSize: 10, color: "var(--muted-foreground)", fontStyle: "italic" }}>📚 {ex.ref}</p>
-          </div>
+          <ExerciseCard key={ex.id} ex={ex} cookieId={cookieId} onStart={() => { setActiveEx(ex.id); setPhase("running"); setLastResult(null); }} />
         ))}
       </div>
     );

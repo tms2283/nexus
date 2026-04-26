@@ -236,16 +236,6 @@ export default function Navigation() {
               </kbd>
             </button>
 
-            {/* XP pill */}
-            {profile.xp > 0 && (
-              <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs"
-                style={{ border: "1px solid oklch(0.78 0.16 52 / 0.25)", background: "oklch(0.78 0.16 52 / 0.08)" }}>
-                <Zap size={10} style={{ color: "oklch(0.78 0.16 52)" }} />
-                <span style={{ color: "oklch(0.88 0.16 52)" }} className="font-semibold">{profile.xp}</span>
-                <span style={{ color: "oklch(0.46 0.010 255)" }}>xp</span>
-              </div>
-            )}
-
             {/* Theme toggle */}
             {switchable && (
               <button onClick={toggleTheme} aria-label="Toggle theme"
