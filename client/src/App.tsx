@@ -15,6 +15,8 @@ import AIChat from "./components/AIChat";
 import CommandPalette from "./components/CommandPalette";
 import EditModeOverlay from "./components/EditModeOverlay";
 import TourOverlay from "./components/TourOverlay";
+import PageTourOverlay from "./components/PageTourOverlay";
+import { TourProvider } from "./contexts/TourContext";
 
 // ─── Eagerly loaded ───────────────────────────────────────────────────────────
 import Welcome from "./pages/Welcome";
@@ -223,6 +225,7 @@ function AppShell() {
       {showNav && <GamificationHUD />}
       {showNav && <AIChat />}
       {showNav && <TourOverlay />}
+      {showNav && <PageTourOverlay />}
     </TooltipProvider>
   );
 }
@@ -235,7 +238,9 @@ function App() {
           <AuthProvider>
             <LearnerProfileProvider>
               <EditModeProvider>
-                <AppShell />
+                <TourProvider>
+                  <AppShell />
+                </TourProvider>
               </EditModeProvider>
             </LearnerProfileProvider>
           </AuthProvider>

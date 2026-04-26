@@ -5986,6 +5986,21 @@ const CT3_ARGUMENT_MAP_EXAMPLES = [
     steelman: "Social media likely amplifies pre-existing polarization tendencies rather than creating them. The platform design — not social media in principle — drives most identified harms. Platform-specific regulation may address root causes better than broad restriction.",
     color: "oklch(0.70_0.22_270)",
   },
+  {
+    claim: "Standardized testing is an unfair measure of student ability",
+    premises: [
+      "Test scores correlate strongly with family income, reflecting access to tutors and prep resources",
+      "Tests measure narrow skills (timed recall, multiple choice) that don't capture creativity or critical thinking",
+      "Students with learning disabilities or test anxiety are systematically disadvantaged by the format",
+    ],
+    hidden_assumptions: [
+      "The alternative assessments (grades, portfolios) are more equitable and less gameable",
+      "'Unfair' implies the test fails to predict what it claims to predict — which requires examining actual predictive validity",
+      "Eliminating standardized tests would improve outcomes for disadvantaged students rather than shifting advantage to subjective evaluations",
+    ],
+    steelman: "Standardized tests, despite their flaws, provide one of the few objective cross-school comparisons available. Without them, admissions and hiring may rely more on softer signals — letters of recommendation, interview performance, network connections — that are even more susceptible to socioeconomic and racial bias.",
+    color: "oklch(0.72_0.18_40)",
+  },
 ];
 
 const CT3_QUIZ_L12 = [
@@ -6248,6 +6263,8 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
   const [ct12Seg, setCt12Seg] = useState(0);
 
   const [ct13ConceptIdx, setCt13ConceptIdx] = useState(0);
+  const [ct13ScenarioAnswers, setCt13ScenarioAnswers] = useState<(number | null)[]>([null, null]);
+  const [ct13SystemInput, setCt13SystemInput] = useState("");
   const [ct13Seg, setCt13Seg] = useState(0);
 
   const [ct14PatternIdx, setCt14PatternIdx] = useState(0);
@@ -6716,7 +6733,8 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
                 explanation: "Reinforcing loop: controversial content → more engagement → more algorithmic promotion → more controversial content produced. No single decision caused this — it emerges from the feedback structure of the system.",
               },
             ].map((q, qi) => {
-              const [selected, setSelected] = useState<number | null>(null);
+              const selected = ct13ScenarioAnswers[qi] ?? null;
+              const setSelected = (di: number) => setCt13ScenarioAnswers(prev => { const u = [...prev]; u[qi] = di; return u; });
               return (
                 <div key={qi} className={qi > 0 ? "mt-4 pt-4 border-t border-white/8" : ""}>
                   <p className="text-sm text-foreground leading-snug mb-3">{q.scenario}</p>
@@ -6746,6 +6764,32 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
             })}
           </div>
           <QuizBlock questions={CT3_QUIZ_L13} accentColor="oklch(0.72_0.18_40)" />
+          <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_40_/_0.25)]">
+            <div className="text-xs font-semibold text-muted-foreground mb-2">APPLY IT — Describe a Real System</div>
+            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">Pick any system you interact with (social, economic, ecological, organizational) and describe a feedback loop or unintended consequence you've observed or expect. Use the vocabulary from this lesson.</p>
+            <textarea
+              value={ct13SystemInput}
+              onChange={(e) => setCt13SystemInput(e.target.value)}
+              placeholder="Example: The performance review system at my company creates a reinforcing loop where managers who set easy targets get better reviews, which discourages ambitious goal-setting across the organization..."
+              rows={5}
+              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-foreground placeholder:text-white/20 resize-none focus:outline-none focus:border-white/25"
+            />
+            <button
+              onClick={() => {
+                if (ct13SystemInput.trim().length < 30) { toast.error("Describe a system first"); return; }
+                setExpandResult("");
+                expandMutation.mutate({ concept: `Evaluate this systems-thinking analysis: "${ct13SystemInput}". Identify: (1) which systems concepts they used correctly (feedback loops, emergence, unintended consequences, etc.), (2) any systems dynamics they may have missed, (3) one suggestion for deepening the analysis. Keep the feedback brief and constructive.`, level: "student" });
+              }}
+              disabled={expandMutation.isPending}
+              className="mt-2 w-full py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 bg-[oklch(0.72_0.18_40_/_0.15)] text-[oklch(0.82_0.18_40)] border border-[oklch(0.72_0.18_40_/_0.3)] hover:bg-[oklch(0.72_0.18_40_/_0.25)]">
+              {expandMutation.isPending ? <><Loader2 size={13} className="animate-spin" />Analyzing...</> : <><Brain size={13} />Get AI systems feedback</>}
+            </button>
+            {expandResult && (
+              <div className="mt-3 p-3 rounded-lg bg-[oklch(0.72_0.18_40_/_0.1)] border border-[oklch(0.72_0.18_40_/_0.2)]">
+                <Streamdown>{expandResult}</Streamdown>
+              </div>
+            )}
+          </div>
         </div>
       ),
     },
@@ -6863,6 +6907,22 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
             {ct14ReflectionDone && (
               <div className="mt-2 p-2 rounded-lg bg-[oklch(0.72_0.18_150_/_0.12)] border border-[oklch(0.72_0.18_150_/_0.3)] text-xs text-[oklch(0.72_0.18_150)] text-center">
                 Reflection logged. Intellectual honesty is a practice, not a destination.
+              </div>
+            )}
+            {ct14ReflectionDone && (
+              <button
+                onClick={() => {
+                  setExpandResult("");
+                  expandMutation.mutate({ concept: `A student reflected on a time they engaged in motivated reasoning: "${ct14Reflection}". Give brief, constructive feedback: (1) Which of the four patterns (Conclusion-First, Identity Defense, Galaxy Brain, Motte & Bailey) best describes what they describe? (2) What antidote from the lesson would have helped most? (3) One affirming observation about the quality of their self-reflection.`, level: "student" });
+                }}
+                disabled={expandMutation.isPending}
+                className="mt-2 w-full py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 bg-[oklch(0.68_0.22_10_/_0.15)] text-[oklch(0.78_0.22_10)] border border-[oklch(0.68_0.22_10_/_0.3)] hover:bg-[oklch(0.68_0.22_10_/_0.25)]">
+                {expandMutation.isPending ? <><Loader2 size={13} className="animate-spin" />Analyzing...</> : <><Brain size={13} />Get AI perspective on your reflection</>}
+              </button>
+            )}
+            {ct14ReflectionDone && expandResult && (
+              <div className="mt-2 p-3 rounded-lg bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.2)]">
+                <Streamdown>{expandResult}</Streamdown>
               </div>
             )}
           </div>
@@ -7923,8 +7983,13 @@ const featuredPaths: { title: string; level: string; duration: string; modules: 
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Learn() {
-  const [activeTab, setActiveTab] = useState<"curriculum" | "socratic" | "paths">("curriculum");
   const [prefillGoal, setPrefillGoal] = useState("");
+  const [showMorePaths, setShowMorePaths] = useState(false);
+  const [activeCourse, setActiveCourse] = useState<"ailiteracy" | "clearthinking" | null>(null);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [, setLocation] = useLocation();
+
   const handleLearnKeyDownCapture = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement | null;
     if (!target) return;
@@ -7941,17 +8006,55 @@ export default function Learn() {
 
   const handleSelectPath = (pathTitle: string) => {
     setPrefillGoal(`I want to learn: ${pathTitle}`);
-    setActiveTab("curriculum");
+    setShowMorePaths(false);
+    setTimeout(() => {
+      document.getElementById("learn-curriculum")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
   };
-  const tabs = [
-    { id: "curriculum" as const, label: "AI Curriculum", icon: Target, desc: "Build your personalized path" },
-    { id: "socratic" as const, label: "Socratic Mode", icon: MessageSquare, desc: "Learn by questioning" },
-    { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated courses & paths" },
-  ];
+
+  const categories = ["All", ...Array.from(new Set(featuredPaths.map(p => p.category)))];
+  const filtered = featuredPaths.filter(p => {
+    const matchCat = activeCategory === "All" || p.category === activeCategory;
+    const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  // ── Inline course view ───────────────────────────────────────────────────
+  if (activeCourse === "ailiteracy") {
+    return (
+      <PageWrapper pageName="learn">
+        <div className="min-h-screen pt-20 px-4">
+          <div className="max-w-6xl mx-auto py-8">
+            <button onClick={() => setActiveCourse(null)}
+              className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ChevronLeft size={14} /> Back to Learning Paths
+            </button>
+            <AILiteracyTab />
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+  if (activeCourse === "clearthinking") {
+    return (
+      <PageWrapper pageName="learn">
+        <div className="min-h-screen pt-20 px-4">
+          <div className="max-w-6xl mx-auto py-8">
+            <button onClick={() => setActiveCourse(null)}
+              className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ChevronLeft size={14} /> Back to Learning Paths
+            </button>
+            <ClearThinkingTab />
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper pageName="learn">
       <div className="min-h-screen pt-20" onKeyDownCapture={handleLearnKeyDownCapture}>
+
         {/* Hero */}
         <section className="py-16 px-4">
           <div className="max-w-6xl mx-auto text-center">
@@ -7978,7 +8081,7 @@ export default function Learn() {
               transition={{ delay: 0.2 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Tell us your goal. We build a personalized curriculum. Or engage in Socratic dialogue — where the AI never gives you the answer, only better questions.
+              Start with a curated course, generate a custom curriculum for any goal, or explore ideas through Socratic dialogue — all in one place.
             </motion.p>
           </div>
         </section>
@@ -8002,40 +8105,211 @@ export default function Learn() {
           </div>
         </section>
 
-        {/* Tabs */}
-        <section className="pb-4 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex border-b border-border/60 mb-8 overflow-x-auto">
-              {tabs.map(({ id, label, icon: Icon, desc }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={`flex items-center gap-2 py-3 px-5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px shrink-0 ${
-                    activeTab === id
-                      ? "border-[var(--nexus-gold)] text-[var(--nexus-gold)]"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
+        {/* ── Main content — single scrollable page ── */}
+        <section className="pb-24 px-4">
+          <div className="max-w-6xl mx-auto space-y-20">
+
+            {/* ── 1. Curated Courses ── */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <GraduationCap size={15} className="text-[var(--nexus-gold)]" />
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">Curated Courses</h2>
+                <span className="text-xs text-muted-foreground">— fully built, start immediately</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* AI Mastery */}
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                  className="card-nexus p-6 group cursor-pointer relative overflow-hidden"
+                  onClick={() => setActiveCourse("ailiteracy")}
                 >
-                  <Icon size={16} />
-                  <span className="hidden sm:block">{label}</span>
-                  <span className="hidden md:block text-xs opacity-60">{desc}</span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.75_0.18_55_/_0.06)] to-transparent pointer-events-none" />
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)]">
+                      <Brain size={20} className="text-[oklch(0.85_0.18_55)]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-bold text-[oklch(0.85_0.18_55)]">AI Mastery</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-[oklch(0.75_0.18_55_/_0.15)] text-[oklch(0.85_0.18_55)] border border-[oklch(0.75_0.18_55_/_0.3)] font-semibold">POPULAR</span>
+                      </div>
+                      <h4 className="font-bold text-foreground group-hover:text-[oklch(0.85_0.18_55)] transition-colors">AI Literacy for Adults</h4>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">From zero to power user. How AI actually works, how to use it at work, and how to stay in control — 3 modules, 15 lessons.</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules · 15 lessons</span>
+                      <span className="flex items-center gap-1"><Zap size={10} /> 1,100 XP</span>
+                      <span className="flex items-center gap-1"><Clock size={10} /> ~3 hrs</span>
+                    </div>
+                    <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Start <ArrowRight size={11} />
+                    </span>
+                  </div>
+                </motion.div>
+
+                {/* Clear Thinking */}
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
+                  className="card-nexus p-6 group cursor-pointer relative overflow-hidden"
+                  onClick={() => setActiveCourse("clearthinking")}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.72_0.2_260_/_0.06)] to-transparent pointer-events-none" />
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.72_0.2_260_/_0.15)] border border-[oklch(0.72_0.2_260_/_0.3)]">
+                      <Scale size={20} className="text-[oklch(0.82_0.2_260)]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-bold text-[oklch(0.82_0.2_260)]">Logic & Reasoning</span>
+                      </div>
+                      <h4 className="font-bold text-foreground group-hover:text-[oklch(0.82_0.2_260)] transition-colors">Clear Thinking</h4>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">Fallacies, cognitive biases, statistical traps, systems thinking, and argument mapping — 3 modules, 15 lessons of rigorous training.</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules · 15 lessons</span>
+                      <span className="flex items-center gap-1"><Zap size={10} /> 1,110 XP</span>
+                      <span className="flex items-center gap-1"><Clock size={10} /> ~3 hrs</span>
+                    </div>
+                    <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.72_0.2_260)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Start <ArrowRight size={11} />
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* View More toggle */}
+              <div className="mt-5">
+                <button
+                  onClick={() => setShowMorePaths(v => !v)}
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${showMorePaths ? "rotate-180" : ""}`} />
+                  {showMorePaths ? "Hide additional paths" : `View ${featuredPaths.length} more learning paths`}
                 </button>
-              ))}
+
+                <AnimatePresence>
+                  {showMorePaths && (
+                    <motion.div
+                      key="more-paths"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-5 space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <input
+                            type="text"
+                            placeholder="Search learning paths..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="flex-1 px-4 py-2.5 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.4)] bg-transparent"
+                          />
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          {categories.map(cat => (
+                            <button
+                              key={cat}
+                              onClick={() => setActiveCategory(cat)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                activeCategory === cat
+                                  ? "bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]"
+                                  : "glass border border-white/8 text-muted-foreground hover:border-white/15"
+                              }`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                        {filtered.length === 0 ? (
+                          <div className="text-center py-10 text-muted-foreground text-sm">No paths match your search.</div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {filtered.map((path, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.03 }}
+                                className="card-nexus p-5 group cursor-pointer relative"
+                                onClick={() => path.href ? setLocation(path.href) : handleSelectPath(path.title)}
+                              >
+                                {path.popular && (
+                                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
+                                    Popular
+                                  </span>
+                                )}
+                                <div className="flex items-start justify-between mb-3">
+                                  <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/5 border border-white/8 text-muted-foreground">
+                                    {path.category}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1 mr-16">
+                                    <Clock size={10} /> {path.duration}
+                                  </span>
+                                </div>
+                                <h4 className="font-semibold text-foreground mb-2 group-hover:text-[oklch(0.85_0.18_55)] transition-colors pr-4">
+                                  {path.title}
+                                </h4>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1"><BookOpen size={10} /> {path.modules} modules</span>
+                                    <span className="flex items-center gap-1"><Star size={10} /> {path.level}</span>
+                                  </div>
+                                  <motion.button
+                                    whileHover={{ x: 3 }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (path.href) { setLocation(path.href); return; }
+                                      handleSelectPath(path.title);
+                                    }}
+                                    className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    {path.href ? "Open course" : "Generate path"} <ArrowRight size={12} />
+                                  </motion.button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {activeTab === "curriculum" && <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />}
-                {activeTab === "socratic" && <SocraticTutor />}
-                {activeTab === "paths" && <PathsTab onSelectPath={handleSelectPath} />}
-              </motion.div>
-            </AnimatePresence>
+            {/* ── 2. Generate a Custom Curriculum ── */}
+            <div id="learn-curriculum">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={15} className="text-[var(--nexus-gold)]" />
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">Generate a Custom Curriculum</h2>
+                <span className="text-xs text-muted-foreground">— tell us your goal, we build your path</span>
+              </div>
+              <div className="flex items-center gap-2 mb-5 px-3 py-2.5 rounded-lg bg-[oklch(0.75_0.18_55_/_0.07)] border border-[oklch(0.75_0.18_55_/_0.2)]">
+                <Clock size={13} className="text-[oklch(0.78_0.18_55)] shrink-0" />
+                <p className="text-xs text-[oklch(0.78_0.18_55)] leading-relaxed">
+                  <strong>Heads up:</strong> Generating a Custom Curriculum may take up to 10 minutes. The AI is building a detailed, personalized learning plan — worth the wait.
+                </p>
+              </div>
+              <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />
+            </div>
+
+            {/* ── 3. Socratic Mode ── */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare size={15} className="text-[var(--nexus-gold)]" />
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">Socratic Mode</h2>
+                <span className="text-xs text-muted-foreground">— learn by questioning, never by being told</span>
+              </div>
+              <SocraticTutor />
+            </div>
+
           </div>
         </section>
       </div>

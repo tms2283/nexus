@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { useTour } from "@/contexts/TourContext";
 
 // ─── Tour steps ───────────────────────────────────────────────────────────────
 
@@ -172,20 +173,30 @@ export default function TourOverlay() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
   const [, setLocation] = useLocation();
+  const { showMainTour, closeMainTour } = useTour();
 
+  // Auto-show on first visit
   useEffect(() => {
     if (typeof window === "undefined") return;
     const seen = localStorage.getItem(TOUR_KEY);
     if (!seen) {
-      // Small delay so the app fully renders first
       const t = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(t);
     }
   }, []);
 
+  // Show when triggered programmatically via context
+  useEffect(() => {
+    if (showMainTour) {
+      setStep(0);
+      setVisible(true);
+    }
+  }, [showMainTour]);
+
   const dismiss = () => {
     localStorage.setItem(TOUR_KEY, "1");
     setVisible(false);
+    closeMainTour();
   };
 
   const handleCta = (href: string) => {

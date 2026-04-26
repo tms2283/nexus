@@ -6,12 +6,13 @@ import {
   BookOpen, Search, Flame, GraduationCap, TrendingUp, User,
   BookMarked, Layers, LogOut, PenSquare, Sun, Moon, Sparkles,
   FlaskConical, Network, Code2, ChevronRight, MessageSquare,
-  Lightbulb, Home, Library, Map, HeartPulse,
+  Lightbulb, Home, Library, Map, HeartPulse, HelpCircle,
 } from "lucide-react";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTour } from "@/contexts/TourContext";
 
 // ─── Navigation structure: 4 clear sections ──────────────────────────────────
 const NAV_SECTIONS = [
@@ -81,8 +82,17 @@ export default function Navigation() {
   const { user, isGuest, logout } = useAuth();
   const { isEditMode, toggleEditMode } = useEditMode();
   const { theme, toggleTheme, switchable } = useTheme();
+  const { openMainTour, openPageTour } = useTour();
   const canEdit = user?.role === "admin";
   const isDarkTheme = theme === "dark";
+
+  const handleHelpClick = () => {
+    if (location === "/app") {
+      openMainTour();
+    } else {
+      openPageTour();
+    }
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -220,6 +230,18 @@ export default function Navigation() {
 
           {/* Right side controls */}
           <div className="flex items-center gap-1">
+            {/* Help / Tour button */}
+            <button
+              onClick={handleHelpClick}
+              title={location === "/app" ? "Site overview tour" : "Page guide"}
+              className="p-2 rounded-lg transition-all"
+              style={{ color: "oklch(0.46 0.010 255)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.88 0.008 255)"; (e.currentTarget as HTMLElement).style.background = "oklch(0.15 0.014 255)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.46 0.010 255)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+            >
+              <HelpCircle size={14} />
+            </button>
+
             {/* Search */}
             <button
               onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true, bubbles: true }))}
@@ -361,6 +383,13 @@ export default function Navigation() {
 
               {/* Bottom controls in mobile menu */}
               <div className="pt-2 border-t" style={{ borderColor: "oklch(0.18 0.014 255)" }}>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); handleHelpClick(); }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors"
+                  style={{ color: "oklch(0.58 0.010 255)" }}>
+                  <HelpCircle size={15} />
+                  {location === "/app" ? "Site Overview Tour" : "Page Guide"}
+                </button>
                 {switchable && (
                   <button onClick={toggleTheme}
                     className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors"
