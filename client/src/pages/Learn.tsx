@@ -3772,7 +3772,7 @@ const CT_CAPSTONE_STEPS = [
 function ClearThinkingTab() {
   const [activeLesson, setActiveLesson] = useState<CTLessonId | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
-  const [activeModule, setActiveModule] = useState<1 | 2 | 3>(1);
+  const [activeModule, setActiveModule] = useState<1 | 2 | 3 | null>(null);
   const { addXP } = usePersonalization();
 
   // L1 state — segmented
@@ -3964,6 +3964,142 @@ function ClearThinkingTab() {
           </div>
         )}
       </motion.div>
+    );
+  }
+
+  // ── Course overview (no module selected) ──────────────────────────────────
+  if (activeModule === null) {
+    const ctModules = [
+      {
+        num: 1 as const,
+        title: "The Architecture of an Argument",
+        desc: "Claims, evidence, inference, logical fallacies, cognitive biases, and evaluating sources",
+        color: "oklch(0.72_0.2_260)",
+        xp: 340,
+        lessons: 5,
+        icon: <Scale size={22} />,
+        topics: ["Argument anatomy", "Valid vs. sound", "Deductive & inductive", "8 logical fallacies", "Cognitive biases", "Source evaluation"],
+      },
+      {
+        num: 2 as const,
+        title: "Thinking in Real Life",
+        desc: "Misinformation, statistical traps, persuasion vs. manipulation, and decisions under uncertainty",
+        color: "oklch(0.72_0.2_290)",
+        xp: 380,
+        lessons: 5,
+        icon: <Globe size={22} />,
+        topics: ["How misinformation spreads", "Statistical traps", "Persuasion vs. manipulation", "Decision frameworks", "Pre-mortem thinking"],
+      },
+      {
+        num: 3 as const,
+        title: "Systems & Self",
+        desc: "Mental models, argument mapping, systems thinking, motivated reasoning, and your capstone project",
+        color: "oklch(0.70_0.22_270)",
+        xp: 390,
+        lessons: 5,
+        icon: <GitBranch size={22} />,
+        topics: ["Mental models", "Argument mapping", "Systems thinking", "Motivated reasoning", "Capstone project"],
+      },
+    ];
+    const totalXP = ctModules.reduce((sum, m) => sum + m.xp, 0);
+    return (
+      <div className="p-4 max-w-2xl mx-auto space-y-5">
+        {/* Hero */}
+        <div className="relative overflow-hidden rounded-3xl p-6" style={{ background: "linear-gradient(135deg, oklch(0.16 0.05 260), oklch(0.13 0.07 280))", border: "1px solid oklch(0.72_0.2_260_/_0.3)" }}>
+          <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(ellipse 60% 80% at 80% 20%, oklch(0.72_0.2_260_/_0.4), transparent)" }} />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="text-[10px] font-black tracking-[0.2em] text-[oklch(0.72_0.2_260)] mb-1">CLEAR THINKING COURSE</div>
+                <h1 className="text-2xl font-black text-white leading-tight">Think Sharper.<br />Argue Better.</h1>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-black text-white">{totalXP}</div>
+                <div className="text-xs text-muted-foreground">total XP</div>
+              </div>
+            </div>
+            <p className="text-sm text-white/60 leading-relaxed mb-4">
+              Master the tools of clear reasoning — from argument anatomy and logical fallacies to statistical thinking, systems analysis, and the biases that make smart people wrong. By the end, you'll be able to dismantle any argument and build unassailable ones.
+            </p>
+            <div className="flex items-center gap-4 text-xs text-white/50">
+              <span className="flex items-center gap-1"><BookOpen size={11} />15 lessons</span>
+              <span className="flex items-center gap-1"><Clock size={11} />~3 hrs total</span>
+              <span className="flex items-center gap-1"><Sparkles size={11} />3 modules</span>
+              <span className="flex items-center gap-1"><FlaskConical size={11} />12+ live exercises</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Module cards */}
+        <div className="space-y-3">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Choose a Module</div>
+          {ctModules.map(mod => (
+            <motion.button key={mod.num} onClick={() => setActiveModule(mod.num)}
+              whileHover={{ scale: 1.008 }} whileTap={{ scale: 0.995 }}
+              className="w-full text-left rounded-2xl overflow-hidden"
+              style={{ background: `oklch(from ${mod.color} l c h / 0.06)`, border: `1px solid oklch(from ${mod.color} l c h / 0.25)` }}>
+              <div className="p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: `oklch(from ${mod.color} l c h / 0.15)`, border: `1px solid oklch(from ${mod.color} l c h / 0.3)`, color: mod.color }}>
+                      {mod.icon}
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold tracking-widest mb-0.5" style={{ color: mod.color }}>MODULE {mod.num}</div>
+                      <div className="font-bold text-foreground">{mod.title}</div>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 ml-4">
+                    <div className="text-lg font-black" style={{ color: mod.color }}>+{mod.xp}</div>
+                    <div className="text-[10px] text-muted-foreground">XP</div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3 pl-13">{mod.desc}</p>
+                <div className="flex flex-wrap gap-1.5 pl-13">
+                  {mod.topics.map(t => (
+                    <span key={t} className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                      style={{ background: `oklch(from ${mod.color} l c h / 0.1)`, color: mod.color, border: `1px solid oklch(from ${mod.color} l c h / 0.25)` }}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="px-5 pb-4 flex items-center justify-between">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><BookOpen size={10} /> {mod.lessons} lessons</span>
+                </div>
+                <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: mod.color }}>
+                  Start module <ArrowRight size={11} />
+                </span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* What you'll build */}
+        <div className="glass rounded-2xl p-5 border border-white/8">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy size={14} className="text-[oklch(0.72_0.2_260)]" />
+            <h4 className="font-semibold text-sm text-foreground">What you'll be able to do</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { n: "Argument Analysis", d: "Dissect any claim into structure, evidence, and inference" },
+              { n: "Fallacy Detection", d: "Name and counter 12+ logical fallacies on sight" },
+              { n: "Bias Awareness", d: "Recognize 10+ cognitive biases in yourself and others" },
+              { n: "Statistical Literacy", d: "Spot misleading data, relative risk tricks, and cherry-picked timeframes" },
+              { n: "Systems Thinking", d: "Model feedback loops, unintended consequences, and emergence" },
+              { n: "Steel-Manning", d: "Build the strongest possible version of any opposing argument" },
+            ].map(({ n, d }) => (
+              <div key={n} className="glass rounded-lg p-3 border border-white/8">
+                <div className="text-xs font-semibold text-foreground mb-0.5">{n}</div>
+                <p className="text-xs text-muted-foreground">{d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -4428,24 +4564,19 @@ function ClearThinkingTab() {
 
   // ── Module switcher + overview ──
   if (activeModule === 2) {
-    return <ClearThinkingModule2 onBack={() => setActiveModule(1)} />;
+    return <ClearThinkingModule2 onBack={() => setActiveModule(null)} />;
   }
   if (activeModule === 3) {
-    return <ClearThinkingModule3 onBack={() => setActiveModule(1)} />;
+    return <ClearThinkingModule3 onBack={() => setActiveModule(null)} />;
   }
 
   return (
     <div className="space-y-4">
-      {/* Module switcher */}
-      <div className="flex gap-2 p-1 glass rounded-xl border border-white/8">
-        {([{ n: 1, label: "Module 1", sub: "The Architecture of an Argument" }, { n: 2, label: "Module 2", sub: "Thinking in Real Life" }, { n: 3, label: "Module 3", sub: "Systems & Self" }] as const).map(({ n, label, sub }) => (
-          <button key={n} onClick={() => setActiveModule(n)}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm transition-all text-left ${ activeModule === n ? "bg-[oklch(0.72_0.2_260_/_0.15)] text-[oklch(0.82_0.2_260)] font-semibold" : "text-muted-foreground hover:text-foreground" }`}>
-            <div className="font-medium">{label}</div>
-            <div className="text-xs opacity-70 mt-0.5">{sub}</div>
-          </button>
-        ))}
-      </div>
+      {/* Module 1 header with back button */}
+      <button onClick={() => setActiveModule(null)}
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ChevronLeft size={14} /> Back to course overview
+      </button>
 
       <div className="glass rounded-2xl p-6 border border-[oklch(0.72_0.2_260_/_0.2)]">
         <div className="flex items-start justify-between mb-3">
