@@ -5901,10 +5901,10 @@ function ClearThinkingModule2({ onBack }: { onBack: () => void }) {
 type CT3LessonId = "ct11" | "ct12" | "ct13" | "ct14" | "ct15";
 
 const CT3_LESSON_META: { id: CT3LessonId; title: string; subtitle: string; duration: string; color: string; xp: number }[] = [
-  { id: "ct11" as CT3LessonId, title: "Mental Models", subtitle: "The thinking frameworks that compress reality into usable maps", duration: "25 min", color: "oklch(0.70_0.22_270)", xp: 65 },
+  { id: "ct11" as CT3LessonId, title: "Mental Models", subtitle: "The thinking frameworks that compress reality into usable maps", duration: "35 min", color: "oklch(0.70_0.22_270)", xp: 75 },
   { id: "ct12" as CT3LessonId, title: "Argument Mapping", subtitle: "Structuring debates, surfacing hidden assumptions, steel-manning", duration: "25 min", color: "oklch(0.68_0.20_140)", xp: 65 },
-  { id: "ct13" as CT3LessonId, title: "Reasoning About Systems", subtitle: "Feedback loops, unintended consequences, and emergence", duration: "30 min", color: "oklch(0.72_0.18_40)", xp: 70 },
-  { id: "ct14" as CT3LessonId, title: "Motivated Reasoning", subtitle: "How smart people talk themselves into wrong conclusions", duration: "25 min", color: "oklch(0.68_0.22_10)", xp: 65 },
+  { id: "ct13" as CT3LessonId, title: "Reasoning About Systems", subtitle: "Feedback loops, unintended consequences, and emergence", duration: "35 min", color: "oklch(0.72_0.18_40)", xp: 80 },
+  { id: "ct14" as CT3LessonId, title: "Motivated Reasoning", subtitle: "How smart people talk themselves into wrong conclusions", duration: "35 min", color: "oklch(0.68_0.22_10)", xp: 75 },
   { id: "ct15" as CT3LessonId, title: "Capstone: Build Your Argument", subtitle: "Construct a steel-manned position on a real controversy", duration: "30 min", color: "oklch(0.75_0.18_55)", xp: 125 },
 ];
 
@@ -5953,6 +5953,51 @@ const CT3_MENTAL_MODELS = [
     why: "We forget this constantly. A spreadsheet model of a business is not the business. A political theory is not the society it describes. Confusing the map for the territory is the source of enormous error.",
     example: "GDP measures economic output, not well-being. When countries optimize for GDP growth while ignoring inequality, pollution, and social cohesion, they optimized for the map — and found the territory got worse.",
     trap: "This doesn't mean models are useless. A map that gets you from A to B is extremely useful — just don't eat it when you're hungry.",
+  },
+  {
+    name: "Circle of Competence",
+    icon: "CC",
+    color: "oklch(0.72_0.2_290)",
+    what: "Know the boundaries of what you actually understand deeply — and operate mostly within them. Expand deliberately rather than accidentally.",
+    why: "Most catastrophic decisions are made by intelligent people operating outside their area of genuine competence while not knowing they've crossed the line. Confidence and competence often diverge — especially in adjacent domains.",
+    example: "Warren Buffett refuses to invest in tech companies he doesn't understand, even during bubbles. In 1999 he was mocked for missing the dot-com boom. In 2001, his portfolio was fine. He knew his circle and stayed in it.",
+    trap: "The circle is not fixed — you can expand it through deliberate study. The trap is thinking you've expanded your circle when you've only borrowed vocabulary from an adjacent field.",
+  },
+  {
+    name: "Hanlon's Razor",
+    icon: "HR",
+    color: "oklch(0.68_0.18_200)",
+    what: "Never attribute to malice what can be adequately explained by stupidity — or more charitably, by ignorance, negligence, or poor systems.",
+    why: "Assuming malice is cognitively easy and emotionally satisfying. It provides a clear villain. But most bad outcomes result from incompetence, miscommunication, or structural problems — not deliberate harm.",
+    example: "Your email goes unanswered for four days. Malice interpretation: they're ignoring you. Hanlon's: they're overwhelmed, forgot, or have a system that buried your message. The charitable interpretation is usually correct and leads to more productive responses.",
+    trap: "Some things are genuinely malicious. Hanlon's Razor is a prior to start from, not a rule that forecloses updating toward malice when evidence warrants it.",
+  },
+  {
+    name: "Regret Minimization",
+    icon: "RM",
+    color: "oklch(0.70_0.20_150)",
+    what: "When facing a major decision, project yourself to age 80 and ask which choice you would regret less. Optimize for that.",
+    why: "We overweight immediate costs (fear, embarrassment, financial risk) and underweight long-term costs (inaction, unlived paths, accumulated regret). The 80-year-old view corrects that time-horizon bias.",
+    example: "Jeff Bezos was deciding whether to leave a well-paying job to start Amazon in 1994. His regret minimization: at 80, would he regret not trying? Yes, deeply. Would he regret trying and failing? No — he'd understand that. He quit.",
+    trap: "Don't use regret minimization to rationalize impulsive decisions. It works best for high-stakes, irreversible choices where you've done the analysis and are stuck on fear of the leap.",
+  },
+  {
+    name: "Margin of Safety",
+    icon: "MS",
+    color: "oklch(0.75_0.15_60)",
+    what: "Build in a buffer between what you need and what you have. Design for being more wrong than you think you'll be.",
+    why: "We are systematically overconfident about our estimates. Bridges are built to hold far more than their maximum load. Businesses keep cash reserves. The margin is protection against the inevitable gap between map and territory.",
+    example: "Benjamin Graham's value investing principle: only buy a stock at a significant discount to its intrinsic value. If your analysis is even somewhat off, the margin absorbs the error. In engineering: the Golden Gate Bridge was built to support six times the traffic of the densest expected day.",
+    trap: "Excessive margin of safety can mean never acting — you're always waiting for conditions to be better. The margin should be calibrated to the stakes and irreversibility of the decision, not maximized unconditionally.",
+  },
+  {
+    name: "Base Rates",
+    icon: "BR",
+    color: "oklch(0.68_0.20_240)",
+    what: "Before estimating the probability of a specific outcome, ask: how often do similar things typically succeed? Start from the outside view, then adjust for your specific case.",
+    why: "Humans default to the inside view — focusing on the specific features of their situation. But our case is rarely as unique as we think. The base rate of restaurant failures, startup failures, construction overruns, and relationship success rates are all predictive — and mostly ignored.",
+    example: "A startup founder estimates 70% chance of success based on their team, idea, and market timing. Base rate: ~90% of startups fail within ten years. A calibrated estimate combines both — the specific factors shift the base rate, but not as much as founders believe.",
+    trap: "Base rates from the wrong reference class are worse than useless. A startup disrupting an established industry has a different base rate than a typical new restaurant. Selecting the right reference class is the hard part.",
   },
 ];
 
@@ -6016,6 +6061,30 @@ const CT3_QUIZ_L11 = [
     ],
     correct: 1,
     explanation: "Most people stop at first-order effects ('the policy will reduce X'). Second-order thinking asks what happens as a result of that change — which is where unintended consequences, adaptive responses, and systemic effects live. The chess player who only thinks one move ahead loses.",
+  },
+  {
+    id: "ct11q6",
+    question: "The Circle of Competence model warns against:",
+    options: [
+      "Developing expertise in too many fields",
+      "Applying the analytical style of one domain with confidence to adjacent domains where the domain knowledge doesn't transfer",
+      "Relying on specialists rather than generalists",
+      "Overestimating how long learning takes",
+    ],
+    correct: 1,
+    explanation: "The analytical skill (rigorous thinking, quantitative reasoning, hypothesis testing) often transfers across domains. The domain knowledge does not. Expert overreach happens when a physicist speaks about economics or a doctor about public policy with the same confidence they have in their primary field — mistaking one for the other.",
+  },
+  {
+    id: "ct11q7",
+    question: "The Regret Minimization Framework is most useful when:",
+    options: [
+      "Making small reversible decisions where the stakes are low",
+      "Facing high-stakes, hard-to-reverse decisions where fear of the short-term cost may outweigh the long-term cost of inaction",
+      "Evaluating other people's decisions in retrospect",
+      "Comparing two similar options with similar expected outcomes",
+    ],
+    correct: 1,
+    explanation: "Regret minimization corrects a specific bias: we overweight immediate, concrete costs (fear, financial risk, social discomfort) relative to long-run costs (inaction, unlived alternatives, accumulated regret). The 80-year-old perspective shifts the time horizon and resolves many fear-driven impasses.",
   },
 ];
 
@@ -6146,6 +6215,30 @@ const CT3_SYSTEMS_CONCEPTS = [
     example: "No individual neuron understands language, but 86 billion neurons collectively produce comprehension, creativity, and consciousness. Markets 'know' prices that no individual participant knows.",
     insight: "Emergence makes purely reductionist analysis fail. You cannot understand traffic by studying one car. You cannot understand a market by studying one trader.",
   },
+  {
+    name: "Stock & Flow",
+    type: "Structure",
+    color: "oklch(0.75_0.18_55)",
+    description: "Stocks are accumulations — the amount of something at a point in time. Flows are rates of change — how fast the stock is filling or draining. Most system delays exist because stocks take time to respond to changes in flows.",
+    example: "Carbon in the atmosphere is a stock. Emissions are inflows; absorption by oceans and forests are outflows. Even if we stopped all emissions today, the stock would remain elevated for centuries. This is why climate targets require negative flows, not just reduced flows.",
+    insight: "Policy failures often result from confusing a flow (rate of change) for a stock (current level). Reducing the rate of harm is different from reducing harm. Understanding which you're targeting determines whether your intervention makes sense.",
+  },
+  {
+    name: "Time Delays",
+    type: "Dynamics",
+    color: "oklch(0.72_0.2_290)",
+    description: "In complex systems, causes and effects are separated in time — often by months or years. This makes it hard to identify what caused what, and causes actors to over-correct because they respond before the first intervention has had time to work.",
+    example: "Interest rate hikes take 12-18 months to reduce inflation through the economy. Central banks that raise rates and then see no immediate effect often raise again — producing a cumulative effect that tips the economy into recession 18 months later.",
+    insight: "Time delays create the classic 'whack-a-mole' pattern: interventions seem to fail, you intervene more aggressively, and then multiple delayed effects arrive simultaneously and overshoot. Patience and monitoring are more effective than escalating responses.",
+  },
+  {
+    name: "Leverage Points",
+    type: "Intervention",
+    color: "oklch(0.70_0.22_270)",
+    description: "Some places in a system are disproportionately sensitive to intervention. Small changes at leverage points produce large system-wide effects. Donella Meadows identified a hierarchy: changing parameters (numbers) is weak; changing goals, paradigms, or system structure is powerful.",
+    example: "Changing the interest rate on a loan is a parameter-level intervention — it affects flows, but the system structure remains. Changing the rules about who can lend (system structure) or the purpose a financial system is designed to serve (paradigm) is a much higher leverage point.",
+    insight: "Most policy interventions operate at the lowest-leverage levels (changing numbers, adjusting existing flows) because they're politically easiest. The highest-leverage interventions (changing goals, rules, paradigms) are the most contested because they threaten existing power structures.",
+  },
 ];
 
 const CT3_QUIZ_L13 = [
@@ -6246,6 +6339,24 @@ const CT3_MOTIVATED_REASONING_PATTERNS = [
     example: "Bailey: 'All gender differences are social constructs.' Challenged → Motte: 'Socialization plays a significant role in gender expression.' Nobody argues with the motte. Bailey reinstated when unchallenged.",
     antidote: "Pin down the specific claim: 'Is this the strong version or the modest version of your position? Which one are you defending?'",
   },
+  {
+    name: "Epistemic Cowardice",
+    shortname: "Epistemic Cowardice",
+    color: "oklch(0.75_0.18_55)",
+    description: "Deliberately giving vague, uncommitted, or hedge-heavy answers to avoid controversy or social cost — sacrificing honesty for comfort.",
+    signal: "Your stated position is consistently vaguer than your private position. You use phrases like 'it's complicated' or 'both sides have valid points' on issues where you've actually formed a clear view.",
+    example: "A doctor privately believes a patient's lifestyle is causing their illness but frames it so gently that the patient doesn't register it as the main message. The doctor protected themselves from an uncomfortable conversation at the cost of the patient's health.",
+    antidote: "Ask yourself: what would I say to a close friend I genuinely wanted to help, with no audience watching? That's usually your actual view. Then ask whether the version you're publicly stating is meaningfully weaker.",
+  },
+  {
+    name: "Overconfidence by Expertise",
+    shortname: "Expert Overreach",
+    color: "oklch(0.70_0.22_270)",
+    description: "Genuine expertise in one domain produces inflated confidence in adjacent or unrelated domains — and the intellectual tools of expertise are then deployed in motivated defense of those overconfident views.",
+    signal: "You find yourself speaking with expert-level confidence about topics adjacent to (but not actually within) your domain. You dismiss criticism from non-experts rather than engaging their arguments.",
+    example: "Physicists who become confident commentators on economics, biologists who pronounce on geopolitics, or engineers who dismiss social science as 'not rigorous.' The analytical style transfers; the domain knowledge does not.",
+    antidote: "Explicitly map your circle of competence. When you leave it, switch from 'I know' to 'I suspect, based on analogies from my domain.' Actively seek out domain experts and update from them.",
+  },
 ];
 
 const CT3_QUIZ_L14 = [
@@ -6306,6 +6417,30 @@ const CT3_QUIZ_L14 = [
       "Your conclusion makes you uncomfortable"],
     correct: 1,
     explanation: "Pre-committing to what would change your mind is the strongest test of genuine reasoning. If you cannot name any possible evidence that would update your position, you are likely not reasoning — you are rationalizing a conclusion you've already committed to.",
+  },
+  {
+    id: "ct14q6",
+    question: "Epistemic cowardice is:",
+    options: [
+      "Refusing to engage with complex topics",
+      "Giving deliberately vague or non-committal answers to avoid social cost, even when you hold a clear private view",
+      "Changing your mind too quickly under social pressure",
+      "Refusing to update beliefs even when evidence warrants it",
+    ],
+    correct: 1,
+    explanation: "Epistemic cowardice is sacrificing honesty for comfort. The tell is the gap between what you say publicly and what you actually believe. It's not identical to genuine uncertainty — that's legitimate. It's when the vagueness is strategic, not epistemic.",
+  },
+  {
+    id: "ct14q7",
+    question: "Expert overreach in motivated reasoning occurs when:",
+    options: [
+      "An expert is overconfident within their own domain",
+      "Genuine expertise in one area produces overconfidence in adjacent areas, and the same sophisticated reasoning tools are used to defend those overconfident views",
+      "An expert refuses to engage outside their specialty",
+      "Non-experts dismiss expert testimony",
+    ],
+    correct: 1,
+    explanation: "The analytical style of expertise (systematic thinking, ability to construct sophisticated arguments) transfers across domains. The domain knowledge does not. This creates the most dangerous form of expert overreach: a person who is genuinely right to be confident in their domain, and cannot feel the difference when they've crossed the boundary.",
   },
 ];
 
@@ -6395,6 +6530,24 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
   const [expandResult, setExpandResult] = useState<string>("");
   const expandMutation = trpc.ai.explainConcept.useMutation({
     onSuccess: (data) => setExpandResult(data.explanation),
+  });
+
+  // ct13 — System Analyzer interactive lab
+  const [ct13SysInput, setCt13SysInput] = useState("");
+  const [ct13SysResult, setCt13SysResult] = useState("");
+  const [ct13SysLoading, setCt13SysLoading] = useState(false);
+  const ct13SysMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setCt13SysResult(data.explanation); setCt13SysLoading(false); },
+    onError: (err) => { toast.error(err.message); setCt13SysLoading(false); },
+  });
+
+  // ct14 — Motivated Reasoning Audit interactive lab
+  const [ct14AuditInput, setCt14AuditInput] = useState("");
+  const [ct14AuditResult, setCt14AuditResult] = useState("");
+  const [ct14AuditLoading, setCt14AuditLoading] = useState(false);
+  const ct14AuditMutation = trpc.ai.explainConcept.useMutation({
+    onSuccess: (data) => { setCt14AuditResult(data.explanation); setCt14AuditLoading(false); },
+    onError: (err) => { toast.error(err.message); setCt14AuditLoading(false); },
   });
 
   type SectionBadgeVariant = "hook" | "concept" | "explore" | "practice" | "capstone";
@@ -6879,6 +7032,55 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
         </div>
       ),
     },
+    {
+      title: "System Analyzer Lab",
+      narration: "Now apply the systems lens to a real situation. Describe any situation — a policy, a business, a social dynamic, a personal challenge — and the AI will identify the feedback loops, stocks and flows, and leverage points involved.",
+      topics: ["systems analysis", "feedback identification", "leverage points", "practice"],
+      body: (
+        <div className="space-y-4">
+          <SectionBadge variant="practice" />
+          <div className="glass rounded-xl p-4 border border-[oklch(0.72_0.18_40_/_0.2)]">
+            <div className="text-xs font-semibold text-[oklch(0.72_0.18_40)] mb-2">WHAT TO ANALYZE</div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                "Traffic congestion in a growing city",
+                "Declining enrollment at a university",
+                "Polarization increasing on social media",
+                "Burnout spreading in a workplace",
+                "A startup growing faster than its processes",
+                "Your own situation (describe below)",
+              ].map((ex) => (
+                <button key={ex} onClick={() => setCt13SysInput(ex)}
+                  className="text-left p-2 rounded-lg glass border border-white/8 hover:border-[oklch(0.72_0.18_40_/_0.4)] text-xs text-muted-foreground hover:text-foreground transition-all">
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+          <textarea value={ct13SysInput} onChange={(e) => setCt13SysInput(e.target.value)}
+            placeholder="Describe a situation you want to analyze through a systems lens…"
+            rows={4} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.72_0.18_40_/_0.5)] resize-none" />
+          <motion.button onClick={() => {
+            if (!ct13SysInput.trim()) { toast.error("Describe a situation first."); return; }
+            setCt13SysLoading(true); setCt13SysResult("");
+            ct13SysMutation.mutate({ concept: `Analyze this situation using systems thinking: "${ct13SysInput}". Structure your analysis as follows:\n\n1. STOCKS & FLOWS: What are the key accumulations in this system, and what are the rates that fill or drain them?\n\n2. FEEDBACK LOOPS: Identify at least one reinforcing loop (that amplifies) and one balancing loop (that stabilizes or corrects). Be specific about the causal chain.\n\n3. TIME DELAYS: Where are the significant delays between cause and effect? What misperceptions do these delays produce?\n\n4. UNINTENDED CONSEQUENCES: What second or third-order effects might common interventions produce?\n\n5. LEVERAGE POINTS: Where would a small intervention have the largest effect? What makes that point highly leveraged?\n\nBe specific, educational, and grounded in systems dynamics principles.`, level: "student" });
+          }} disabled={ct13SysLoading || !ct13SysInput.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-black disabled:opacity-50"
+            style={{ background: "linear-gradient(to right, oklch(0.72_0.18_40), oklch(0.70_0.22_270))" }}>
+            {ct13SysLoading ? <><RefreshCw size={13} className="animate-spin" /> Analyzing…</> : <><Brain size={13} /> Analyze System</>}
+          </motion.button>
+          <AnimatePresence>
+            {ct13SysResult && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-[oklch(0.72_0.18_40_/_0.08)] border border-[oklch(0.72_0.18_40_/_0.25)]">
+                <div className="text-xs font-semibold text-[oklch(0.72_0.18_40)] mb-2">SYSTEMS ANALYSIS</div>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{ct13SysResult}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ),
+    },
   ];
 
   // ── CT14: Motivated Reasoning ────────────────────────────────────────────────
@@ -6997,6 +7199,59 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
             )}
           </div>
           <QuizBlock questions={CT3_QUIZ_L14} accentColor="oklch(0.68_0.22_10)" />
+        </div>
+      ),
+    },
+    {
+      title: "Reasoning Audit Lab",
+      narration: "The hardest application of motivated reasoning detection is turning the lens on yourself — in real time, on an issue you actually care about. Describe your reasoning on any topic and the AI will audit it for common patterns.",
+      topics: ["reasoning audit", "self-analysis", "epistemic hygiene", "apply and practice"],
+      body: (
+        <div className="space-y-4">
+          <SectionBadge variant="capstone" />
+          <p className="text-sm text-muted-foreground leading-relaxed">Choose a topic where you have a strong view — ideally political, social, or personal. Describe your reasoning: why you believe what you believe and what evidence supports it. The AI will flag patterns of motivated reasoning it detects.</p>
+          <div className="glass rounded-xl p-4 border border-[oklch(0.68_0.22_10_/_0.2)]">
+            <div className="text-xs font-semibold text-[oklch(0.78_0.22_10)] mb-2">EXAMPLE TOPICS TO ANALYZE YOUR OWN REASONING ON</div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                "Why I support / oppose stricter immigration policy",
+                "Why I believe / doubt climate change requires urgent action",
+                "Why I trust / distrust a particular media source",
+                "Why I support / oppose my preferred political party",
+                "Why I chose my current career path",
+                "Why a particular person in my life was in the wrong",
+              ].map((ex) => (
+                <button key={ex} onClick={() => setCt14AuditInput(ex)}
+                  className="text-left p-2.5 rounded-lg glass border border-white/8 hover:border-[oklch(0.68_0.22_10_/_0.4)] text-xs text-muted-foreground hover:text-foreground transition-all leading-snug">
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+          <textarea value={ct14AuditInput} onChange={(e) => setCt14AuditInput(e.target.value)}
+            placeholder="Describe your view and your reasoning in as much detail as you can. The more honest and specific you are, the more useful the audit will be…"
+            rows={6} className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-[oklch(0.68_0.22_10_/_0.4)] resize-none" />
+          <motion.button onClick={() => {
+            if (ct14AuditInput.trim().length < 30) { toast.error("Write more about your reasoning first."); return; }
+            setCt14AuditLoading(true); setCt14AuditResult("");
+            ct14AuditMutation.mutate({ concept: `Perform a motivated reasoning audit on the following reasoning: "${ct14AuditInput}"\n\nAnalyze it for these specific patterns, being direct and honest but not harsh:\n\n1. CONCLUSION-FIRST SIGNALS: Does the reasoning appear to start from the conclusion and work backward? What's the evidence?\n\n2. IDENTITY-PROTECTIVE COGNITION: Does this reasoning track a tribal/group identity more than evidence? Any signals of in-group loyalty overriding analysis?\n\n3. EPISTEMIC COWARDICE: Is the person being as specific and honest as they could be, or hedging to avoid discomfort?\n\n4. MOTTE & BAILEY: Is the person sliding between a strong and a modest version of their claim?\n\n5. MISSING PERSPECTIVES: What's the strongest counterargument they haven't addressed?\n\n6. OVERALL VERDICT: What's the most likely source of bias in this reasoning, and what one concrete practice would improve it?\n\nBe analytically honest. Do not be sycophantic. This exercise is only useful if it's accurate.`, level: "student" });
+          }} disabled={ct14AuditLoading || ct14AuditInput.trim().length < 30} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+            style={{ background: "oklch(0.68_0.22_10)" }}>
+            {ct14AuditLoading ? <><RefreshCw size={13} className="animate-spin" /> Auditing…</> : <><Search size={13} /> Audit My Reasoning</>}
+          </motion.button>
+          <AnimatePresence>
+            {ct14AuditResult && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.25)]">
+                <div className="text-xs font-semibold text-[oklch(0.78_0.22_10)] mb-2">REASONING AUDIT RESULTS</div>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{ct14AuditResult}</p>
+                <div className="mt-3 p-3 rounded-lg bg-white/5 border border-white/8">
+                  <p className="text-xs text-muted-foreground italic">Remember: identifying motivated reasoning in yourself is a skill that improves with practice. This audit reflects patterns in the reasoning you shared — not a judgment of your intelligence or character.</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       ),
     },
