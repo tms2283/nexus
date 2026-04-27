@@ -26,7 +26,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   "Computer Vision":    "👁️",
 };
 
-export default function Daily() {
+export function DailyCore() {
   const { cookieId, profile, updateProfile } = usePersonalization();
   const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
   const [completed, setCompleted] = useState(false);
@@ -65,9 +65,8 @@ export default function Daily() {
   };
 
   return (
-    <PageWrapper pageName="daily">
-      <div className="min-h-screen bg-background">
-        <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="flex-1 overflow-auto bg-background">
+      <div className="max-w-2xl mx-auto px-4 py-12">
 
           {/* Header */}
           <motion.div
@@ -314,7 +313,16 @@ export default function Daily() {
               </div>
             </motion.div>
           )}
-        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Daily() {
+  return (
+    <PageWrapper pageName="daily">
+      <div className="min-h-screen pt-20 flex flex-col">
+        <DailyCore />
       </div>
     </PageWrapper>
   );

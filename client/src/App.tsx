@@ -9,28 +9,22 @@ import { LearnerProfileProvider } from "./contexts/LearnerProfileContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { EditModeProvider } from "./contexts/EditModeContext";
 import { usePsychSignalTracker } from "./hooks/usePsychSignalTracker";
-import Navigation from "./components/Navigation";
-import GamificationHUD from "./components/GamificationHUD";
-import AIChat from "./components/AIChat";
-import CommandPalette from "./components/CommandPalette";
-import EditModeOverlay from "./components/EditModeOverlay";
-import TourOverlay from "./components/TourOverlay";
-
-// ─── Eagerly loaded ───────────────────────────────────────────────────────────
-import Welcome from "./pages/Welcome";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Onboarding from "./pages/Onboarding";
-import Home from "./pages/Home";
-import NotFound from "./pages/NotFound";
 
 // ─── Lazily loaded ────────────────────────────────────────────────────────────
+const Welcome      = lazy(() => import("./pages/Welcome"));
+const Login        = lazy(() => import("./pages/Login"));
+const Register     = lazy(() => import("./pages/Register"));
+const Onboarding   = lazy(() => import("./pages/Onboarding"));
+const Home         = lazy(() => import("./pages/Home"));
+const NotFound     = lazy(() => import("./pages/NotFound"));
+const Navigation   = lazy(() => import("./components/Navigation"));
 const About        = lazy(() => import("./pages/About"));
 const Learn        = lazy(() => import("./pages/Learn"));
 const Research     = lazy(() => import("./pages/Research"));
 const DepthEngine  = lazy(() => import("./pages/DepthEngine"));
 const Library      = lazy(() => import("./pages/Library"));
 const Lab          = lazy(() => import("./pages/Lab"));
+const TestingPage  = lazy(() => import("./pages/TestingPage"));
 const Contact      = lazy(() => import("./pages/Contact"));
 const Flashcards   = lazy(() => import("./pages/Flashcards"));
 const MindMap      = lazy(() => import("./pages/MindMap"));
@@ -60,6 +54,11 @@ const AdaptiveLesson    = lazy(() => import("./pages/AdaptiveLesson"));
 const AdminConcepts     = lazy(() => import("./pages/AdminConcepts"));
 const MasteryDashboard  = lazy(() => import("./pages/MasteryDashboard"));
 const Clarity           = lazy(() => import("./pages/Clarity"));
+const GamificationHUD   = lazy(() => import("./components/GamificationHUD"));
+const AIChat            = lazy(() => import("./components/AIChat"));
+const CommandPalette    = lazy(() => import("./components/CommandPalette"));
+const EditModeOverlay   = lazy(() => import("./components/EditModeOverlay"));
+const TourOverlay       = lazy(() => import("./components/TourOverlay"));
 
 function PageSkeleton() {
   return (
@@ -111,7 +110,7 @@ function Router() {
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Library /></Suspense></RequireAuth>
           </Route>
           <Route path="/lab">
-            <RequireAuth><Suspense fallback={<PageSkeleton />}><Lab /></Suspense></RequireAuth>
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><TestingPage /></Suspense></RequireAuth>
           </Route>
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
@@ -125,7 +124,7 @@ function Router() {
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Settings /></Suspense></RequireAuth>
           </Route>
           <Route path="/testing">
-            <RequireAuth><Suspense fallback={<PageSkeleton />}><TestingCenter /></Suspense></RequireAuth>
+            <RequireAuth><Suspense fallback={<PageSkeleton />}><TestingPage /></Suspense></RequireAuth>
           </Route>
           <Route path="/dashboard">
             <RequireAuth><Suspense fallback={<PageSkeleton />}><Dashboard /></Suspense></RequireAuth>
@@ -214,15 +213,27 @@ function AppShell() {
   usePsychSignalTracker(isAuthenticated);
 
   return (
-    <TooltipProvider>
+      <TooltipProvider>
       <Toaster position="bottom-right" theme={theme} />
-      {showNav && <Navigation />}
-      {showNav && <CommandPalette />}
-      {showNav && <EditModeOverlay />}
+      {showNav && (
+        <Suspense fallback={null}>
+          <Navigation />
+        </Suspense>
+      )}
+      {showNav && (
+        <Suspense fallback={null}>
+          <CommandPalette />
+          <EditModeOverlay />
+        </Suspense>
+      )}
       <Router />
-      {showNav && <GamificationHUD />}
-      {showNav && <AIChat />}
-      {showNav && <TourOverlay />}
+      {showNav && (
+        <Suspense fallback={null}>
+          <GamificationHUD />
+          <AIChat />
+          <TourOverlay />
+        </Suspense>
+      )}
     </TooltipProvider>
   );
 }

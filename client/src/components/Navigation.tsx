@@ -51,7 +51,6 @@ const NAV_LINKS: NavLink[] = [
     ],
   },
   { label: "Clarity", href: "/clarity", items: null },
-  { label: "Labs", href: "/lab", items: null },
   { label: "Testing", href: "/testing", items: null },
   { label: "Contact", href: "/contact", items: null },
 ];
@@ -74,7 +73,7 @@ const MOBILE_TABS = [
   { href: "/app", label: "Home", icon: Home },
   { href: "/learn", label: "Learn", icon: GraduationCap },
   { href: "/research", label: "Research", icon: FlaskConical },
-  { href: "/lab", label: "Labs", icon: Code2 },
+  { href: "/clarity", label: "Clarity", icon: HeartPulse },
   { href: "/testing", label: "Testing", icon: Target },
 ];
 

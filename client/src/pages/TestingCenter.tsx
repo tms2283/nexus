@@ -617,7 +617,7 @@ function TestResults({ test, score, answers, timeUsed, onRetry, onBack }: { test
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function TestingCenter() {
+export function TestingCore() {
   const { addXP, cookieId } = usePersonalization();
   const [activeTest, setActiveTest] = useState<TestConfig | null>(null);
   const [phase, setPhase] = useState<"select" | "active" | "results">("select");
@@ -683,8 +683,8 @@ export default function TestingCenter() {
   }, [activeTest, addXP, addXPMutation, cookieId, saveResultMutation, saveIQResultMutation]);
 
   return (
-    <PageWrapper pageName="testing">
-      <div className="min-h-screen pt-24 pb-20 px-4">
+    <div className="flex-1 overflow-auto">
+      <div className="px-4 py-10">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           {phase === "select" && (
@@ -769,6 +769,16 @@ export default function TestingCenter() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+export default function TestingCenter() {
+  return (
+    <PageWrapper pageName="testing">
+      <div className="min-h-screen pt-20 flex flex-col">
+        <TestingCore />
       </div>
     </PageWrapper>
   );

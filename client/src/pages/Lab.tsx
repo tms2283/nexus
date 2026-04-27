@@ -72,6 +72,172 @@ const experiments = [
 
 const difficultyColors = { easy: "oklch(0.70 0.20 150)", medium: "oklch(0.75 0.18 55)", hard: "oklch(0.65 0.22 20)" };
 
+type LabRunResult =
+  | { ok: true; logs: string[]; truncated: boolean }
+  | { ok: false; error: string };
+
+type LabWorkerMessage =
+  | { nonce: string; ok: true; logs: string[]; truncated: boolean }
+  | { nonce: string; ok: false; error: string };
+
+const LAB_RUN_TIMEOUT_MS = 2500;
+const LAB_SETTLE_DELAY_MS = 500;
+const LAB_LOG_LIMIT = 80;
+const LAB_LOG_CHAR_LIMIT = 4000;
+
+const labWorkerSource = `
+const sendMessage = self.postMessage.bind(self);
+const block = () => {
+  throw new Error("Network, sockets, and dynamic imports are disabled in Lab challenges.");
+};
+
+for (const key of [
+  "fetch",
+  "XMLHttpRequest",
+  "WebSocket",
+  "EventSource",
+  "importScripts",
+  "Worker",
+  "SharedWorker",
+  "BroadcastChannel",
+  "MessageChannel",
+  "postMessage",
+]) {
+  try {
+    Object.defineProperty(self, key, {
+      value: block,
+      writable: false,
+      configurable: false,
+    });
+  } catch {}
+}
+
+try {
+  if (self.navigator) {
+    Object.defineProperty(self.navigator, "sendBeacon", {
+      value: block,
+      writable: false,
+      configurable: false,
+    });
+  }
+} catch {}
+
+self.onmessage = async (event) => {
+  const { code, nonce, logLimit, logCharLimit, settleDelayMs } = event.data;
+  const logs = [];
+  let truncated = false;
+
+  const stringify = (value) => {
+    if (typeof value === "string") return value;
+    if (value instanceof Error) return value.stack || value.message;
+    try {
+      const json = JSON.stringify(value);
+      return json === undefined ? String(value) : json;
+    } catch {
+      return String(value);
+    }
+  };
+
+  const pushLog = (level, args) => {
+    if (logs.length >= logLimit) {
+      truncated = true;
+      return;
+    }
+
+    const prefix = level === "log" ? "" : level.toUpperCase() + ": ";
+    let line = prefix + args.map(stringify).join(" ");
+    if (line.length > logCharLimit) {
+      line = line.slice(0, logCharLimit) + "...";
+      truncated = true;
+    }
+    logs.push(line);
+  };
+
+  const consoleProxy = {
+    log: (...args) => pushLog("log", args),
+    info: (...args) => pushLog("info", args),
+    warn: (...args) => pushLog("warn", args),
+    error: (...args) => pushLog("error", args),
+    table: (...args) => pushLog("table", args),
+  };
+
+  try {
+    Object.defineProperty(self, "console", { value: consoleProxy, writable: false });
+  } catch {}
+
+  try {
+    if (/(^|[^\\w$])import\\s*\\(/.test(code)) {
+      throw new Error("Dynamic imports are disabled in Lab challenges.");
+    }
+
+    const Runner = self.Function;
+    const run = Runner("console", "\\"use strict\\";\\n" + code);
+    const result = run(consoleProxy);
+    if (result && typeof result.then === "function") await result;
+    await new Promise(resolve => setTimeout(resolve, settleDelayMs));
+    sendMessage({ nonce, ok: true, logs, truncated });
+  } catch (error) {
+    const message = error && (error.stack || error.message) ? String(error.stack || error.message) : String(error);
+    sendMessage({ nonce, ok: false, error: message });
+  }
+};
+`;
+
+function runJavaScriptInWorker(code: string): Promise<LabRunResult> {
+  if (typeof Worker === "undefined") {
+    return Promise.resolve({
+      ok: false,
+      error: "This browser does not support the isolated Lab runner.",
+    });
+  }
+
+  const nonce = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+  const workerUrl = URL.createObjectURL(new Blob([labWorkerSource], { type: "text/javascript" }));
+  const worker = new Worker(workerUrl, { name: "lab-challenge-runner" });
+
+  return new Promise(resolve => {
+    let settled = false;
+
+    const finish = (result: LabRunResult) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      worker.terminate();
+      URL.revokeObjectURL(workerUrl);
+      resolve(result);
+    };
+
+    const timeoutId = window.setTimeout(() => {
+      finish({
+        ok: false,
+        error: `Execution timed out after ${LAB_RUN_TIMEOUT_MS}ms. Check for infinite loops or long-running timers.`,
+      });
+    }, LAB_RUN_TIMEOUT_MS);
+
+    worker.onmessage = (event: MessageEvent<LabWorkerMessage>) => {
+      const message = event.data;
+      if (!message || message.nonce !== nonce) return;
+      finish(
+        message.ok
+          ? { ok: true, logs: message.logs, truncated: message.truncated }
+          : { ok: false, error: message.error }
+      );
+    };
+
+    worker.onerror = event => {
+      finish({ ok: false, error: event.message || "Lab runner crashed." });
+    };
+
+    worker.postMessage({
+      code,
+      nonce,
+      logLimit: LAB_LOG_LIMIT,
+      logCharLimit: LAB_LOG_CHAR_LIMIT,
+      settleDelayMs: LAB_SETTLE_DELAY_MS,
+    });
+  });
+}
+
 // ─── Particle Sim ─────────────────────────────────────────────────────────────
 function ParticleSimExperiment() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -784,7 +950,12 @@ function ExperimentModal({ exp, onClose, cookieId }: { exp: typeof experiments[0
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function Lab() {
+interface LabCoreProps {
+  initialSection?: "experiments" | "challenges";
+  hideSectionTabs?: boolean;
+}
+
+export function LabCore({ initialSection = "experiments", hideSectionTabs = false }: LabCoreProps = {}) {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [activeExperiment, setActiveExperiment] = useState<typeof experiments[0] | null>(null);
   const [code, setCode] = useState("");
@@ -793,24 +964,31 @@ export default function Lab() {
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<"experiments"|"challenges">("experiments");
+  const [activeTab, setActiveTab] = useState<"experiments"|"challenges">(initialSection);
   const { addXP, cookieId } = usePersonalization();
   const debugMutation = trpc.lab.debugCode.useMutation();
 
   const openChallenge = (ch: Challenge) => { setActiveChallenge(ch); setCode(ch.starter); setOutput(null); setShowHint(false); setShowSolution(false); };
 
-  const runCode = () => {
+  const runCode = async () => {
     if (!code.trim()) return;
     setRunning(true); setOutput(null);
     try {
-      const logs: string[] = [];
-      const fn = new Function("console", code);
-      fn({ log: (...a: unknown[]) => logs.push(a.map(String).join(" ")), error: (...a: unknown[]) => logs.push("ERROR: "+a.map(String).join(" ")), warn: (...a: unknown[]) => logs.push("WARN: "+a.map(String).join(" ")) });
-      setOutput({ type: "success", text: logs.length > 0 ? logs.join("\n") : "✓ Code ran successfully (no output)" });
-        if (activeChallenge && !completedChallenges.includes(activeChallenge.id)) {
+      const result = await runJavaScriptInWorker(code);
+      if (!result.ok) {
+        setOutput({ type: "error", text: result.error });
+        return;
+      }
+
+      const outputText = result.logs.length > 0
+        ? `${result.logs.join("\n")}${result.truncated ? "\n...output truncated" : ""}`
+        : "Code ran successfully (no output)";
+      setOutput({ type: "success", text: outputText });
+
+      if (activeChallenge && !completedChallenges.includes(activeChallenge.id)) {
         setCompletedChallenges(prev => [...prev, activeChallenge.id]);
         addXP(activeChallenge.xpReward);
-        toast.success(`+${activeChallenge.xpReward} XP — Challenge complete!`);
+        toast.success(`+${activeChallenge.xpReward} XP - Challenge complete!`);
       }
     } catch (e) { setOutput({ type: "error", text: String(e) }); }
     finally { setRunning(false); }
@@ -823,23 +1001,16 @@ export default function Lab() {
   };
 
   return (
-    <PageWrapper pageName="lab">
-      <div className="min-h-screen pt-20">
-        <section className="py-16 px-6">
-          <div className="max-w-6xl mx-auto">
-            <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} className="mb-12">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-[oklch(0.65_0.22_200_/_0.3)] text-xs text-[oklch(0.75_0.18_200)] mb-4">
-                <Cpu size={12} /> Interactive Lab
+    <div className="flex-1 overflow-auto">
+      <section className="py-10 px-6">
+        <div className="max-w-6xl mx-auto">
+            {!hideSectionTabs && (
+              <div className="flex gap-2 mb-8">
+                {(["experiments","challenges"] as const).map(tab => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all capitalize ${activeTab===tab ? "bg-[oklch(0.65_0.22_200_/_0.2)] border border-[oklch(0.65_0.22_200_/_0.5)] text-[oklch(0.75_0.18_200)]" : "card-nexus text-muted-foreground hover:text-foreground"}`}>{tab}</button>
+                ))}
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">AI <span className="gradient-text">Experiments</span> & Challenges</h1>
-              <p className="text-lg text-muted-foreground max-w-2xl">Learn how AI works by interacting with it directly. Run live experiments, explore prompting techniques, and sharpen your coding skills.</p>
-            </motion.div>
-
-            <div className="flex gap-2 mb-8">
-              {(["experiments","challenges"] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all capitalize ${activeTab===tab ? "bg-[oklch(0.65_0.22_200_/_0.2)] border border-[oklch(0.65_0.22_200_/_0.5)] text-[oklch(0.75_0.18_200)]" : "card-nexus text-muted-foreground hover:text-foreground"}`}>{tab}</button>
-              ))}
-            </div>
+            )}
 
             {activeTab === "experiments" && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -887,7 +1058,6 @@ export default function Lab() {
             )}
           </div>
         </section>
-      </div>
 
       <AnimatePresence>
         {activeExperiment && <ExperimentModal exp={activeExperiment} onClose={() => setActiveExperiment(null)} cookieId={cookieId} />}
@@ -918,7 +1088,11 @@ export default function Lab() {
                 </div>
                 {output && (
                   <div className={`rounded-xl px-4 py-3 text-sm font-mono border ${output.type==="success" ? "bg-[oklch(0.70_0.20_150_/_0.1)] border-[oklch(0.70_0.20_150_/_0.3)] text-[oklch(0.70_0.20_150)]" : output.type==="error" ? "bg-[oklch(0.65_0.22_20_/_0.1)] border-[oklch(0.65_0.22_20_/_0.3)] text-[oklch(0.65_0.22_20)]" : "bg-[oklch(0.65_0.22_200_/_0.1)] border-[oklch(0.65_0.22_200_/_0.3)] text-foreground"}`}>
-                    <div className="prose prose-sm prose-invert max-w-none"><Streamdown>{output.text}</Streamdown></div>
+                    {output.type === "info" ? (
+                      <div className="prose prose-sm prose-invert max-w-none"><Streamdown>{output.text}</Streamdown></div>
+                    ) : (
+                      <pre className="whitespace-pre-wrap break-words">{output.text}</pre>
+                    )}
                   </div>
                 )}
                 {showHint && <div className="glass rounded-xl border border-[oklch(0.75_0.18_55_/_0.3)] p-4 text-sm text-[oklch(0.75_0.18_55)]"><Lightbulb size={14} className="inline mr-2" />{activeChallenge.hint}</div>}
@@ -944,6 +1118,16 @@ export default function Lab() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+export default function Lab() {
+  return (
+    <PageWrapper pageName="lab">
+      <div className="min-h-screen pt-20 flex flex-col">
+        <LabCore />
+      </div>
     </PageWrapper>
   );
 }
