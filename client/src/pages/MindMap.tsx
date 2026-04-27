@@ -44,7 +44,7 @@ const NODE_SIZES: Record<string, { w: number; h: number; fontSize: number }> = {
   tertiary:  { w: 110, h: 36, fontSize: 11 },
 };
 
-export default function MindMap() {
+export function MindMapCore() {
   const { cookieId, addXP } = usePersonalization();
   const [view, setView] = useState<"list" | "canvas" | "new">("list");
   const [topic, setTopic] = useState("");
@@ -202,8 +202,8 @@ export default function MindMap() {
   const getNodeColor = (category?: string) => CATEGORY_COLORS[category ?? "secondary"] ?? CATEGORY_COLORS.secondary;
 
   return (
-    <PageWrapper pageName="mindmap">
-      <div className="min-h-screen pt-24 pb-16">
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col">
 
         {/* ── List View ──────────────────────────────────────────── */}
         <AnimatePresence mode="wait">
@@ -211,7 +211,7 @@ export default function MindMap() {
             <motion.div key="list" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="px-4 max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-10">
                 <div>
-                  <h1 className="text-4xl font-bold text-white mb-2">
+                  <h1 className="text-4xl font-bold text-foreground mb-2">
                     Mind <span className="text-gradient">Maps</span>
                   </h1>
                   <p className="text-white/50">AI-generated interactive concept maps — expand any node to go deeper</p>
@@ -250,7 +250,7 @@ export default function MindMap() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <h3 className="text-white font-semibold mb-1 group-hover:text-violet-300 transition-colors">{map.title}</h3>
+                      <h3 className="text-foreground font-semibold mb-1 group-hover:text-violet-300 transition-colors">{map.title}</h3>
                       <p className="text-white/40 text-sm mb-3">{(map.nodesJson as MindMapNode[]).length} nodes</p>
                       <div className="flex items-center justify-between">
                         <span className="text-white/30 text-xs">{new Date(map.updatedAt).toLocaleDateString()}</span>
@@ -275,7 +275,7 @@ export default function MindMap() {
                 <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
                   <Network className="w-8 h-8 text-violet-400" />
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-2">Generate Mind Map</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-2">Generate Mind Map</h2>
                 <p className="text-white/50">AI will create a comprehensive concept map for any topic</p>
               </div>
               <div className="glass rounded-2xl p-8 space-y-6">
@@ -286,7 +286,7 @@ export default function MindMap() {
                     onChange={e => setTopic(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handleGenerate()}
                     placeholder="e.g. Machine Learning, Renaissance Art, Quantum Computing..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-foreground placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors"
                   />
                 </div>
                 <div>
@@ -322,15 +322,15 @@ export default function MindMap() {
 
           {/* ── Canvas View ───────────────────────────────────────── */}
           {view === "canvas" && (
-            <motion.div key="canvas" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative">
+            <motion.div key="canvas" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative flex-1 flex flex-col">
               {/* Toolbar */}
-              <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-sm border-b border-white/5">
+              <div className="flex-none flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-sm border-b border-white/5 z-20">
                 <div className="flex items-center gap-3">
                   <button onClick={() => setView("list")} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm">
                     <ArrowLeft className="w-4 h-4" /> Maps
                   </button>
                   <span className="text-white/20">|</span>
-                  <span className="text-white font-medium text-sm">{currentTitle}</span>
+                  <span className="text-foreground font-medium text-sm">{currentTitle}</span>
                   <span className="text-white/30 text-xs">{nodes.length} nodes</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -369,7 +369,7 @@ export default function MindMap() {
               <svg
                 ref={svgRef}
                 className="w-full cursor-grab active:cursor-grabbing select-none"
-                style={{ height: "calc(100vh - 64px)", marginTop: "48px", background: "transparent" }}
+                style={{ flex: 1, background: "transparent" }}
                 onMouseDown={handleCanvasMouseDown}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseUp={handleCanvasMouseUp}
@@ -477,7 +477,7 @@ export default function MindMap() {
                       exit={{ opacity: 0, x: 20 }}
                       className="absolute top-16 right-4 w-64 glass rounded-xl p-4 border border-white/10 z-20"
                     >
-                      <p className="text-white font-semibold mb-1">{node.label}</p>
+                      <p className="text-foreground font-semibold mb-1">{node.label}</p>
                       <p className="text-white/40 text-xs capitalize mb-3">{node.category} node</p>
                       <Button
                         size="sm"
@@ -498,6 +498,16 @@ export default function MindMap() {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+export default function MindMap() {
+  return (
+    <PageWrapper pageName="mindmap">
+      <div className="min-h-screen pt-24 pb-16 flex flex-col">
+        <MindMapCore />
       </div>
     </PageWrapper>
   );

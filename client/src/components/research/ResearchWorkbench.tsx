@@ -43,10 +43,12 @@ import { usePersonalization } from "@/contexts/PersonalizationContext";
 import PageWrapper from "@/components/PageWrapper";
 import AudioPlayer from "@/components/AudioPlayer";
 import { toast } from "sonner";
+import { MindMapCore } from "@/pages/MindMap";
+import { FlashcardsCore } from "@/pages/Flashcards";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ResearchTab = "notebook" | "kt" | "charts" | "rabbit-holes";
+type ResearchTab = "notebook" | "kt" | "charts" | "rabbit-holes" | "mindmap" | "flashcards";
 type NotebookPanel = "sources" | "chat" | "studio";
 
 type ChatMsg = {
@@ -1607,6 +1609,8 @@ export default function ResearchWorkbench() {
     ["kt", "🌱 Graph"],
     ["charts", "📊 Charts"],
     ["rabbit-holes", "🐇 Rabbit Holes"],
+    ["mindmap", "🗺️ Mind Maps"],
+    ["flashcards", "🃏 Flashcards"],
   ];
 
   return (
@@ -1693,6 +1697,14 @@ export default function ResearchWorkbench() {
           <KnowledgeTreeView cookieId={cookieId ?? ""} onAddAsSource={() => toast.info("Open a notebook to add as source.")} />
         ) : activeTab === "charts" ? (
           <ChartsView cookieId={cookieId ?? ""} />
+        ) : activeTab === "mindmap" ? (
+          <div className="flex flex-1 overflow-hidden">
+            <MindMapCore />
+          </div>
+        ) : activeTab === "flashcards" ? (
+          <div className="flex flex-1 overflow-hidden">
+            <FlashcardsCore />
+          </div>
         ) : (
           <RabbitHolesView cookieId={cookieId ?? ""} />
         )}

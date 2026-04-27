@@ -42,7 +42,7 @@ type SessionStats = {
   startTime: number;
 };
 
-export default function Flashcards() {
+export function FlashcardsCore() {
   const { cookieId, addXP } = usePersonalization();
   const [view, setView] = useState<"decks" | "review" | "generate" | "complete">("decks");
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
@@ -147,8 +147,8 @@ export default function Flashcards() {
   };
 
   return (
-    <PageWrapper pageName="flashcards">
-      <div className="min-h-screen pt-24 pb-16 px-4">
+    <div className="flex flex-col flex-1 overflow-auto">
+      <div className="min-h-full px-4 py-6">
         <div className="max-w-4xl mx-auto">
 
           {/* ── Decks View ─────────────────────────────────────────── */}
@@ -158,7 +158,7 @@ export default function Flashcards() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-10">
                   <div>
-                    <h1 className="text-4xl font-bold text-white mb-2">
+                    <h1 className="text-4xl font-bold text-foreground mb-2">
                       Flashcard <span className="text-gradient">Decks</span>
                     </h1>
                     <p className="text-white/50">Spaced repetition powered by the SM-2 algorithm</p>
@@ -212,7 +212,7 @@ export default function Flashcards() {
                           </div>
                           <span className="text-xs text-white/30 capitalize">{deck.sourceType?.replace("_", " ")}</span>
                         </div>
-                        <h3 className="text-white font-semibold mb-1 group-hover:text-violet-300 transition-colors">{deck.title}</h3>
+                        <h3 className="text-foreground font-semibold mb-1 group-hover:text-violet-300 transition-colors">{deck.title}</h3>
                         {deck.description && <p className="text-white/40 text-sm mb-3 line-clamp-2">{deck.description}</p>}
                         <div className="flex items-center justify-between">
                           <span className="text-white/50 text-sm">{deck.cardCount} cards</span>
@@ -238,7 +238,7 @@ export default function Flashcards() {
                     <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
                       <Sparkles className="w-8 h-8 text-violet-400" />
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-2">AI Flashcard Generator</h2>
+                    <h2 className="text-3xl font-bold text-foreground mb-2">AI Flashcard Generator</h2>
                     <p className="text-white/50">Enter any topic and AI will generate a complete study deck</p>
                   </div>
                   <div className="card-nexus p-8 space-y-6">
@@ -249,7 +249,7 @@ export default function Flashcards() {
                         onChange={e => setGenerateTopic(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && handleGenerate()}
                         placeholder="e.g. Transformer architecture, React hooks, Stoic philosophy..."
-                        className="w-full bg-[var(--surface-1)] border border-border/60 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors"
+                        className="w-full bg-[var(--surface-1)] border border-border/60 rounded-xl px-4 py-3 text-foreground placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors"
                       />
                     </div>
                     <div>
@@ -312,13 +312,13 @@ export default function Flashcards() {
                     {/* Front */}
                     <div className="absolute inset-0 card-nexus flex flex-col items-center justify-center p-8 text-center" style={{ backfaceVisibility: "hidden" }}>
                       <div className="text-xs text-violet-400 font-mono uppercase tracking-widest mb-4">Question</div>
-                      <p className="text-white text-xl font-medium leading-relaxed">{currentCard.front}</p>
+                      <p className="text-foreground text-xl font-medium leading-relaxed">{currentCard.front}</p>
                       <p className="text-white/30 text-sm mt-6">Click to reveal answer</p>
                     </div>
                     {/* Back */}
                     <div className="absolute inset-0 card-nexus border-[var(--nexus-purple-border)] bg-[var(--nexus-purple-fill)] flex flex-col items-center justify-center p-8 text-center" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
                       <div className="text-xs text-cyan-400 font-mono uppercase tracking-widest mb-4">Answer</div>
-                      <p className="text-white text-xl font-medium leading-relaxed">{currentCard.back}</p>
+                      <p className="text-foreground text-xl font-medium leading-relaxed">{currentCard.back}</p>
                     </div>
                   </motion.div>
                 </div>
@@ -360,7 +360,7 @@ export default function Flashcards() {
                 >
                   <Trophy className="w-12 h-12 text-white" />
                 </motion.div>
-                <h2 className="text-3xl font-bold text-white mb-2">Session Complete!</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-2">Session Complete!</h2>
                 <p className="text-white/50 mb-8">You reviewed {sessionStats.reviewed} cards in {elapsedStr}</p>
 
                 <div className="card-nexus p-6 max-w-sm mx-auto mb-8">
@@ -391,6 +391,16 @@ export default function Flashcards() {
             )}
           </AnimatePresence>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Flashcards() {
+  return (
+    <PageWrapper pageName="flashcards">
+      <div className="min-h-screen pt-24 pb-16 flex flex-col">
+        <FlashcardsCore />
       </div>
     </PageWrapper>
   );
