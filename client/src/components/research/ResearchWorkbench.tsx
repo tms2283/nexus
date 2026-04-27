@@ -1617,48 +1617,53 @@ export default function ResearchWorkbench() {
     <PageWrapper pageName="research">
       <div className="flex flex-col" style={{ height: "calc(100vh - 4rem)", paddingTop: "4rem" }}>
         {/* ── Tab bar ──────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-0.5 sm:gap-1 border-b border-white/10 bg-[rgba(5,7,16,0.95)] px-2 sm:px-4 py-2 flex-none overflow-x-auto">
-          {TABS.map(([tab, label]) => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`rounded-xl px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
-                activeTab === tab
-                  ? "bg-[oklch(0.72_0.18_200_/_0.18)] text-[oklch(0.83_0.15_200)]"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}>
-              {label}
-            </button>
-          ))}
-
-          {/* Project selector — notebook only */}
-          {activeTab === "notebook" && projects.length > 0 && (
-            <div className="ml-2 relative">
-              <button onClick={() => setShowProjects((v) => !v)}
-                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs sm:text-sm text-foreground transition hover:border-white/20">
-                <BookOpen size={12} />
-                <span className="max-w-[80px] sm:max-w-[140px] truncate">
-                  {projects.find((p) => p.id === activeProjectId)?.name ?? "Select"}
-                </span>
-                <ChevronDown size={11} className="text-muted-foreground" />
+        <div className="relative z-30 flex items-center border-b border-white/10 bg-[rgba(5,7,16,0.95)] px-2 sm:px-4 py-2 flex-none">
+          {/* Scrollable tab pills — overflow only here so dropdowns aren't clipped */}
+          <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto flex-1 min-w-0">
+            {TABS.map(([tab, label]) => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                className={`rounded-xl px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold transition whitespace-nowrap flex-none ${
+                  activeTab === tab
+                    ? "bg-[oklch(0.72_0.18_200_/_0.18)] text-[oklch(0.83_0.15_200)]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}>
+                {label}
               </button>
-              {showProjects && (
-                <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-2xl border border-white/10 bg-[rgba(9,11,20,0.97)] p-2 shadow-2xl">
-                  {projects.map((p) => (
-                    <button key={p.id} onClick={() => { setActiveProjectId(p.id); setShowProjects(false); }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${
-                        p.id === activeProjectId ? "bg-[oklch(0.72_0.18_200_/_0.16)] text-[oklch(0.83_0.15_200)]" : "text-foreground hover:bg-white/5"
-                      }`}>
-                      <BookOpen size={12} className="flex-none text-muted-foreground" />{p.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+            ))}
+          </div>
 
-          <button onClick={() => setShowDiscover(true)}
-            className="ml-auto flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-muted-foreground transition hover:text-foreground whitespace-nowrap flex-none">
-            <Plus size={11} /> <span className="hidden sm:inline">New Notebook</span><span className="sm:hidden">New</span>
-          </button>
+          {/* Project selector + New Notebook — outside overflow so dropdown is never clipped */}
+          <div className="flex items-center gap-2 flex-none pl-2">
+            {activeTab === "notebook" && projects.length > 0 && (
+              <div className="relative">
+                <button onClick={() => setShowProjects((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs sm:text-sm text-foreground transition hover:border-white/20">
+                  <BookOpen size={12} />
+                  <span className="max-w-[80px] sm:max-w-[140px] truncate">
+                    {projects.find((p) => p.id === activeProjectId)?.name ?? "Select"}
+                  </span>
+                  <ChevronDown size={11} className="text-muted-foreground" />
+                </button>
+                {showProjects && (
+                  <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-2xl border border-white/10 bg-[rgba(9,11,20,0.97)] p-2 shadow-2xl">
+                    {projects.map((p) => (
+                      <button key={p.id} onClick={() => { setActiveProjectId(p.id); setShowProjects(false); }}
+                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${
+                          p.id === activeProjectId ? "bg-[oklch(0.72_0.18_200_/_0.16)] text-[oklch(0.83_0.15_200)]" : "text-foreground hover:bg-white/5"
+                        }`}>
+                        <BookOpen size={12} className="flex-none text-muted-foreground" />{p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button onClick={() => setShowDiscover(true)}
+              className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-muted-foreground transition hover:text-foreground whitespace-nowrap">
+              <Plus size={11} /> <span className="hidden sm:inline">New Notebook</span><span className="sm:hidden">New</span>
+            </button>
+          </div>
         </div>
 
         {/* ── Tab content ───────────────────────────────────────────────── */}
