@@ -419,8 +419,12 @@ export function registerSeoRoutes(app: Express, distPath: string) {
   // Per-route meta injection — intercepts known public pages before the
   // generic index.html fallback, injects route-specific metadata, and sends
   // the enriched HTML so crawlers see real title/description/JSON-LD.
+  //
+  // IMPORTANT: use app.use(handler) NOT app.use("*", handler).
+  // The "*" path pattern causes Express to strip req.url before passing
+  // to next(), which breaks express.static (it would look up "/" instead
+  // of the actual asset path and fall through to the SPA HTML fallback).
   app.use(
-    "*",
     (req: Request, res: Response, next: NextFunction) => {
       const route = req.path;
       const meta = PAGE_META[route];
