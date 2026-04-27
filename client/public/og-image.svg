@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0d0f1a"/>
+      <stop offset="100%" stop-color="#141728"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="400" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf840"/>
+      <stop offset="100%" stop-color="#38bdf800"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle glow -->
+  <ellipse cx="600" cy="315" rx="500" ry="280" fill="url(#glow)" opacity="0.4"/>
+
+  <!-- Grid lines (subtle) -->
+  <g stroke="#ffffff08" stroke-width="1">
+    <line x1="0" y1="157" x2="1200" y2="157"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="473" x2="1200" y2="473"/>
+    <line x1="300" y1="0" x2="300" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="900" y1="0" x2="900" y2="630"/>
+  </g>
+
+  <!-- N Logomark -->
+  <g transform="translate(90, 180)">
+    <rect width="110" height="110" rx="22" fill="#ffffff08" stroke="#38bdf820" stroke-width="1"/>
+    <path d="M22 18h12l28 44V18h12v64h-12L34 38v44H22V18z" fill="url(#accent)"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="220" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="white" letter-spacing="-2">Nexus</text>
+
+  <!-- Tagline -->
+  <text x="90" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="400" fill="#94a3b8">AI-Powered Learning Platform</text>
+
+  <!-- Feature chips -->
+  <g transform="translate(90, 360)">
+    <g>
+      <rect width="190" height="38" rx="8" fill="#38bdf815" stroke="#38bdf840" stroke-width="1"/>
+      <text x="16" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#38bdf8">AI Curriculum Generator</text>
+    </g>
+    <g transform="translate(206, 0)">
+      <rect width="165" height="38" rx="8" fill="#818cf815" stroke="#818cf840" stroke-width="1"/>
+      <text x="16" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#818cf8">Socratic Tutoring</text>
+    </g>
+    <g transform="translate(387, 0)">
+      <rect width="155" height="38" rx="8" fill="#34d39915" stroke="#34d39940" stroke-width="1"/>
+      <text x="16" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#34d399">Depth Engine</text>
+    </g>
+    <g transform="translate(558, 0)">
+      <rect width="195" height="38" rx="8" fill="#f59e0b15" stroke="#f59e0b40" stroke-width="1"/>
+      <text x="16" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#f59e0b">Clear Thinking Course</text>
+    </g>
+  </g>
+
+  <!-- Bottom URL -->
+  <text x="90" y="570" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="400" fill="#475569">schmo.tech</text>
+
+  <!-- Right decoration -->
+  <circle cx="1050" cy="315" r="180" stroke="#38bdf810" stroke-width="1" fill="none"/>
+  <circle cx="1050" cy="315" r="120" stroke="#38bdf818" stroke-width="1" fill="none"/>
+  <circle cx="1050" cy="315" r="60" stroke="#38bdf825" stroke-width="1" fill="none"/>
+  <circle cx="1050" cy="315" r="8" fill="url(#accent)" opacity="0.6"/>
+</svg>

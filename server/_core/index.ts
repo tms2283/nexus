@@ -1,4 +1,5 @@
 import "dotenv/config";
+import path from "node:path";
 import { validateEnv } from "./validateEnv";
 
 // ─── Validate environment variables before anything else ─────────────────────
@@ -13,6 +14,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers/index";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { registerSeoRoutes } from "./seo";
 import { startJobRunner } from "./jobRunner";
 import { applyCsrfProtection } from "./csrf";
 import { ensureAdaptiveLessonTables } from "../db";
@@ -60,6 +62,14 @@ async function startServer() {
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
+    // In production the server bundle lands at dist/index.js, so
+    // import.meta.dirname resolves to the dist/ folder.
+    // The Vite client build outputs to dist/public/ — same as vite.ts uses.
+    const distPublicPath = path.resolve(import.meta.dirname, "public");
+
+    // SEO routes (robots.txt, sitemap.xml, per-route meta injection)
+    // must be registered BEFORE the static file fallback so they take priority.
+    registerSeoRoutes(app, distPublicPath);
     serveStatic(app);
   }
 

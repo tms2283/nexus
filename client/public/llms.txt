@@ -1,0 +1,89 @@
+# Nexus — AI-Powered Learning Platform
+# https://schmo.tech
+#
+# llms.txt — Machine-readable site description for AI assistants
+# Following the llms.txt convention: https://llmstxt.org
+
+## About Nexus
+
+Nexus is an AI-powered deep learning platform for serious learners. It combines:
+
+- **AI Curriculum Generator**: Generate a personalized learning path on any topic using AI. The system creates a structured curriculum with modules, lessons, and assessments adapted to the user's level and goals.
+
+- **Socratic Tutoring Mode**: AI-powered Socratic dialogue that guides learners through questions rather than giving direct answers, developing genuine understanding and critical thinking.
+
+- **Depth Engine**: Multi-layer concept explanation — any topic can be explored at Beginner, Intermediate, Advanced, Expert, and Research levels. Each layer goes progressively deeper.
+
+- **Semantic Research Engine**: AI-assisted research with source synthesis, claim verification, and citation management.
+
+- **Curated Courses**:
+  - *AI Literacy for Adults*: 3 modules, 15 lessons covering how AI works, how to use it effectively at work, and how to stay in control as AI becomes embedded in daily life. ~1,100 XP total.
+  - *Clear Thinking & Logic*: 3 modules, 15 lessons covering logical fallacies (17), cognitive biases (12), statistical reasoning, misinformation detection, systems thinking, argument mapping, motivated reasoning, and mental models (10). AI-powered interactive labs in each module.
+
+- **Study Buddy**: Conversational AI for working through problems and concepts interactively.
+
+- **Spaced-Repetition Flashcards**: AI-generated decks with adaptive scheduling.
+
+- **AI-Powered Mind Maps**: Automatically generate concept maps from any topic or uploaded document.
+
+- **Gamification**: XP system, achievements, leaderboards, and learning streaks to sustain engagement.
+
+- **Daily Practice**: Curated daily exercises for continuous skill development.
+
+## Technical Details
+
+- Platform: Web application (React + Node.js)
+- AI integration: Multiple providers (Anthropic Claude, OpenAI, Google Gemini)
+- Authentication: Google OAuth + email/password
+- Audience: Adult learners, professionals, educators
+
+## Public Pages
+
+- / — Welcome / landing page
+- /about — About the platform
+- /contact — Contact information
+- /learn — Course overview (AI Curriculum Generator + Curated Courses)
+
+## Courses: Full Content Outline
+
+### AI Literacy for Adults (Module 1: What AI Actually Is)
+1. The Intelligence Question — What makes AI "intelligent" and how does it differ from human cognition
+2. How Language Models Work — Tokens, embeddings, transformers, and next-token prediction
+3. Training & Fine-Tuning — How models learn from data and why they hallucinate
+4. Capabilities & Limits — What current AI can and cannot do reliably
+5. Capstone: Evaluating an AI claim — Apply Module 1 concepts to a real claim about AI
+
+### AI Literacy for Adults (Module 2: Using AI Effectively)
+6. Prompt Engineering — How to communicate clearly with AI systems
+7. AI at Work — Automation, augmentation, and the skills that compound
+8. Evaluating AI Output — Fact-checking, calibrating trust, detecting confabulation
+9. AI Tools Landscape — Overview of major categories and tools
+10. Capstone: AI workflow design
+
+### AI Literacy for Adults (Module 3: Staying in Control)
+11. AI Alignment & Safety — Why alignment is hard and what's being done
+12. Bias & Fairness — Sources of bias and how to evaluate for it
+13. Privacy & Data — What AI systems collect and what that means
+14. The Regulation Landscape — Current and proposed governance frameworks
+15. Capstone: Your AI policy — Write a personal or organizational AI use policy
+
+### Clear Thinking & Logic (Module 1: Logic & Arguments)
+1. What Makes an Argument — Premises, conclusions, inference, validity vs. soundness
+2. Logical Fallacies — All 17 fallacies with definitions, examples, rebuttals
+3. Cognitive Biases — All 12 biases with triggers and antidotes
+4. Evaluating Evidence — Standards of evidence, burden of proof, extraordinary claims
+5. Capstone: Argument Analysis — AI-powered argument deconstruction lab
+
+### Clear Thinking & Logic (Module 2: Real-World Reasoning)
+6. How Misinformation Spreads — 4 mechanisms, SIFT framework, Misinformation Analyzer lab
+7. Statistical Traps — 5 traps (relative vs. absolute risk, survivorship bias, Simpson's Paradox, cherry-picked timeframes, percentage-of-percentage), Statistic Decoder lab
+8. Persuasion vs. Manipulation — 5 techniques analyzed, Influence Decoder lab
+9. Deciding Under Uncertainty — Pre-mortem, calibration, variance, Decision Advisor lab
+10. Capstone: Real-World Case Analysis
+
+### Clear Thinking & Logic (Module 3: Advanced Thinking)
+11. Mental Models — 10 models: First Principles, Inversion, Second-Order Effects, Occam's Razor, Map≠Territory, Circle of Competence, Hanlon's Razor, Regret Minimization, Margin of Safety, Base Rates
+12. Argument Mapping — Architecture, premises, hidden assumptions, steel-manning
+13. Systems Thinking — 7 concepts: Feedback Loops, Balancing Loops, Unintended Consequences, Emergence, Stock & Flow, Time Delays, Leverage Points; System Analyzer AI lab
+14. Motivated Reasoning — 6 patterns: Conclusion-First, Identity-Protective Cognition, Galaxy-Brained Reasoning, Motte & Bailey, Epistemic Cowardice, Expert Overreach; Reasoning Audit AI lab
+15. Capstone: Build Your Argument — Construct and defend a steel-manned position on a real controversy

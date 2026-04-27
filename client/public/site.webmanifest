@@ -1,0 +1,19 @@
+{
+  "name": "Nexus — AI-Powered Learning Platform",
+  "short_name": "Nexus",
+  "description": "Adaptive AI curricula, Socratic tutoring, multi-depth concept explanation, and curated courses in AI literacy and critical thinking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0f1a",
+  "theme_color": "#0d0f1a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en-US"
+}
