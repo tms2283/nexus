@@ -46,6 +46,7 @@ const NAV_LINKS: NavLink[] = [
     label: "Research",
     href: "/research",
     items: [
+      { href: "/research", label: "Research Forge", icon: FlaskConical, desc: "Notebook · Knowledge Graph · Charts · Rabbit Holes" },
       { href: "/library", label: "Knowledge Library", icon: Library, desc: "Curated resources with AI context" },
       { href: "/clarity", label: "Clarity", icon: HeartPulse, desc: "Mental health & cognitive training" },
     ],
