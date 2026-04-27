@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { lazy, Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Sparkles, Target, ChevronRight, Loader2,
   Brain, MessageSquare, CheckCircle2, ArrowRight,
-  GraduationCap, Zap, RotateCcw, Send, ChevronDown,
+  GraduationCap, Zap, RotateCcw, Send, ChevronDown, ChevronUp,
   Clock, Star, Play, Lock, ChevronLeft, XCircle, Check,
   Volume2, VolumeX, Pause, HelpCircle, Shield, Trophy,
   Eye, Info, Award, RefreshCw, Lightbulb, AlertTriangle,
@@ -20,6 +20,8 @@ import PageWrapper from "@/components/PageWrapper";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import { useLocation } from "wouter";
+
+const SocraticTutorPanel = lazy(() => import("./learn/SocraticTutor"));
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CurriculumModule {
@@ -40,10 +42,6 @@ interface Curriculum {
   modules: CurriculumModule[];
 }
 
-interface SocraticMessage {
-  role: "tutor" | "student";
-  content: string;
-}
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -7904,185 +7902,6 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
 }
 
 // ─── Socratic Tutor ───────────────────────────────────────────────────────────
-function SocraticTutor() {
-  const [topic, setTopic] = useState("");
-  const [messages, setMessages] = useState<SocraticMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [isActive, setIsActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const { addXP } = usePersonalization();
-
-  const startSession = trpc.ai.startSocraticSession.useMutation({
-    onSuccess: (data) => {
-      setMessages([{ role: "tutor", content: data.question }]);
-      setIsActive(true);
-      setIsLoading(false);
-      addXP(10);
-    },
-    onError: (err: { message: string }) => { toast.error(err.message); setIsLoading(false); },
-  });
-
-  const continueSession = trpc.ai.continueSocraticSession.useMutation({
-    onSuccess: (data) => {
-      setMessages((prev) => [...prev, { role: "tutor", content: data.response }]);
-      setIsLoading(false);
-    },
-    onError: (err: { message: string }) => { toast.error(err.message); setIsLoading(false); },
-  });
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleStart = () => {
-    if (!topic.trim()) { toast.error("Enter a topic first."); return; }
-    setIsLoading(true);
-    startSession.mutate({ topic, userLevel: "intermediate" });
-  };
-
-  const handleSend = () => {
-    if (!input.trim() || isLoading) return;
-    const userMsg = input.trim();
-    setInput("");
-    setMessages((prev) => [...prev, { role: "student", content: userMsg }]);
-    setIsLoading(true);
-    continueSession.mutate({
-      topic,
-      history: [...messages, { role: "student", content: userMsg }],
-      userResponse: userMsg,
-    });
-  };
-
-  const handleReset = () => {
-    setMessages([]);
-    setIsActive(false);
-    setTopic("");
-  };
-
-  return (
-    <div className="space-y-6">
-      {!isActive ? (
-        <div className="glass rounded-2xl p-8 border border-white/8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[oklch(0.65_0.22_200_/_0.15)] border border-[oklch(0.65_0.22_200_/_0.3)] flex items-center justify-center">
-              <MessageSquare size={18} className="text-[oklch(0.65_0.22_200)]" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Socratic Mode</h3>
-              <p className="text-xs text-muted-foreground">The AI won't give you answers — it will ask questions until you discover them yourself</p>
-            </div>
-          </div>
-
-          <div className="glass rounded-xl p-4 border border-[oklch(0.65_0.22_200_/_0.15)] mb-6">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              <span className="text-[oklch(0.65_0.22_200)] font-medium">How it works:</span> You pick a topic. The AI tutor asks you probing questions — never lecturing, never giving answers. You reason through it. When you get stuck, it reframes the question. This is how Socrates taught, and research shows it produces 2× better retention than passive learning.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                What concept do you want to explore?
-              </label>
-              <input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleStart()}
-                placeholder="e.g., 'recursion', 'supply and demand', 'quantum entanglement', 'the French Revolution'"
-                className="w-full bg-white/3 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] transition-colors"
-              />
-            </div>
-            <motion.button
-              onClick={handleStart}
-              disabled={isLoading || !topic.trim()}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[oklch(0.65_0.22_200)] to-[oklch(0.72_0.2_290)] text-white font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isLoading ? <><Loader2 size={16} className="animate-spin" /> Starting session...</> : <><Brain size={16} /> Begin Socratic Session</>}
-            </motion.button>
-          </div>
-        </div>
-      ) : (
-        <div className="glass rounded-2xl border border-white/8 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-[oklch(0.65_0.22_200)] animate-pulse" />
-              <span className="text-sm font-medium text-foreground">Socratic Session: <span className="text-[oklch(0.65_0.22_200)]">{topic}</span></span>
-            </div>
-            <button onClick={handleReset} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-              <RotateCcw size={12} /> New topic
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="h-80 overflow-y-auto p-6 space-y-4">
-            {messages.map((msg, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex gap-3 ${msg.role === "student" ? "flex-row-reverse" : ""}`}
-              >
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-                  msg.role === "tutor"
-                    ? "bg-[oklch(0.65_0.22_200_/_0.2)] text-[oklch(0.65_0.22_200)]"
-                    : "bg-[oklch(0.75_0.18_55_/_0.2)] text-[oklch(0.75_0.18_55)]"
-                }`}>
-                  {msg.role === "tutor" ? "S" : "Y"}
-                </div>
-                <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === "tutor"
-                    ? "bg-white/5 border border-white/8 text-foreground"
-                    : "bg-[oklch(0.75_0.18_55_/_0.12)] border border-[oklch(0.75_0.18_55_/_0.2)] text-foreground"
-                }`}>
-                  <Streamdown>{msg.content}</Streamdown>
-                </div>
-              </motion.div>
-            ))}
-            {isLoading && (
-              <div className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-[oklch(0.65_0.22_200_/_0.2)] flex items-center justify-center text-xs font-bold text-[oklch(0.65_0.22_200)]">S</div>
-                <div className="bg-white/5 border border-white/8 rounded-xl px-4 py-3">
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-muted-foreground"
-                        animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2 }} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* Input */}
-          <div className="px-6 py-4 border-t border-white/5 flex gap-3">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="Think it through and respond..."
-              className="flex-1 bg-white/3 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[oklch(0.65_0.22_200_/_0.5)] transition-colors"
-            />
-            <motion.button
-              onClick={handleSend}
-              disabled={isLoading || !input.trim()}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-xl bg-[oklch(0.65_0.22_200)] flex items-center justify-center disabled:opacity-50 shrink-0"
-            >
-              <Send size={15} className="text-white" />
-            </motion.button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // FoundationTrackTab removed — replaced by AILiteracyTab above
 
 // ─── Paths Tab Component ────────────────────────────────────────────
@@ -8090,6 +7909,7 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeCourse, setActiveCourse] = useState<"ailiteracy" | "clearthinking" | null>(null);
+  const [showMore, setShowMore] = useState(false);
   const [, setLocation] = useLocation();
 
   // If a curated course is open, show it inline with a back button
@@ -8124,15 +7944,9 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
   });
 
   return (
-    <div className="space-y-8">
-      {/* ── Curated Courses ── */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <GraduationCap size={15} className="text-[var(--nexus-gold)]" />
-          <h3 className="text-sm font-semibold text-foreground uppercase tracking-widest">Curated Courses</h3>
-          <span className="text-xs text-muted-foreground">— fully built, start immediately</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4">
+      {/* ── 2 Featured Curated Courses ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* AI Literacy */}
           <motion.div
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -8196,92 +8010,105 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
             </div>
           </motion.div>
         </div>
-      </div>
 
-      {/* ── Browse All Paths ── */}
+      {/* ── View More toggle ── */}
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={15} className="text-[var(--nexus-gold)]" />
-          <h3 className="text-sm font-semibold text-foreground uppercase tracking-widest">Generate a Custom Path</h3>
-          <span className="text-xs text-muted-foreground">— pick a topic, we build your curriculum</span>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <input
-            type="text"
-            placeholder="Search learning paths..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2.5 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.4)] bg-transparent"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap mb-5">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeCategory === cat
-                  ? "bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]"
-                  : "glass border border-white/8 text-muted-foreground hover:border-white/15"
-              }`}
+        <button
+          onClick={() => setShowMore(v => !v)}
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+        >
+          {showMore ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {showMore ? "Show Less" : "View More Paths"}
+        </button>
+
+        <AnimatePresence>
+          {showMore && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
             >
-              {cat}
-            </button>
-          ))}
-        </div>
-        {filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">No paths match your search.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.map((path, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="card-nexus p-5 group cursor-pointer relative"
-                onClick={() => path.href ? setLocation(path.href) : onSelectPath(path.title)}
-              >
-                {path.popular && (
-                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
-                    Popular
-                  </span>
-                )}
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/5 border border-white/8 text-muted-foreground">
-                    {path.category}
-                  </span>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1 mr-16">
-                    <Clock size={10} /> {path.duration}
-                  </span>
+              <div className="pt-4 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    placeholder="Search paths..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="flex-1 px-4 py-2.5 rounded-xl glass border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.75_0.18_55_/_0.4)] bg-transparent"
+                  />
                 </div>
-                <h4 className="font-semibold text-foreground mb-2 group-hover:text-[oklch(0.85_0.18_55)] transition-colors pr-4">
-                  {path.title}
-                </h4>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><BookOpen size={10} /> {path.modules} modules</span>
-                    <span className="flex items-center gap-1"><Star size={10} /> {path.level}</span>
+                <div className="flex gap-2 flex-wrap">
+                  {categories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        activeCategory === cat
+                          ? "bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.4)] text-[oklch(0.85_0.18_55)]"
+                          : "glass border border-white/8 text-muted-foreground hover:border-white/15"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                {filtered.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">No paths match your search.</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filtered.map((path, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="card-nexus p-5 group cursor-pointer relative"
+                        onClick={() => path.href ? setLocation(path.href) : onSelectPath(path.title)}
+                      >
+                        {path.popular && (
+                          <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-[oklch(0.75_0.18_55_/_0.15)] border border-[oklch(0.75_0.18_55_/_0.3)] text-[oklch(0.85_0.18_55)]">
+                            Popular
+                          </span>
+                        )}
+                        <div className="flex items-start justify-between mb-3">
+                          <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/5 border border-white/8 text-muted-foreground">
+                            {path.category}
+                          </span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mr-16">
+                            <Clock size={10} /> {path.duration}
+                          </span>
+                        </div>
+                        <h4 className="font-semibold text-foreground mb-2 group-hover:text-[oklch(0.85_0.18_55)] transition-colors pr-4">
+                          {path.title}
+                        </h4>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><BookOpen size={10} /> {path.modules} modules</span>
+                            <span className="flex items-center gap-1"><Star size={10} /> {path.level}</span>
+                          </div>
+                          <motion.button
+                            whileHover={{ x: 3 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (path.href) { setLocation(path.href); return; }
+                              onSelectPath(path.title);
+                            }}
+                            className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            {path.href ? "Open course" : "Generate path"} <ArrowRight size={12} />
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
-                  <motion.button
-                    whileHover={{ x: 3 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (path.href) {
-                        setLocation(path.href);
-                        return;
-                      }
-                      onSelectPath(path.title);
-                    }}
-                    className="flex items-center gap-1 text-xs font-medium text-[oklch(0.75_0.18_55)] opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    {path.href ? "Open course" : "Generate path"} <ArrowRight size={12} />
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -8307,9 +8134,17 @@ const featuredPaths: { title: string; level: string; duration: string; modules: 
 ];
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
+function LearnTabSkeleton() {
+  return (
+    <div className="glass rounded-2xl p-8 border border-white/8 flex items-center justify-center min-h-60">
+      <Loader2 size={18} className="animate-spin text-[var(--nexus-gold)]" />
+    </div>
+  );
+}
+
 export default function Learn() {
-  const [activeTab, setActiveTab] = useState<"curriculum" | "socratic" | "paths">("curriculum");
   const [prefillGoal, setPrefillGoal] = useState("");
+
   const handleLearnKeyDownCapture = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement | null;
     if (!target) return;
@@ -8326,19 +8161,18 @@ export default function Learn() {
 
   const handleSelectPath = (pathTitle: string) => {
     setPrefillGoal(`I want to learn: ${pathTitle}`);
-    setActiveTab("curriculum");
+    // Scroll down to curriculum generator
+    setTimeout(() => {
+      document.getElementById("curriculum-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
-  const tabs = [
-    { id: "curriculum" as const, label: "AI Curriculum", icon: Target, desc: "Build your personalized path" },
-    { id: "socratic" as const, label: "Socratic Mode", icon: MessageSquare, desc: "Learn by questioning" },
-    { id: "paths" as const, label: "Learning Paths", icon: GraduationCap, desc: "Curated courses & paths" },
-  ];
 
   return (
     <PageWrapper pageName="learn">
       <div className="min-h-screen pt-20" onKeyDownCapture={handleLearnKeyDownCapture}>
+
         {/* Hero */}
-        <section className="py-16 px-4">
+        <section className="py-12 px-4">
           <div className="max-w-6xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -8363,66 +8197,57 @@ export default function Learn() {
               transition={{ delay: 0.2 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Tell us your goal. We build a personalized curriculum. Or engage in Socratic dialogue — where the AI never gives you the answer, only better questions.
+              Curated courses, AI-generated curricula, or Socratic dialogue — pick your path.
             </motion.p>
           </div>
         </section>
 
-        {/* Stats bar */}
-        <section className="pb-8 px-4">
+        {/* ── TOP: Learning Paths ── */}
+        <section className="pb-10 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Curricula Generated", value: "2,400+", icon: Target },
-                { label: "Socratic Sessions", value: "8,100+", icon: MessageSquare },
-                { label: "Concepts Mastered", value: "41,000+", icon: CheckCircle2 },
-              ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="card-nexus p-4 text-center">
-                  <Icon size={16} className="text-[var(--nexus-gold)] mx-auto mb-2" />
-                  <div className="text-xl font-bold text-foreground">{value}</div>
-                  <div className="text-xs text-muted-foreground">{label}</div>
-                </div>
-              ))}
+            <div className="flex items-center gap-2 mb-5">
+              <GraduationCap size={16} className="text-[var(--nexus-gold)]" />
+              <h2 className="text-base font-bold text-foreground uppercase tracking-widest">Learning Paths</h2>
+              <span className="text-xs text-muted-foreground">— curated courses, start immediately</span>
             </div>
+            <PathsTab onSelectPath={handleSelectPath} />
           </div>
         </section>
 
-        {/* Tabs */}
-        <section className="pb-4 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex border-b border-border/60 mb-8 overflow-x-auto">
-              {tabs.map(({ id, label, icon: Icon, desc }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={`flex items-center gap-2 py-3 px-5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px shrink-0 ${
-                    activeTab === id
-                      ? "border-[var(--nexus-gold)] text-[var(--nexus-gold)]"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span className="hidden sm:block">{label}</span>
-                  <span className="hidden md:block text-xs opacity-60">{desc}</span>
-                </button>
-              ))}
-            </div>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="border-t border-border/40" />
+        </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {activeTab === "curriculum" && <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />}
-                {activeTab === "socratic" && <SocraticTutor />}
-                {activeTab === "paths" && <PathsTab onSelectPath={handleSelectPath} />}
-              </motion.div>
-            </AnimatePresence>
+        {/* ── MIDDLE: AI Curriculum Generator ── */}
+        <section id="curriculum-section" className="py-10 px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center gap-2 mb-5">
+              <Target size={16} className="text-[var(--nexus-gold)]" />
+              <h2 className="text-base font-bold text-foreground uppercase tracking-widest">AI Curriculum Generator</h2>
+              <span className="text-xs text-muted-foreground">— describe your goal, get a full learning plan</span>
+            </div>
+            <CurriculumGenerator key={prefillGoal} initialGoal={prefillGoal} />
           </div>
         </section>
+
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="border-t border-border/40" />
+        </div>
+
+        {/* ── BOTTOM: Socratic Mode ── */}
+        <section className="py-10 px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center gap-2 mb-5">
+              <MessageSquare size={16} className="text-[var(--nexus-gold)]" />
+              <h2 className="text-base font-bold text-foreground uppercase tracking-widest">Socratic Mode</h2>
+              <span className="text-xs text-muted-foreground">— learn through questions, not answers</span>
+            </div>
+            <Suspense fallback={<LearnTabSkeleton />}>
+              <SocraticTutorPanel />
+            </Suspense>
+          </div>
+        </section>
+
       </div>
     </PageWrapper>
   );
