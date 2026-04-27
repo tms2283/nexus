@@ -150,7 +150,7 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop nav links */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-0">
             {NAV_LINKS.map(link => {
               const isActive = activeLabel === link.label;
               const isOpen = openSection === link.label;
@@ -184,30 +184,36 @@ export default function Navigation() {
 
               // Dropdown link
               return (
-                <div key={link.label} className="relative">
-                  <button
-                    onClick={() => setOpenSection(isOpen ? null : link.label)}
-                    onMouseEnter={() => setOpenSection(link.label)}
-                    onMouseLeave={e => {
-                      const related = e.relatedTarget as Node;
-                      if (!navRef.current?.contains(related)) setOpenSection(null);
-                    }}
-                    className="relative flex items-center px-3.5 text-sm font-medium transition-colors duration-150"
-                    style={{
-                      height: "56px",
-                      color: isActive ? "oklch(0.92 0.008 255)" : "oklch(0.55 0.010 255)",
-                    }}
-                  >
-                    {link.label}
-                    {isActive && (
-                      <motion.span
-                        layoutId="nav-indicator"
-                        className="absolute bottom-0 left-2 right-2 rounded-t-sm"
-                        style={{ height: "2px", background: "oklch(0.78 0.16 52)" }}
-                        transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
-                      />
-                    )}
-                  </button>
+                <div
+                  key={link.label}
+                  className="relative"
+                  onMouseEnter={() => setOpenSection(link.label)}
+                  onMouseLeave={e => {
+                    const related = e.relatedTarget as Node;
+                    if (!navRef.current?.contains(related)) setOpenSection(null);
+                  }}
+                >
+                  <Link href={link.href}>
+                    <div
+                      className="relative flex items-center px-3.5 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                      style={{
+                        height: "56px",
+                        color: isActive ? "oklch(0.92 0.008 255)" : "oklch(0.55 0.010 255)",
+                      }}
+                      onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "oklch(0.78 0.008 255)"; }}
+                      onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.010 255)"; }}
+                    >
+                      {link.label}
+                      {isActive && (
+                        <motion.span
+                          layoutId="nav-indicator"
+                          className="absolute bottom-0 left-2 right-2 rounded-t-sm"
+                          style={{ height: "2px", background: "oklch(0.78 0.16 52)" }}
+                          transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
+                        />
+                      )}
+                    </div>
+                  </Link>
 
                   {/* Dropdown panel */}
                   <AnimatePresence>
