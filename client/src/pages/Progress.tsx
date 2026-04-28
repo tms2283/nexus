@@ -56,7 +56,7 @@ export default function ProgressPage() {
   if (!isLoaded) {
     return (
       <PageWrapper pageName="Progress">
-        <div className="flex items-center justify-center h-96">
+        <div className="pt-16 flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[oklch(0.75_0.18_55)]" />
         </div>
       </PageWrapper>
@@ -65,7 +65,7 @@ export default function ProgressPage() {
 
   return (
     <PageWrapper pageName="Progress">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 pt-16">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

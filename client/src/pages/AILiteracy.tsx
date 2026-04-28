@@ -319,30 +319,58 @@ const ETHICS_SCENARIOS: EthicsScenario[] = [
 
 function Narrator({ text, autoPlay = false }: { text: string; autoPlay?: boolean }) {
   const [speaking, setSpeaking] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(false);
-  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ttsMutation = trpc.lesson.textToSpeech.useMutation();
 
-  const speak = useCallback(() => {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.92; utter.pitch = 1.0; utter.volume = muted ? 0 : 1;
-    utter.onend = () => setSpeaking(false);
-    utter.onerror = () => setSpeaking(false);
-    utterRef.current = utter;
-    setSpeaking(true);
-    window.speechSynthesis.speak(utter);
+  const speak = useCallback(async () => {
+    if (muted) return;
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      setSpeaking(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { audioUrl } = await ttsMutation.mutateAsync({ text: text.slice(0, 2000) });
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = () => setSpeaking(false);
+      audio.onerror = () => setSpeaking(false);
+      await audio.play();
+      setSpeaking(true);
+    } catch {
+      // Fallback to browser TTS
+      window.speechSynthesis?.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.92;
+      u.onend = () => setSpeaking(false);
+      setSpeaking(true);
+      window.speechSynthesis?.speak(u);
+    } finally {
+      setLoading(false);
+    }
   }, [text, muted]);
 
-  const stop = useCallback(() => { window.speechSynthesis?.cancel(); setSpeaking(false); }, []);
+  const stop = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
+  }, []);
 
   useEffect(() => {
     if (autoPlay && !muted) speak();
-    return () => { window.speechSynthesis?.cancel(); setSpeaking(false); };
+    return () => {
+      audioRef.current?.pause();
+      window.speechSynthesis?.cancel();
+      setSpeaking(false);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPlay]);
 
-  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
+  useEffect(() => () => { audioRef.current?.pause(); window.speechSynthesis?.cancel(); }, []);
 
   return (
     <div className="flex items-center gap-2 p-3 rounded-xl bg-[oklch(0.75_0.18_55_/_0.08)] border border-[oklch(0.75_0.18_55_/_0.2)]">
@@ -367,6 +395,12 @@ function Narrator({ text, autoPlay = false }: { text: string; autoPlay?: boolean
         {speaking ? (
           <button onClick={stop} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/10 text-xs text-foreground hover:bg-white/15 transition-colors">
             <Pause size={11} /> Stop
+          </button>
+        ) : loading ? (
+          <button disabled className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[oklch(0.75_0.18_55_/_0.1)] text-xs text-[oklch(0.65_0.18_55)] cursor-not-allowed">
+            <motion.div className="w-2.5 h-2.5 rounded-full border border-[oklch(0.75_0.18_55)] border-t-transparent"
+              animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: "linear" }} />
+            Loading
           </button>
         ) : (
           <button onClick={speak} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[oklch(0.75_0.18_55_/_0.2)] border border-[oklch(0.75_0.18_55_/_0.3)] text-xs text-[oklch(0.85_0.18_55)] hover:bg-[oklch(0.75_0.18_55_/_0.3)] transition-colors">

@@ -55,7 +55,7 @@ export default function Leaderboard() {
 
   return (
     <PageWrapper pageName="leaderboard">
-      <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 pt-16 pb-12 space-y-8">
         {/* Header */}
         <div className="text-center space-y-3">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full card-nexus text-xs font-medium text-muted-foreground">

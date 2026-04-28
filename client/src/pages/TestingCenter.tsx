@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import PageWrapper from "@/components/PageWrapper";
+import StarButton from "@/components/StarButton";
+import { useBookmarks } from "@/hooks/useBookmarks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Question {
@@ -214,10 +216,10 @@ const logicQuestions: Question[] = [
   { id: "log4", question: "A is taller than B. B is taller than C. C is taller than D. Who is the shortest?", options: ["A", "B", "C", "D"], correct: 3, explanation: "A > B > C > D, therefore D is the shortest." },
   { id: "log5", question: "What logical fallacy is: 'You can't trust John's opinion on climate change — he drives an SUV'?", options: ["Straw man", "Ad hominem", "False dichotomy", "Slippery slope"], correct: 1, explanation: "Ad hominem attacks the person rather than their argument." },
   { id: "log6", question: "If no A are B, and all C are B, then:", options: ["All C are A", "No C are A", "Some C are A", "Cannot determine"], correct: 1, explanation: "If no A are B, and all C are B, then C and A share no members — no C are A." },
-  { id: "log7", question: "Which argument is valid? (P1: All dogs bark. P2: Rex barks.)", options: ["Rex is a dog", "Rex might be a dog", "Rex is not a dog", "Cannot conclude"], correct: 3, explanation: "This is the fallacy of affirming the consequent. Other things bark too. We cannot conclude Rex is a dog." },
+  { id: "log7", question: "Which argument is valid? (P1: All dogs bark. P2: Rex barks.)", options: ["Rex is a dog", "Rex might be a dog", "Rex is not a dog", "Cannot conclude"], correct: 1, explanation: "Saying Rex IS a dog commits the fallacy of affirming the consequent — many things bark besides dogs. We equally cannot say Rex is NOT a dog. 'Rex might be a dog' is correct: it's possible but not logically certain from these premises." },
   { id: "log8", question: "In Boolean logic, what is TRUE AND FALSE?", options: ["TRUE", "FALSE", "UNDEFINED", "NULL"], correct: 1, explanation: "AND requires both operands to be TRUE. TRUE AND FALSE = FALSE." },
   { id: "log9", question: "What is the negation of 'Some cats are black'?", options: ["All cats are black", "No cats are black", "Some cats are not black", "All cats are not black"], correct: 1, explanation: "The negation of 'Some A are B' is 'No A are B' (¬∃x: Ax ∧ Bx = ∀x: Ax → ¬Bx)." },
-  { id: "log10", question: "A says 'B always lies'. B says 'A always tells the truth'. Who is telling the truth?", options: ["A only", "B only", "Both", "Neither — it's a paradox"], correct: 3, explanation: "If A tells the truth, then B lies, so B's statement that A tells the truth is false — contradiction. This is a self-referential paradox." },
+  { id: "log10", question: "A says 'B always lies'. B says 'A always tells the truth'. Who is telling the truth?", options: ["A only", "B only", "Both", "Neither — it's a paradox"], correct: 0, explanation: "A can be telling the truth (B does always lie) while B's claim is false — B says A ALWAYS tells the truth, but A only needs to tell the truth sometimes. There's no paradox: A is truthful now, B is lying now, and B's lie is that A is truthful always." },
 ];
 
 // ─── Test Configurations ──────────────────────────────────────────────────────
@@ -425,16 +427,17 @@ function Timer({ seconds, onExpire }: { seconds: number; onExpire: () => void })
 }
 
 // ─── Active Test Component ────────────────────────────────────────────────────
-function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score: number, answers: number[], timeUsed: number) => void }) {
+function ActiveTest({ test, onComplete, questionsOverride }: { test: TestConfig; onComplete: (score: number, answers: number[], timeUsed: number) => void; questionsOverride?: TestConfig["questions"] }) {
+  const questions = questionsOverride ?? test.questions;
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(new Array(test.questions.length).fill(-1));
+  const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [selected, setSelected] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [startTime] = useState(Date.now());
   const [timeUsed, setTimeUsed] = useState(0);
 
-  const q = test.questions[current];
-  const isLast = current === test.questions.length - 1;
+  const q = questions[current];
+  const isLast = current === questions.length - 1;
 
   const handleSelect = (idx: number) => {
     if (showFeedback) return;
@@ -453,19 +456,19 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
       if (isLast) {
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         setTimeUsed(elapsed);
-        const score = newAnswers.filter((a, i) => a === test.questions[i].correct).length;
+        const score = newAnswers.filter((a, i) => a === questions[i].correct).length;
         onComplete(score, newAnswers, elapsed);
       } else {
         setCurrent(c => c + 1);
       }
     }, 1500);
-  }, [selected, answers, current, isLast, startTime, test.questions, onComplete]);
+  }, [selected, answers, current, isLast, startTime, questions, onComplete]);
 
   const handleTimeUp = useCallback(() => {
     const elapsed = test.timeLimit;
-    const score = answers.filter((a, i) => a === test.questions[i].correct).length;
+    const score = answers.filter((a, i) => a === questions[i].correct).length;
     onComplete(score, answers, elapsed);
-  }, [answers, test, onComplete]);
+  }, [answers, test, questions, onComplete]);
 
   if (!q) return null;
 
@@ -477,12 +480,12 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: `${test.color}22`, color: test.color }}>
             {current + 1}
           </div>
-          <span className="text-sm text-muted-foreground">of {test.questions.length} questions</span>
+          <span className="text-sm text-muted-foreground">of {questions.length} questions</span>
         </div>
         <Timer seconds={test.timeLimit} onExpire={handleTimeUp} />
       </div>
 
-      <Progress value={((current + 1) / test.questions.length) * 100} className="mb-8 h-1" />
+      <Progress value={((current + 1) / questions.length) * 100} className="mb-8 h-1" />
 
       {/* Question */}
       <AnimatePresence mode="wait">
@@ -496,16 +499,34 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
 
           <div className="space-y-3">
             {q.options.map((opt, idx) => {
-              let borderColor = "border-border/60";
-              let bg = "bg-transparent";
-              let textColor = "text-foreground";
+              const isSelected = selected === idx;
+              const isCorrect = idx === q.correct;
+              const isWrong = showFeedback && isSelected && !isCorrect;
 
-              if (showFeedback) {
-                if (idx === q.correct) { borderColor = "border-[oklch(0.70_0.20_150)]"; bg = "bg-[oklch(0.70_0.20_150_/_0.15)]"; textColor = "text-[oklch(0.80_0.20_150)]"; }
-                else if (idx === selected && selected !== q.correct) { borderColor = "border-[oklch(0.70_0.20_0)]"; bg = "bg-[oklch(0.70_0.20_0_/_0.15)]"; textColor = "text-[oklch(0.80_0.20_0)]"; }
-              } else if (selected === idx) {
-                borderColor = `border-[${test.color}]`;
-                bg = `bg-[${test.color}_/_0.1]`;
+              let borderStyle: React.CSSProperties = { borderColor: "oklch(0.28 0.016 255 / 0.6)" };
+              let bgStyle: React.CSSProperties = {};
+              let badgeBg = "transparent";
+              let badgeBorder = "oklch(0.28 0.016 255 / 0.6)";
+              let badgeText = "oklch(0.55 0.010 255)";
+
+              if (showFeedback && isCorrect) {
+                borderStyle = { borderColor: "oklch(0.70 0.20 150)", borderWidth: 2 };
+                bgStyle = { background: "oklch(0.70 0.20 150 / 0.12)" };
+                badgeBg = "oklch(0.70 0.20 150 / 0.25)";
+                badgeBorder = "oklch(0.70 0.20 150)";
+                badgeText = "oklch(0.85 0.20 150)";
+              } else if (isWrong) {
+                borderStyle = { borderColor: "oklch(0.65 0.22 25)", borderWidth: 2 };
+                bgStyle = { background: "oklch(0.65 0.22 25 / 0.10)" };
+                badgeBg = "oklch(0.65 0.22 25 / 0.25)";
+                badgeBorder = "oklch(0.65 0.22 25)";
+                badgeText = "oklch(0.85 0.22 25)";
+              } else if (!showFeedback && isSelected) {
+                borderStyle = { borderColor: test.color, borderWidth: 2 };
+                bgStyle = { background: `color-mix(in oklch, ${test.color} 12%, transparent)` };
+                badgeBg = test.color;
+                badgeBorder = test.color;
+                badgeText = "oklch(0.10 0.010 255)";
               }
 
               return (
@@ -513,14 +534,17 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
                   key={idx}
                   whileHover={!showFeedback ? { x: 4 } : {}}
                   onClick={() => handleSelect(idx)}
-                  className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bg} ${textColor} transition-all duration-200 flex items-center gap-4 ${!showFeedback ? "cursor-pointer hover:border-border/60" : "cursor-default"}`}
+                  className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center gap-4 ${!showFeedback ? "cursor-pointer" : "cursor-default"}`}
+                  style={{ ...borderStyle, ...bgStyle }}
                 >
-                  <span className="w-7 h-7 rounded-full border border-border/60 flex items-center justify-center text-xs font-bold flex-shrink-0 text-muted-foreground">
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all duration-200"
+                    style={{ background: badgeBg, border: `1px solid ${badgeBorder}`, color: badgeText }}>
                     {String.fromCharCode(65 + idx)}
                   </span>
-                  <span className="text-sm leading-relaxed">{opt}</span>
-                  {showFeedback && idx === q.correct && <CheckCircle size={18} className="ml-auto text-[oklch(0.70_0.20_150)] flex-shrink-0" />}
-                  {showFeedback && idx === selected && selected !== q.correct && <XCircle size={18} className="ml-auto text-[oklch(0.70_0.20_0)] flex-shrink-0" />}
+                  <span className={`text-sm leading-relaxed flex-1 transition-colors ${(!showFeedback && isSelected) ? "text-foreground font-medium" : "text-foreground"}`}>{opt}</span>
+                  {showFeedback && isCorrect && <CheckCircle size={18} className="ml-auto flex-shrink-0" style={{ color: "oklch(0.70 0.20 150)" }} />}
+                  {isWrong && <XCircle size={18} className="ml-auto flex-shrink-0" style={{ color: "oklch(0.65 0.22 25)" }} />}
+                  {!showFeedback && isSelected && <div className="ml-auto w-2 h-2 rounded-full flex-shrink-0" style={{ background: test.color }} />}
                 </motion.button>
               );
             })}
@@ -544,11 +568,29 @@ function ActiveTest({ test, onComplete }: { test: TestConfig; onComplete: (score
 }
 
 // ─── Results Component ────────────────────────────────────────────────────────
-function TestResults({ test, score, answers, timeUsed, onRetry, onBack }: { test: TestConfig; score: number; answers: number[]; timeUsed: number; onRetry: () => void; onBack: () => void }) {
+function TestResults({ test, score, answers, timeUsed, onRetry, onBack, onKeepGoing, totalRounds }: { test: TestConfig; score: number; answers: number[]; timeUsed: number; onRetry: () => void; onBack: () => void; onKeepGoing: () => void; totalRounds: number }) {
   const pct = Math.round((score / test.questions.length) * 100);
   const passed = pct >= test.passingScore;
   const iqScore = test.id === "iq" ? calculateIQ(score, test.questions.length, timeUsed, test.timeLimit) : null;
   const iqInfo = iqScore ? getIQLabel(iqScore) : null;
+  const { add: addBookmark } = useBookmarks();
+
+  // Auto-bookmark wrong answers
+  useEffect(() => {
+    const wrong = test.questions.filter((q, i) => answers[i] !== q.correct);
+    wrong.forEach(q => {
+      addBookmark({
+        topic: q.question,
+        context: `You answered incorrectly. Correct: ${q.options[q.correct]}`,
+        source: test.title,
+        type: "question",
+      });
+    });
+    if (wrong.length > 0) {
+      toast(`${wrong.length} missed question${wrong.length > 1 ? "s" : ""} auto-bookmarked for review`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto text-center">
@@ -603,31 +645,61 @@ function TestResults({ test, score, answers, timeUsed, onRetry, onBack }: { test
                 <p className="text-foreground font-medium truncate">{q.question}</p>
                 {!correct && <p className="text-xs text-muted-foreground mt-0.5">Correct: {q.options[q.correct]}</p>}
               </div>
+              <StarButton topic={q.question} context={`Correct: ${q.options[q.correct]}`} source={test.title} type="question" size={13} className="flex-shrink-0 mt-0.5" />
             </div>
           );
         })}
       </div>
 
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={onBack} className="flex-1 h-11"><ArrowLeft size={16} className="mr-2" />All Tests</Button>
-        <Button onClick={onRetry} className="flex-1 h-11" style={{ background: test.color, color: "oklch(0.15 0.02 280)" }}><RotateCcw size={16} className="mr-2" />Retry</Button>
+      {totalRounds > 1 && (
+        <p className="text-xs text-muted-foreground mb-3">Round {totalRounds} complete</p>
+      )}
+      <div className="flex flex-col gap-2.5">
+        <Button onClick={onKeepGoing} className="w-full h-11 text-base font-semibold" style={{ background: test.color, color: "oklch(0.10 0.010 255)" }}>
+          <ChevronRight size={18} className="mr-2" />Keep Going — More Questions
+        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onBack} className="flex-1 h-11"><ArrowLeft size={16} className="mr-2" />All Tests</Button>
+          <Button variant="outline" onClick={onRetry} className="flex-1 h-11"><RotateCcw size={16} className="mr-2" />Restart</Button>
+        </div>
       </div>
     </motion.div>
   );
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
+function shuffleQuestions(questions: TestConfig["questions"]): TestConfig["questions"] {
+  const arr = [...questions];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export function TestingCore() {
   const { addXP, cookieId } = usePersonalization();
   const [activeTest, setActiveTest] = useState<TestConfig | null>(null);
+  const [currentQuestions, setCurrentQuestions] = useState<TestConfig["questions"]>([]);
   const [phase, setPhase] = useState<"select" | "active" | "results">("select");
   const [resultData, setResultData] = useState<{ score: number; answers: number[]; timeUsed: number } | null>(null);
+  const [totalRounds, setTotalRounds] = useState(1);
   const addXPMutation = trpc.visitor.addXP.useMutation();
   const saveResultMutation = trpc.testing.saveResult.useMutation();
   const saveIQResultMutation = trpc.testing.saveIQResult.useMutation();
 
   const startTest = (test: TestConfig) => {
     setActiveTest(test);
+    setCurrentQuestions(test.questions);
+    setResultData(null);
+    setTotalRounds(1);
+    setPhase("active");
+  };
+
+  const handleKeepGoing = () => {
+    if (!activeTest) return;
+    setCurrentQuestions(shuffleQuestions(activeTest.questions));
+    setTotalRounds(r => r + 1);
     setResultData(null);
     setPhase("active");
   };
@@ -743,7 +815,7 @@ export function TestingCore() {
                   <h2 className="text-xl font-bold text-foreground">{activeTest.title}</h2>
                 </div>
               </div>
-              <ActiveTest test={activeTest} onComplete={handleComplete} />
+              <ActiveTest test={activeTest} onComplete={handleComplete} questionsOverride={currentQuestions} />
             </div>
           )}
 
@@ -765,6 +837,8 @@ export function TestingCore() {
                 timeUsed={resultData.timeUsed}
                 onRetry={() => startTest(activeTest)}
                 onBack={() => setPhase("select")}
+                onKeepGoing={handleKeepGoing}
+                totalRounds={totalRounds}
               />
             </div>
           )}

@@ -678,7 +678,7 @@ function AILiteracyModule1({ onBack }: { onBack: () => void }) {
       <div className="glass rounded-2xl p-5 border border-white/8">
         <SectionBadge label="THE LANDSCAPE" color="oklch(0.72_0.2_290)" />
         <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-          There are now thousands of AI tools — but they fall into a small number of categories. Pick the right category first, then choose the tool within it.
+          Every major AI tool exists because of a different training objective and architecture. Conversational LLMs predict the next token across vast text corpora. Image diffusion models learn to reverse a noise-adding process conditioned on text. Code AI is fine-tuned on millions of repositories with execution feedback. Voice models learn audio-to-text alignments across hundreds of languages. Each architectural difference produces fundamentally different capabilities — and critical limitations. Choosing the wrong category isn't a prompt problem; it's a tool problem. Master the map first.
         </p>
         {/* Category tabs */}
         <div className="grid grid-cols-2 gap-1.5 mb-4">
@@ -792,6 +792,9 @@ function AILiteracyModule1({ onBack }: { onBack: () => void }) {
 
       <div className="glass rounded-2xl p-5 border border-white/8">
         <SectionBadge label="FREE VS PAID BREAKDOWN" color="oklch(0.75_0.18_55)" />
+        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          The economics are straightforward: frontier models cost tens of millions of dollars to train, so providers gate them behind subscriptions. Free tiers run lighter, older, or rate-limited versions of the same models. What you're paying for is not "better AI in general" — it's access to a specific capability tier (larger context, stronger reasoning, tool use) that free models can't match. The decision isn't emotional; it's an ROI calculation. Select a provider below to compare exactly what changes at each tier.
+        </p>
         {/* Provider selector */}
         <div className="flex gap-1.5 flex-wrap mb-4">
           {FREE_VS_PAID.map((p, i) => (
@@ -981,9 +984,8 @@ function AILiteracyModule1({ onBack }: { onBack: () => void }) {
       {/* Context window visualizer */}
       <div className="glass rounded-2xl p-5 border border-white/8">
         <SectionBadge label="CONTEXT WINDOW COMPARISON" color="oklch(0.72_0.2_290)" />
-        <p className="text-sm text-muted-foreground mb-4">
-          The context window is the AI's working memory — everything it can "see" at once.
-          Larger = more document, longer conversation history.
+        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          The context window is the AI's working memory — every token it can attend to simultaneously when generating a response. Transformer attention is quadratic in complexity, which is why larger windows cost significantly more to run. Critically, not all positions in the context window receive equal attention: research consistently shows that models pay more attention to tokens at the <strong className="text-foreground">beginning and end</strong> of the context ("lost in the middle" effect). This means front-loading your key instructions and constraints isn't just good practice — it's required to ensure the model doesn't deprioritize them as context length grows.
         </p>
         <div className="space-y-3">
           {CONTEXT_WINDOW_SIZES.map(cw => (
@@ -1043,6 +1045,10 @@ function AILiteracyModule1({ onBack }: { onBack: () => void }) {
     <LessonFrame id={4}>
       <AIVoice text="Temperature, model selection, and system prompts are the three levers that most users never touch — and it's costing them half the power of AI. Let's fix that." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Three parameters account for the majority of output quality variance between amateur and expert AI use — and most users leave all three at defaults. Temperature is not a "creativity dial" in any poetic sense: it is a divisor applied to the probability logits before softmax sampling, which literally flattens or sharpens the distribution over possible next tokens. Model selection is an architectural question, not a brand preference. And system prompts are the closest analog AI has to institutional training — they persist across the entire conversation and shape behavior in ways no user message can override. Use the tabs below to understand each one at the level of mechanism, not just surface.
+      </p>
+
       <div className="glass rounded-2xl p-5 border border-white/8">
         <div className="flex gap-1.5 mb-4">
           {(["temperature", "model", "system"] as const).map(tab => (
@@ -1063,7 +1069,7 @@ function AILiteracyModule1({ onBack }: { onBack: () => void }) {
             <motion.div key="temp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
               <SectionBadge label="TEMPERATURE SLIDER" color="oklch(0.68_0.20_140)" />
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Temperature controls randomness. <strong className="text-foreground">Low (0–0.3)</strong>: predictable, consistent, factual. <strong className="text-foreground">High (0.8–1.5)</strong>: creative, varied, surprising — but less reliable.
+                Temperature is applied as a scalar divisor to the raw logits (unnormalized log-probabilities) before softmax is computed. At temperature 0, the highest-probability token is always selected (greedy decoding — fully deterministic). As temperature rises, the distribution flattens: lower-probability tokens become relatively more likely, producing more varied and surprising outputs. At very high temperatures the output becomes incoherent because near-impossible tokens are sampled regularly. <strong className="text-foreground">Low (0–0.3)</strong>: near-deterministic, ideal for factual QA and code. <strong className="text-foreground">Mid (0.6–0.9)</strong>: balanced creativity and reliability. <strong className="text-foreground">High (1.0–1.5)</strong>: exploratory, unpredictable — best for brainstorming and creative writing where you'll curate the output.
               </p>
 
               {/* Visual slider */}
@@ -1638,9 +1644,16 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
     <LessonFrame id={6}>
       <AIVoice text="Every great prompt has the same DNA. Once you see it, you'll never write a vague prompt again — and you'll immediately recognize why a prompt failed." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Every great prompt is built from the same six components. Most people write prompts that only cover one or two of them — and then wonder why the AI gives a generic answer. Once you internalize this anatomy, you'll instantly know what a broken prompt is missing and exactly how to fix it.
+      </p>
+
       {/* Prompt anatomy explainer */}
       <div className="glass rounded-2xl p-5 border border-white/8">
         <SectionBadge label="THE 6 COMPONENTS" color="oklch(0.72_0.2_290)" />
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          Three components are required — without them, the AI has no clear job to do. The other three are optional but powerful: they narrow the output and eliminate the AI's worst default habits.
+        </p>
         <div className="space-y-3">
           {[
             { component: "ROLE / PERSONA", example: '"You are a senior UX researcher specializing in B2B SaaS"', why: "Activates the right vocabulary, knowledge depth, and perspective. Without a role, the AI defaults to a generic helpful assistant — which is mediocre for specialized work.", color: "oklch(0.72_0.2_290)", required: true },
@@ -1724,6 +1737,10 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
     <LessonFrame id={7}>
       <AIVoice text="These four techniques are what separate casual AI users from power users. Chain-of-thought alone can double the accuracy of complex reasoning tasks." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        These four techniques are grounded in how transformer models actually process tokens. Because attention is causal — each token can only attend to previous tokens — the intermediate reasoning steps you force into the output become real context for subsequent tokens. This is why forcing explicit intermediate steps (chain-of-thought) measurably improves accuracy: the model isn't "thinking harder," it's building a richer intermediate representation that the later tokens in the answer can attend to. Published research (Wei et al., 2022) demonstrated 40–70% accuracy gains on complex reasoning benchmarks with CoT alone. Few-shot, role-play, and iterative refinement operate through related mechanisms — all of them shape the statistical context in which the model generates its response. Use the tabs to understand each one and practice it live.
+      </p>
+
       <div className="glass rounded-2xl p-5 border border-white/8">
         <div className="grid grid-cols-2 gap-1.5 mb-4">
           {([
@@ -1749,7 +1766,7 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
             <motion.div key="cot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
               <SectionBadge label="CHAIN OF THOUGHT" color="oklch(0.68_0.22_10)" />
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Adding <strong className="text-foreground">"Think step by step"</strong> or <strong className="text-foreground">"Show your reasoning before answering"</strong> forces the model to generate intermediate steps before concluding — dramatically improving accuracy on math, logic, and multi-step problems.
+                Adding <strong className="text-foreground">"Think step by step"</strong> or <strong className="text-foreground">"Show your reasoning before answering"</strong> forces the model to generate intermediate steps before concluding. The mechanism is not metaphorical: transformer decoders generate tokens left-to-right, and each generated token becomes part of the context that determines the next. When you instruct the model to write out its reasoning, those reasoning tokens become literal context for the final answer tokens — giving the model a richer representational foundation to draw from. Without CoT, the model jumps from question to answer in a single step, compressing and often losing the intermediate logic. <strong className="text-foreground">Zero-shot CoT</strong> (just adding "think step by step") works for most tasks. <strong className="text-foreground">Few-shot CoT</strong> (providing 2-3 worked examples with full reasoning chains) is more powerful for complex domain-specific problems.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-xl bg-[oklch(0.68_0.22_10_/_0.08)] border border-[oklch(0.68_0.22_10_/_0.25)]">
@@ -2007,6 +2024,10 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
     <LessonFrame id={9}>
       <AIVoice text="The fastest way to improve your prompting is to study broken prompts. Each one has a specific failure mode — and once you can name the failure, you can fix it anywhere." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Every broken prompt has a specific, diagnosable failure mode — not just "it wasn't good enough." The failures below represent distinct cognitive errors: insufficient specification of the output space, task decomposition failures, missing evaluation criteria, and instruction polarity problems (only negatives, no positives). Naming the failure mode is the skill. Once you can look at a broken prompt and immediately identify the structural problem, you can fix any prompt in seconds — including ones you've never seen before. Study the problem before you read the fix.
+      </p>
+
       <div className="glass rounded-2xl p-2 border border-white/8 mb-1">
         <div className="grid grid-cols-2 gap-1.5">
           {BROKEN_PROMPTS.map((bp, i) => (
@@ -2099,6 +2120,10 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
     <LessonFrame id={10}>
       <AIVoice text="Custom GPTs, Projects, persistent memory, and AI agents are where the power users live. These aren't features — they're workflows. Set them up once, benefit from them forever." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        The difference between a casual and a professional AI user is persistent configuration. Without it, every conversation starts from scratch — you re-explain your role, your preferences, your constraints, your context. With persistent instructions, custom configs, and agents, you build compounding leverage: each hour of setup saves minutes every day thereafter, indefinitely. Agents represent the furthest point on this spectrum — autonomous AI that can plan a multi-step task, select tools, execute actions, observe results, and iterate without requiring your input at each step. The three tabs below cover the full spectrum from "less repetition" (memory) to "full delegation" (agents).
+      </p>
+
       <div className="glass rounded-2xl p-5 border border-white/8">
         <div className="grid grid-cols-3 gap-1.5 mb-4">
           {([
@@ -2189,7 +2214,7 @@ function AILiteracyModule2({ onBack }: { onBack: () => void }) {
             <motion.div key="agent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
               <SectionBadge label="AI AGENTS" color="oklch(0.75_0.18_55)" />
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Agents don't just respond — they <strong className="text-foreground">act</strong>. An agent can search the web, read files, write and run code, call APIs, and make decisions across multiple steps to complete a complex goal. Think of them as AI that can do a job, not just answer a question.
+                Agents don't just respond — they <strong className="text-foreground">act</strong>. An agent can search the web, read files, write and run code, call APIs, and make decisions across multiple steps to complete a complex goal. The dominant pattern in production agents is <strong className="text-foreground">ReAct</strong> (Reason + Act): the model alternates between generating a reasoning trace ("I need to search for the current price, then compare to the competitor...") and calling a tool (search, read file, execute code). Each tool result is fed back into context, and the model reasons again. This loop continues until the agent concludes it has completed the task. The practical implication: agents are only as reliable as their tools and the model's ability to recover from tool errors — which is why human oversight of agentic tasks is still essential for high-stakes work.
               </p>
               <div className="space-y-2">
                 {[
@@ -2537,6 +2562,10 @@ function AILiteracyModule3({ onBack }: { onBack: () => void }) {
     <LessonFrame id={11}>
       <AIVoice text="A great image prompt is like a painting brief — subject, style, medium, lighting, mood. The more precise your vocabulary, the more powerful your results." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Image generation models like Stable Diffusion, Midjourney, Flux, and DALL-E 3 operate through a process called <strong className="text-foreground">latent diffusion</strong>: the model learns to iteratively remove noise from a noisy image, guided by a text embedding that represents your prompt. Your text is converted into a high-dimensional vector in the same embedding space as image features — which means the vocabulary you use maps directly to learned visual concepts. Art-direction terms like "Rembrandt lighting," "8K cinematic," or "f/1.4 bokeh" produce reliable results because these exact phrases appeared repeatedly alongside high-quality images in the training data. Vague language produces vague images not because the model isn't "trying" — it's because the embedding for "a nice picture" is close to many different images simultaneously and the model samples from that ambiguity. This lesson teaches you to speak the model's language precisely.
+      </p>
+
       <div className="flex gap-1.5 mb-2">
         {(["studio", "params", "quiz"] as const).map(t => (
           <button key={t} onClick={() => setImgTab(t)}
@@ -2689,6 +2718,10 @@ function AILiteracyModule3({ onBack }: { onBack: () => void }) {
   const Lesson12 = () => (
     <LessonFrame id={12}>
       <AIVoice text="AI can now hear, see, and speak. Multimodal means you're no longer limited to text — you can show AI a photo, play it audio, and get rich intelligent responses across all those modalities." />
+
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Multimodal AI is made possible by training models on aligned cross-modal datasets — millions of (image, caption) pairs, (audio, transcript) pairs, and (video, description) pairs — that teach the model to represent meaning in a shared embedding space across modalities. Models like GPT-4o and Gemini 1.5 Pro don't "look at an image" in any human sense; they pass the image through a vision encoder that converts pixel patches into vectors in the same space as language tokens, allowing the transformer's attention mechanism to reason jointly over text and image features in a single forward pass. This architectural integration is why you can ask "what's wrong with this code?" while pasting a screenshot, and get a specific, accurate answer — the model simultaneously attends to the visual and textual context.
+      </p>
 
       <div className="flex gap-1.5 mb-2">
         {(["transcribe", "voice", "multi", "quiz"] as const).map(t => (
@@ -2843,6 +2876,10 @@ function AILiteracyModule3({ onBack }: { onBack: () => void }) {
     <LessonFrame id={13}>
       <AIVoice text="Automation is where AI stops being a tool you use and starts being a system that works for you. Set up the right pipelines once, and AI handles the work while you sleep." />
 
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        An AI pipeline is a sequence of discrete processing steps where AI handles the decision-making and transformation logic between a trigger event and a final output. Effective pipeline design requires three engineering judgments: <strong className="text-foreground">trigger selection</strong> (what event initiates the workflow — webhook, schedule, file creation, email receipt), <strong className="text-foreground">AI placement</strong> (which steps require AI judgment vs. deterministic logic), and <strong className="text-foreground">failure handling</strong> (what happens when an API call fails, an AI output is malformed, or a downstream step errors). Most beginners skip failure handling entirely — the result is automations that work perfectly in testing and fail silently in production. The highest-leverage pipelines also have tight feedback loops: they route exceptions back to human review rather than propagating bad outputs downstream.
+      </p>
+
       <div className="flex gap-1.5 mb-2">
         {(["recipes", "builder", "quiz"] as const).map(t => (
           <button key={t} onClick={() => setAutoTab(t)}
@@ -2991,6 +3028,10 @@ function AILiteracyModule3({ onBack }: { onBack: () => void }) {
     return (
       <LessonFrame id={14}>
         <AIVoice text="Trust but verify. AI is fluent, confident, and sometimes completely wrong. The skill isn't doubting AI — it's knowing exactly which claims need external verification and how to do it fast." />
+
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          AI hallucination is not a temporary defect waiting to be patched — it is a structural consequence of how language models work. These models generate text by predicting the statistically most likely next token given prior context. They have no separate knowledge retrieval mechanism and no internal truth-checking module. When a model writes a confident citation for a paper that doesn't exist, it is not malfunctioning: it has learned that academic sentences like the one it's generating are typically followed by specific citation patterns, and it reproduces that pattern — whether or not any matching paper exists. The phenomenon is sometimes called <strong className="text-foreground">confabulation</strong> (from clinical neuropsychology, where it describes fabricated memories produced without intent to deceive). Understanding the mechanism changes how you use AI: outputs become drafts requiring targeted verification, not authoritative sources. The skill isn't blanket distrust — it's precise risk assessment: knowing exactly which claim types are high-risk and how to verify them in under two minutes.
+        </p>
 
         <div className="flex gap-1.5 mb-2">
           {(["redflags", "verifier", "quiz"] as const).map(t => (

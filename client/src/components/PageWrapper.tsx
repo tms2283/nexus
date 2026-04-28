@@ -35,7 +35,7 @@ export default function PageWrapper({ children, pageName, className = "" }: Page
       animate="animate"
       exit="exit"
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className={`pt-16 min-h-screen ${showEditChrome ? "relative ring-1 ring-inset ring-[oklch(0.75_0.18_55_/_0.22)]" : ""} ${className}`}
+      className={`min-h-screen ${showEditChrome ? "relative ring-1 ring-inset ring-[oklch(0.75_0.18_55_/_0.22)]" : ""} ${className}`}
     >
       {showEditChrome && (
         <div className="pointer-events-none absolute inset-x-4 top-20 z-20 rounded-2xl border border-dashed border-[oklch(0.75_0.18_55_/_0.4)] bg-[oklch(0.75_0.18_55_/_0.08)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[oklch(0.82_0.18_55)]">

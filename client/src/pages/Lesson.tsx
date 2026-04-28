@@ -321,7 +321,7 @@ export default function LessonPage() {
   if (isLoading) {
     return (
       <PageWrapper pageName="Lesson">
-        <div className="max-w-6xl mx-auto py-12 px-4">
+        <div className="max-w-6xl mx-auto pt-16 pb-12 px-4">
           <HeroSkeleton />
           <div className="mt-8"><TextBlockSkeleton lines={7} /></div>
         </div>
@@ -349,7 +349,7 @@ export default function LessonPage() {
 
   return (
     <PageWrapper pageName="Lesson">
-      <div className="max-w-7xl mx-auto py-6 px-4">
+      <div className="max-w-7xl mx-auto pt-16 pb-6 px-4">
         <button
           onClick={() => setLocation("/learn")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-5"

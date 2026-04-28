@@ -21,17 +21,27 @@ function EntranceQuiz({ onComplete, onSkip }: { onComplete: (results: Record<str
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [batchDone, setBatchDone] = useState(false); // true when a batch is fully answered
+  const [batch, setBatch] = useState(1);
   const { cookieId } = usePersonalization();
   const generateQuiz = trpc.ai.generateQuiz.useMutation();
   const completeQuiz = trpc.visitor.completeQuiz.useMutation();
 
   useEffect(() => {
-    generateQuiz.mutate({ cookieId }, {
+    generateQuiz.mutate({ cookieId, batch: 1 }, {
       onSuccess: (data) => { setQuestions(data.questions); setLoading(false); },
       onError: () => setLoading(false),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const finish = (finalAnswers: Record<string, string>) => {
+    const topics = questions.map(q => q.category).filter(Boolean);
+    completeQuiz.mutate({ cookieId, results: finalAnswers, preferredTopics: topics }, {
+      onSuccess: () => onComplete(finalAnswers, topics),
+    });
+  };
 
   const handleAnswer = (questionId: string, answer: string) => {
     const newAnswers = { ...answers, [questionId]: answer };
@@ -39,11 +49,23 @@ function EntranceQuiz({ onComplete, onSkip }: { onComplete: (results: Record<str
     if (current < questions.length - 1) {
       setTimeout(() => setCurrent(c => c + 1), 280);
     } else {
-      const topics = questions.map(q => q.category).filter(Boolean);
-      completeQuiz.mutate({ cookieId, results: newAnswers, preferredTopics: topics }, {
-        onSuccess: () => onComplete(newAnswers, topics),
-      });
+      setBatchDone(true);
     }
+  };
+
+  const handleKeepGoing = () => {
+    const nextBatch = batch + 1;
+    setBatch(nextBatch);
+    setLoadingMore(true);
+    setBatchDone(false);
+    generateQuiz.mutate({ cookieId, batch: nextBatch }, {
+      onSuccess: (data) => {
+        setQuestions(prev => [...prev, ...data.questions]);
+        setCurrent(questions.length); // jump to first new question
+        setLoadingMore(false);
+      },
+      onError: () => setLoadingMore(false),
+    });
   };
 
   if (loading) return (
@@ -60,18 +82,48 @@ function EntranceQuiz({ onComplete, onSkip }: { onComplete: (results: Record<str
     </div>
   );
 
+  // Batch complete — show "Keep Going" / "Done" choice
+  if (batchDone) return (
+    <AnimatePresence mode="wait">
+      <motion.div key="batch-done" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="py-4 text-center">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+          style={{ background: "oklch(0.78 0.16 52 / 0.15)", border: "1px solid oklch(0.78 0.16 52 / 0.35)" }}>
+          <CheckCircle2 size={22} style={{ color: "oklch(0.78 0.16 52)" }} />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-1">Great answers!</h3>
+        <p className="text-sm mb-6" style={{ color: "oklch(0.52 0.010 255)" }}>
+          The more you share, the better Nexus can tailor your experience.
+        </p>
+        <div className="flex flex-col gap-2.5">
+          <button onClick={handleKeepGoing} disabled={loadingMore}
+            className="btn-primary w-full justify-center gap-2">
+            {loadingMore ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            Keep Going — answer more questions
+          </button>
+          <button onClick={() => finish(answers)}
+            className="btn-ghost w-full justify-center">
+            Done — show me my results
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+
   const q = questions[current];
+  const totalAnswered = Object.keys(answers).length;
   return (
     <div className="py-2">
-      <div className="flex gap-1.5 mb-8">
+      <div className="flex gap-1 mb-2">
         {questions.map((_, i) => (
           <div key={i} className="h-1 flex-1 rounded-full transition-all duration-500"
-            style={{ background: i < current ? "oklch(0.78 0.16 52)" : i === current ? "oklch(0.78 0.16 52 / 0.45)" : "oklch(0.20 0.016 255)" }} />
+            style={{ background: i < totalAnswered ? "oklch(0.78 0.16 52)" : i === current ? "oklch(0.78 0.16 52 / 0.45)" : "oklch(0.20 0.016 255)" }} />
         ))}
       </div>
+      <p className="text-[10px] uppercase tracking-widest mb-6" style={{ color: "oklch(0.42 0.010 255)" }}>
+        {totalAnswered} answered · question {current + 1}
+      </p>
       <AnimatePresence mode="wait">
         <motion.div key={current} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.22 }}>
-          <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "oklch(0.52 0.010 255)" }}>Question {current + 1} of {questions.length}</p>
           <h3 className="text-lg font-semibold text-foreground mb-5 leading-snug">{q.question}</h3>
           <div className="space-y-2.5">
             {q.options.map((option, i) => (
@@ -105,7 +157,7 @@ const FEATURES = [
 ];
 
 const HOW_IT_WORKS = [
-  { step: "01", icon: Sparkles, title: "Personalize", desc: "Answer 4 quick questions. Nexus maps your knowledge level, learning style, and goals.", color: "oklch(0.78 0.16 52)" },
+  { step: "01", icon: Sparkles, title: "Personalize", desc: "Answer a few questions — the more you share, the sharper your profile. Nexus maps your knowledge, style, and goals.", color: "oklch(0.78 0.16 52)" },
   { step: "02", icon: MapIcon, title: "Get Your Path", desc: "The AI generates a custom curriculum with modules, resources, and milestones — just for you.", color: "oklch(0.68 0.14 210)" },
   { step: "03", icon: Microscope, title: "Go Deep", desc: "Use the Depth Engine, Research Forge, and Lab to explore any concept at any level of detail.", color: "oklch(0.72 0.20 290)" },
   { step: "04", icon: BarChart3, title: "Track Growth", desc: "Take tests, earn XP, unlock badges, and watch your knowledge profile evolve over time.", color: "oklch(0.72 0.18 150)" },
@@ -532,7 +584,7 @@ export default function Home() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-foreground">Personalize Your Experience</h2>
-                  <p className="text-sm mt-0.5" style={{ color: "oklch(0.52 0.010 255)" }}>4 questions to tailor Nexus to your goals</p>
+                  <p className="text-sm mt-0.5" style={{ color: "oklch(0.52 0.010 255)" }}>Answer questions to personalize your experience — the more you answer, the better the result</p>
                 </div>
                 <button onClick={() => setShowQuiz(false)}
                   className="p-2 rounded-lg transition-colors"

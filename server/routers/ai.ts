@@ -57,11 +57,12 @@ export const aiRouter = router({
     }),
 
   generateQuiz: publicProcedure
-    .input(z.object({ cookieId: z.string() }))
+    .input(z.object({ cookieId: z.string(), batch: z.number().int().min(1).default(1) }))
     .mutation(async ({ input }) => {
-      const prompt = `Generate 4 adaptive quiz questions to personalize a learning platform. Return ONLY valid JSON:
-{"questions":[{"id":"q1","question":"...","options":["A: ...","B: ...","C: ...","D: ..."],"category":"background|interests|goals|style"}]}
-Topics: technical background, creative interests, learning goals, work style. Exactly 4 options per question labeled A,B,C,D.`;
+      const offset = (input.batch - 1) * 10;
+      const prompt = `Generate 10 diverse adaptive quiz questions (batch ${input.batch}, IDs q${offset + 1}–q${offset + 10}) to deeply personalize a learning platform. Return ONLY valid JSON:
+{"questions":[{"id":"q${offset + 1}","question":"...","options":["A: ...","B: ...","C: ...","D: ..."],"category":"background|interests|goals|style|values|habits|depth|domain|output|mindset"}]}
+Cover a broad range of personalisation axes: technical background, domain interests, learning goals, preferred style, depth tolerance, work context, motivation, prior knowledge, output preference, and learning mindset. Exactly 4 options per question labeled A,B,C,D. Make questions feel natural and insightful, not bureaucratic.`;
       try {
         const response = await callAI(input.cookieId, prompt);
         const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -76,6 +77,12 @@ Topics: technical background, creative interests, learning goals, work style. Ex
           { id: "q2", question: "What draws you to Nexus most?", options: ["A: Personalized learning paths", "B: Researching with AI", "C: Coding challenges", "D: The knowledge library"], category: "interests" },
           { id: "q3", question: "What's your primary learning goal right now?", options: ["A: Master a technical skill", "B: Understand a topic deeply", "C: Stay current with AI trends", "D: Explore broadly"], category: "goals" },
           { id: "q4", question: "How do you prefer to learn?", options: ["A: Deep dives — technical details", "B: Visual — show me", "C: Socratic — guide me to discover", "D: Interactive — let me build"], category: "style" },
+          { id: "q5", question: "How much time can you dedicate to learning per day?", options: ["A: Under 15 minutes", "B: 15–30 minutes", "C: 30–60 minutes", "D: 1+ hours"], category: "habits" },
+          { id: "q6", question: "Which domain excites you most right now?", options: ["A: AI / Machine Learning", "B: Web / Software Development", "C: Data & Analytics", "D: Strategy / Leadership"], category: "domain" },
+          { id: "q7", question: "When you encounter a hard concept, you prefer to:", options: ["A: Read the theory first", "B: Jump in and experiment", "C: Find an analogy or story", "D: Talk it through with someone"], category: "depth" },
+          { id: "q8", question: "What do you want to produce with your new knowledge?", options: ["A: Build something (project/product)", "B: Explain it to others (teach)", "C: Use it in my current job", "D: Just understand it for myself"], category: "output" },
+          { id: "q9", question: "Which describes your current knowledge of AI tools?", options: ["A: Total beginner — what's a prompt?", "B: I've used ChatGPT occasionally", "C: I use AI tools daily", "D: I work with AI APIs/models"], category: "background" },
+          { id: "q10", question: "What motivates you to learn?", options: ["A: Curiosity — I just love knowing things", "B: Career — I want to level up professionally", "C: Problem solving — I have a specific challenge", "D: Competition — I want to stay ahead"], category: "mindset" },
         ],
       };
     }),

@@ -547,7 +547,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <PageWrapper pageName="Profile">
-        <div className="flex items-center justify-center h-96">
+        <div className="pt-16 flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: GOLD }} />
         </div>
       </PageWrapper>
@@ -557,7 +557,7 @@ export default function ProfilePage() {
   if (!isAuthenticated) {
     return (
       <PageWrapper pageName="Profile">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto pt-16">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card-nexus p-8 text-center">
             <AlertCircle size={48} className="mx-auto mb-4" style={{ color: GOLD }} />
             <h1 className="text-2xl font-bold text-foreground mb-2">You're browsing as a guest</h1>
@@ -624,7 +624,7 @@ export default function ProfilePage() {
 
   return (
     <PageWrapper pageName="Profile">
-      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", paddingTop: "4rem" }}>
         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div>
