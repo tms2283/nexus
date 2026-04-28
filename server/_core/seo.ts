@@ -435,7 +435,7 @@ export function registerSeoRoutes(app: Express, distPath: string) {
 
       const enriched = injectMeta(html, route, meta);
       res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+      res.setHeader("Cache-Control", "no-cache");
       res.send(enriched);
     }
   );

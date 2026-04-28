@@ -40,31 +40,30 @@ export function RecommendedCourses({ availableCourses }: { availableCourses: Con
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isLoading) return <div className="animate-pulse bg-slate-800 rounded-xl h-32 w-full" />;
+  if (isLoading) return <div className="animate-pulse bg-muted dark:bg-slate-800 rounded-xl h-32 w-full" />;
   if (recommendations.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900/50 to-slate-900 border border-indigo-500/30 rounded-xl p-6 shadow-2xl relative overflow-hidden group">
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay" />
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 blur-3xl rounded-full group-hover:bg-indigo-500/30 transition-all duration-700" />
+    <div className="bg-card dark:bg-gradient-to-br dark:from-indigo-900/50 dark:to-slate-900 border border-border dark:border-indigo-500/30 rounded-xl p-6 shadow-lg dark:shadow-2xl relative overflow-hidden group">
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 dark:bg-indigo-500/20 blur-3xl rounded-full group-hover:bg-indigo-500/20 dark:group-hover:bg-indigo-500/30 transition-all duration-700" />
 
       <div className="relative z-10">
-        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+        <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-indigo-400" />
           AI Curated for Your Learning Style
         </h3>
 
         <div className="space-y-4">
           {recommendations.slice(0, 3).map((rec, idx) => (
-            <div key={idx} className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 hover:border-indigo-500/50 rounded-lg p-4 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={idx} className="bg-muted/50 dark:bg-slate-800/60 backdrop-blur-sm border border-border dark:border-slate-700 hover:border-indigo-500/50 rounded-lg p-4 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-white font-medium text-lg">{rec.title}</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-medium">
+                  <h4 className="text-foreground font-medium text-lg">{rec.title}</h4>
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 text-xs font-medium">
                     {Math.round(rec.score * 100)}% Match
                   </span>
                 </div>
-                <p className="text-sm text-slate-400 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {rec.reasons.join(" · ")}
                 </p>
               </div>

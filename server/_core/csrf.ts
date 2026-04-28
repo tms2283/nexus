@@ -15,12 +15,15 @@
 import { randomBytes, timingSafeEqual } from "crypto";
 import { parse as parseCookies } from "cookie";
 import type { Express, Request, Response, NextFunction } from "express";
+import { isSecureRequest } from "./cookies";
 
 const CSRF_COOKIE  = "csrf_token";
 const CSRF_HEADER  = "x-csrf-token";
 const TOKEN_BYTES  = 32;
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const EXEMPT_PATHS = new Set(["/api/oauth/callback"]);
+const CSRF_BOOTSTRAP_PATHS = new Set(["/", "/index.html"]);
+const STATIC_FILE_PATTERN = /\.[a-z0-9]{2,8}$/i;
 
 function generateToken(): string {
   return randomBytes(TOKEN_BYTES).toString("hex");
@@ -29,6 +32,15 @@ function generateToken(): string {
 function isLocalhost(req: Request): boolean {
   const h = req.hostname;
   return h === "localhost" || h === "127.0.0.1" || h === "::1";
+}
+
+function shouldIssueCsrfCookie(req: Request): boolean {
+  if (!SAFE_METHODS.has(req.method)) return true;
+  if (req.path.startsWith("/api/")) return true;
+  if (CSRF_BOOTSTRAP_PATHS.has(req.path)) return true;
+
+  const acceptsHtml = String(req.headers.accept ?? "").includes("text/html");
+  return acceptsHtml && !STATIC_FILE_PATTERN.test(req.path);
 }
 
 /** Constant-time string comparison to prevent timing attacks */
@@ -47,11 +59,11 @@ export function applyCsrfProtection(app: Express): void {
     const cookies = parseCookies(req.headers.cookie ?? "");
     let token = cookies[CSRF_COOKIE];
 
-    if (!token) {
+    if (!token && shouldIssueCsrfCookie(req)) {
       token = generateToken();
       res.cookie(CSRF_COOKIE, token, {
         sameSite: "lax",
-        secure: req.protocol === "https",
+        secure: isSecureRequest(req),
         path: "/",
         httpOnly: false,          // Must be readable by JS so it can be sent as header
         maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds (Express expects ms)
@@ -59,7 +71,7 @@ export function applyCsrfProtection(app: Express): void {
     }
 
     // Expose the token on the request object for downstream use
-    (req as Request & { csrfToken: string }).csrfToken = token;
+    (req as Request & { csrfToken: string }).csrfToken = token ?? "";
     next();
   });
 

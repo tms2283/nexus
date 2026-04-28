@@ -154,3 +154,13 @@ public/audio/
 
 .claude/
 NEXUS_VPS_REFERENCE.md
+
+# Local scratch/export bundles and sensitive operational notes
+BRANCH/
+CONNECT TO VPS DIRECTIONS.md
+
+# Local QA/debug artifacts that can contain cookies, tokens, or machine state
+*.har
+live-google-login.*
+tmp-*.sql
+tmp-playwright-*.cjs

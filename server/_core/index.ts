@@ -7,6 +7,7 @@ import { validateEnv } from "./validateEnv";
 validateEnv();
 
 import express from "express";
+import compression from "compression";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -18,6 +19,7 @@ import { registerSeoRoutes } from "./seo";
 import { startJobRunner } from "./jobRunner";
 import { applyCsrfProtection } from "./csrf";
 import { ensureAdaptiveLessonTables } from "../db";
+import { rateLimit, securityHeaders } from "./httpGuards";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +40,11 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1);
+  app.use(securityHeaders);
+  app.use(compression());
+
   // Body parser — 2mb cap; large payloads go through the research service
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ limit: "2mb", extended: true }));
@@ -48,6 +55,8 @@ async function startServer() {
 
   // OAuth callback
   registerOAuthRoutes(app);
+
+  app.use(["/api/trpc", "/api/research"], rateLimit({ max: 120, windowMs: 60_000 }));
 
   // tRPC API
   app.use(

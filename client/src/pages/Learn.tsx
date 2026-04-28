@@ -18,10 +18,24 @@ import { trpc } from "@/lib/trpc";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import PageWrapper from "@/components/PageWrapper";
 import { toast } from "sonner";
-import { Streamdown } from "streamdown";
 import { useLocation } from "wouter";
+import type { FeaturedPath } from "./learn/featuredPaths";
 
 const SocraticTutorPanel = lazy(() => import("./learn/SocraticTutor"));
+const PromptEngineeringMasteryCourse = lazy(() => import("./learn/PromptEngineeringMasteryCourse"));
+const SystemsThinkingDesignCourse = lazy(() => import("./learn/SystemsThinkingDesignCourse"));
+const Streamdown = lazy(async () => {
+  const mod = await import("streamdown");
+  return { default: mod.Streamdown };
+});
+
+function LazyMarkdown({ children }: { children: string }) {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted-foreground whitespace-pre-wrap">{children}</p>}>
+      <Streamdown>{children}</Streamdown>
+    </Suspense>
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CurriculumModule {
@@ -6711,7 +6725,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
               onClick={() => {
                 const input = (document.getElementById("ct11-practice-input") as HTMLTextAreaElement)?.value || "";
                 if (input.trim().length < 20) { toast.error("Describe your problem first"); return; }
-                setExpandResult(""); expandMutation.mutate({ concept: `Using the "${CT3_MENTAL_MODELS[ct11ModelIdx].name}" mental model, evaluate this reasoning: "${input}". Give brief feedback on whether they're applying the model correctly, and one suggestion.`, level: "student" });
+                setExpandResult(""); expandMutation.mutate({ concept: `Check this reasoning with the "${CT3_MENTAL_MODELS[ct11ModelIdx].name}" model:\n${input}\n\nSay whether the model is applied well and give one improvement.`, level: "student" });
               }}
               disabled={expandMutation.isPending}
               className="mt-2 w-full py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 bg-[oklch(0.70_0.22_270_/_0.15)] text-[oklch(0.82_0.22_270)] border border-[oklch(0.70_0.22_270_/_0.3)] hover:bg-[oklch(0.70_0.22_270_/_0.25)]">
@@ -6719,7 +6733,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
             </button>
             {expandResult && (
               <div className="mt-3 p-3 rounded-lg bg-[oklch(0.70_0.22_270_/_0.1)] border border-[oklch(0.70_0.22_270_/_0.2)]">
-                <Streamdown>{expandResult}</Streamdown>
+                <LazyMarkdown>{expandResult}</LazyMarkdown>
               </div>
             )}
           </div>
@@ -6882,7 +6896,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
             onClick={() => {
               const filled = Object.values(ct12Practice).every(v => v.trim().length > 10);
               if (!filled) { toast.error("Fill in all four fields first"); return; }
-              setExpandResult(""); expandMutation.mutate({ concept: `Review this argument map:\nClaim: ${ct12Practice.claim}\nPremises: ${ct12Practice.premises}\nHidden Assumptions: ${ct12Practice.assumptions}\nSteel-Man: ${ct12Practice.steelman}\n\nGive brief feedback: is the claim specific? Are the premises genuinely supporting? Are the hidden assumptions real? Is the steel-man charitable? One concrete improvement suggestion.`, level: "student" });
+              setExpandResult(""); expandMutation.mutate({ concept: `Review this argument map:\nClaim: ${ct12Practice.claim}\nPremises: ${ct12Practice.premises}\nAssumptions: ${ct12Practice.assumptions}\nSteel-man: ${ct12Practice.steelman}\n\nBriefly score clarity/support/assumptions/charity and give one concrete improvement.`, level: "student" });
             }}
             disabled={expandMutation.isPending}
             className="w-full py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 bg-[oklch(0.68_0.20_140_/_0.15)] text-[oklch(0.78_0.20_140)] border border-[oklch(0.68_0.20_140_/_0.3)] hover:bg-[oklch(0.68_0.20_140_/_0.25)]">
@@ -6890,7 +6904,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
           </button>
           {expandResult && (
             <div className="p-3 rounded-xl bg-[oklch(0.68_0.20_140_/_0.1)] border border-[oklch(0.68_0.20_140_/_0.25)]">
-              <Streamdown>{expandResult}</Streamdown>
+              <LazyMarkdown>{expandResult}</LazyMarkdown>
             </div>
           )}
           <QuizBlock questions={CT3_QUIZ_L12} accentColor="oklch(0.68_0.20_140)" />
@@ -7061,7 +7075,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
           <motion.button onClick={() => {
             if (!ct13SysInput.trim()) { toast.error("Describe a situation first."); return; }
             setCt13SysLoading(true); setCt13SysResult("");
-            ct13SysMutation.mutate({ concept: `Analyze this situation using systems thinking: "${ct13SysInput}". Structure your analysis as follows:\n\n1. STOCKS & FLOWS: What are the key accumulations in this system, and what are the rates that fill or drain them?\n\n2. FEEDBACK LOOPS: Identify at least one reinforcing loop (that amplifies) and one balancing loop (that stabilizes or corrects). Be specific about the causal chain.\n\n3. TIME DELAYS: Where are the significant delays between cause and effect? What misperceptions do these delays produce?\n\n4. UNINTENDED CONSEQUENCES: What second or third-order effects might common interventions produce?\n\n5. LEVERAGE POINTS: Where would a small intervention have the largest effect? What makes that point highly leveraged?\n\nBe specific, educational, and grounded in systems dynamics principles.`, level: "student" });
+            ct13SysMutation.mutate({ concept: `Analyze this situation with systems thinking:\n${ct13SysInput}\n\nReturn:\n1) Stocks and flows\n2) One reinforcing + one balancing loop\n3) Key time delays and likely misreads\n4) Possible unintended consequences\n5) Highest-leverage intervention and why`, level: "student" });
           }} disabled={ct13SysLoading || !ct13SysInput.trim()} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
             className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-black disabled:opacity-50"
             style={{ background: "linear-gradient(to right, oklch(0.72_0.18_40), oklch(0.70_0.22_270))" }}>
@@ -7232,7 +7246,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
           <motion.button onClick={() => {
             if (ct14AuditInput.trim().length < 30) { toast.error("Write more about your reasoning first."); return; }
             setCt14AuditLoading(true); setCt14AuditResult("");
-            ct14AuditMutation.mutate({ concept: `Perform a motivated reasoning audit on the following reasoning: "${ct14AuditInput}"\n\nAnalyze it for these specific patterns, being direct and honest but not harsh:\n\n1. CONCLUSION-FIRST SIGNALS: Does the reasoning appear to start from the conclusion and work backward? What's the evidence?\n\n2. IDENTITY-PROTECTIVE COGNITION: Does this reasoning track a tribal/group identity more than evidence? Any signals of in-group loyalty overriding analysis?\n\n3. EPISTEMIC COWARDICE: Is the person being as specific and honest as they could be, or hedging to avoid discomfort?\n\n4. MOTTE & BAILEY: Is the person sliding between a strong and a modest version of their claim?\n\n5. MISSING PERSPECTIVES: What's the strongest counterargument they haven't addressed?\n\n6. OVERALL VERDICT: What's the most likely source of bias in this reasoning, and what one concrete practice would improve it?\n\nBe analytically honest. Do not be sycophantic. This exercise is only useful if it's accurate.`, level: "student" });
+            ct14AuditMutation.mutate({ concept: `Audit this reasoning for motivated reasoning:\n${ct14AuditInput}\n\nCheck for:\n1) conclusion-first reasoning\n2) identity-protective cognition\n3) hedging/epistemic cowardice\n4) motte-and-bailey shifts\n5) strongest missing counterargument\n\nThen give: likely core bias + one concrete corrective practice.\nBe candid and specific.`, level: "student" });
           }} disabled={ct14AuditLoading || ct14AuditInput.trim().length < 30} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
             className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
             style={{ background: "oklch(0.68_0.22_10)" }}>
@@ -7469,7 +7483,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
                     </AnimatePresence>
                     {ct15Answers.every(a => a.length > 20) && (
                       <button
-                        onClick={() => { setExpandResult(""); expandMutation.mutate({ concept: `Review this complete argument:\n\nTopic: ${ct15Topic}\n\nClaim: ${ct15Answers[0]}\n\nEvidence: ${ct15Answers[1]}\n\nHidden Assumptions: ${ct15Answers[2]}\n\nSteel-Man Opposition: ${ct15Answers[3]}\n\nRebuttal: ${ct15Answers[4]}\n\nLimits: ${ct15Answers[5]}\n\nProvide substantive feedback: (1) Is the claim specific and falsifiable? (2) Is the evidence compelling and diverse? (3) Are the hidden assumptions genuinely identified? (4) Is the steel-man truly the strongest opposing view? (5) Does the rebuttal actually address the steel-man? (6) Are the limits honest? Give an overall quality rating and one key suggestion.`, level: "student" }); }}
+                        onClick={() => { setExpandResult(""); expandMutation.mutate({ concept: `Review this argument:\nTopic: ${ct15Topic}\nClaim: ${ct15Answers[0]}\nEvidence: ${ct15Answers[1]}\nAssumptions: ${ct15Answers[2]}\nSteel-man: ${ct15Answers[3]}\nRebuttal: ${ct15Answers[4]}\nLimits: ${ct15Answers[5]}\n\nEvaluate specificity, evidence quality, assumption quality, steel-man strength, rebuttal fit, and limits honesty. Give an overall rating and one key fix.`, level: "student" }); }}
                         disabled={expandMutation.isPending}
                         className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 bg-[oklch(0.70_0.22_270_/_0.15)] text-[oklch(0.82_0.22_270)] border border-[oklch(0.70_0.22_270_/_0.3)] hover:bg-[oklch(0.70_0.22_270_/_0.25)] transition-all">
                         {expandMutation.isPending ? <><Loader2 size={13} className="animate-spin" />Reviewing...</> : <><Brain size={13} />Get AI critique of my full argument</>}
@@ -7477,7 +7491,7 @@ function ClearThinkingModule3({ onBack }: { onBack: () => void }) {
                     )}
                     {expandResult && (
                       <div className="p-4 rounded-xl bg-[oklch(0.70_0.22_270_/_0.1)] border border-[oklch(0.70_0.22_270_/_0.25)]">
-                        <Streamdown>{expandResult}</Streamdown>
+                        <LazyMarkdown>{expandResult}</LazyMarkdown>
                       </div>
                     )}
                   </div>
@@ -7908,9 +7922,30 @@ function CurriculumGenerator({ initialGoal = "" }: { initialGoal?: string }) {
 function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [activeCourse, setActiveCourse] = useState<"ailiteracy" | "clearthinking" | null>(null);
+  const [activeCourse, setActiveCourse] = useState<"ailiteracy" | "clearthinking" | "promptmastery" | "systemsthinking" | null>(null);
   const [showMore, setShowMore] = useState(false);
+  const [pathCatalog, setPathCatalog] = useState<FeaturedPath[]>([]);
+  const [isCatalogLoaded, setIsCatalogLoaded] = useState(false);
+  const [isCatalogLoading, setIsCatalogLoading] = useState(false);
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!showMore || isCatalogLoaded || isCatalogLoading) return;
+    let alive = true;
+    setIsCatalogLoading(true);
+    void import("./learn/featuredPaths")
+      .then((mod) => {
+        if (!alive) return;
+        setPathCatalog(mod.featuredPaths);
+        setIsCatalogLoaded(true);
+      })
+      .finally(() => {
+        if (alive) setIsCatalogLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [isCatalogLoaded, isCatalogLoading, showMore]);
 
   // If a curated course is open, show it inline with a back button
   if (activeCourse === "ailiteracy") {
@@ -7935,9 +7970,35 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
       </div>
     );
   }
+  if (activeCourse === "promptmastery") {
+    return (
+      <div>
+        <button onClick={() => setActiveCourse(null)}
+          className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to Learning Paths
+        </button>
+        <Suspense fallback={<LearnTabSkeleton />}>
+          <PromptEngineeringMasteryCourse />
+        </Suspense>
+      </div>
+    );
+  }
+  if (activeCourse === "systemsthinking") {
+    return (
+      <div>
+        <button onClick={() => setActiveCourse(null)}
+          className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft size={14} /> Back to Learning Paths
+        </button>
+        <Suspense fallback={<LearnTabSkeleton />}>
+          <SystemsThinkingDesignCourse />
+        </Suspense>
+      </div>
+    );
+  }
 
-  const categories = ["All", ...Array.from(new Set(featuredPaths.map(p => p.category)))];
-  const filtered = featuredPaths.filter(p => {
+  const categories = ["All", ...Array.from(new Set(pathCatalog.map(p => p.category)))];
+  const filtered = pathCatalog.filter(p => {
     const matchCat = activeCategory === "All" || p.category === activeCategory;
     const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
@@ -7966,10 +8027,10 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
                 <h4 className="font-bold text-foreground group-hover:text-[oklch(0.85_0.18_55)] transition-colors">AI Literacy for Adults</h4>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-4">From zero to power user. How AI actually works, how to use it at work, and how to stay in control — 3 modules, 15 lessons.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">Core AI literacy from fundamentals to practical execution.</p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules · 15 lessons</span>
+                <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules</span>
                 <span className="flex items-center gap-1"><Zap size={10} /> 1,100 XP</span>
                 <span className="flex items-center gap-1"><Clock size={10} /> ~3 hrs</span>
               </div>
@@ -7997,14 +8058,76 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
                 <h4 className="font-bold text-foreground group-hover:text-[oklch(0.82_0.2_260)] transition-colors">Clear Thinking</h4>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-4">Fallacies, cognitive biases, statistical traps, systems thinking, and argument mapping — 3 modules, 15 lessons of rigorous training.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">Rigorous reasoning, bias control, and argument quality training.</p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules · 15 lessons</span>
+                <span className="flex items-center gap-1"><BookOpen size={10} /> 3 modules</span>
                 <span className="flex items-center gap-1"><Zap size={10} /> 1,110 XP</span>
                 <span className="flex items-center gap-1"><Clock size={10} /> ~3 hrs</span>
               </div>
               <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.72_0.2_260)] opacity-0 group-hover:opacity-100 transition-opacity">
+                Start <ArrowRight size={11} />
+              </span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+            className="card-nexus p-6 group cursor-pointer relative overflow-hidden"
+            onClick={() => setActiveCourse("promptmastery")}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.65_0.22_200_/_0.06)] to-transparent pointer-events-none" />
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.65_0.22_200_/_0.15)] border border-[oklch(0.65_0.22_200_/_0.3)]">
+                <Sparkles size={20} className="text-[oklch(0.75_0.22_200)]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xs font-bold text-[oklch(0.75_0.22_200)]">AI Systems</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[oklch(0.65_0.22_200_/_0.15)] text-[oklch(0.75_0.22_200)] border border-[oklch(0.65_0.22_200_/_0.3)] font-semibold">EXPERT</span>
+                </div>
+                <h4 className="font-bold text-foreground group-hover:text-[oklch(0.75_0.22_200)] transition-colors">Prompt Engineering Mastery</h4>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">Advanced prompting for reliable, production-grade outputs.</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><BookOpen size={10} /> 4 modules</span>
+                <span className="flex items-center gap-1"><Zap size={10} /> advanced labs</span>
+                <span className="flex items-center gap-1"><Clock size={10} /> ~6 hrs</span>
+              </div>
+              <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.65_0.22_200)] opacity-0 group-hover:opacity-100 transition-opacity">
+                Start <ArrowRight size={11} />
+              </span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            className="card-nexus p-6 group cursor-pointer relative overflow-hidden"
+            onClick={() => setActiveCourse("systemsthinking")}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.72_0.18_150_/_0.06)] to-transparent pointer-events-none" />
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[oklch(0.72_0.18_150_/_0.15)] border border-[oklch(0.72_0.18_150_/_0.3)]">
+                <GitBranch size={20} className="text-[oklch(0.82_0.18_150)]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xs font-bold text-[oklch(0.82_0.18_150)]">Strategy</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[oklch(0.72_0.18_150_/_0.15)] text-[oklch(0.82_0.18_150)] border border-[oklch(0.72_0.18_150_/_0.3)] font-semibold">EXPERT</span>
+                </div>
+                <h4 className="font-bold text-foreground group-hover:text-[oklch(0.82_0.18_150)] transition-colors">Systems Thinking &amp; Design</h4>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">Causal maps, dynamics, and leverage-focused strategy design.</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><BookOpen size={10} /> 4 modules</span>
+                <span className="flex items-center gap-1"><Zap size={10} /> simulation labs</span>
+                <span className="flex items-center gap-1"><Clock size={10} /> ~6 hrs</span>
+              </div>
+              <span className="flex items-center gap-1 text-xs font-medium text-[oklch(0.72_0.18_150)] opacity-0 group-hover:opacity-100 transition-opacity">
                 Start <ArrowRight size={11} />
               </span>
             </div>
@@ -8055,7 +8178,9 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
                     </button>
                   ))}
                 </div>
-                {filtered.length === 0 ? (
+                {isCatalogLoading ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">Loading paths...</div>
+                ) : filtered.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground text-sm">No paths match your search.</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -8113,25 +8238,6 @@ function PathsTab({ onSelectPath }: { onSelectPath: (title: string) => void }) {
     </div>
   );
 }
-
-// ─── Featured Learning Paths ────────────────────────────────────────────
-const featuredPaths: { title: string; level: string; duration: string; modules: number; category: string; color: string; popular: boolean; href?: string }[] = [
-  { title: "Full-Stack Web Development", level: "Intermediate", duration: "12 weeks", modules: 16, category: "Engineering", color: "oklch(0.65_0.22_200)", popular: true },
-  { title: "Data Science & Analytics", level: "Beginner", duration: "10 weeks", modules: 14, category: "Data", color: "oklch(0.72_0.2_290)", popular: false },
-  { title: "Systems Thinking & Design", level: "Advanced", duration: "6 weeks", modules: 8, category: "Strategy", color: "oklch(0.72_0.18_150)", popular: false },
-  { title: "Cognitive Science & Learning", level: "Intermediate", duration: "8 weeks", modules: 10, category: "Science", color: "oklch(0.75_0.18_55)", popular: false },
-  { title: "Entrepreneurship & Product", level: "Beginner", duration: "6 weeks", modules: 9, category: "Business", color: "oklch(0.65_0.22_200)", popular: false },
-  { title: "Philosophy & Critical Thinking", level: "Beginner", duration: "6 weeks", modules: 8, category: "Humanities", color: "oklch(0.78_0.16_30)", popular: false },
-  { title: "Behavioral Economics", level: "Intermediate", duration: "7 weeks", modules: 10, category: "Economics", color: "oklch(0.72_0.18_150)", popular: false },
-  { title: "Neuroscience & the Brain", level: "Beginner", duration: "8 weeks", modules: 11, category: "Science", color: "oklch(0.72_0.2_290)", popular: false },
-  { title: "Quantum Physics Explained", level: "Intermediate", duration: "10 weeks", modules: 13, category: "Physics", color: "oklch(0.65_0.22_200)", popular: false },
-  { title: "Creative Writing & Storytelling", level: "Beginner", duration: "5 weeks", modules: 7, category: "Arts", color: "oklch(0.75_0.18_55)", popular: false },
-  { title: "Public Speaking & Rhetoric", level: "Beginner", duration: "4 weeks", modules: 6, category: "Communication", color: "oklch(0.78_0.16_30)", popular: false },
-  { title: "History of Science & Ideas", level: "Beginner", duration: "9 weeks", modules: 12, category: "History", color: "oklch(0.72_0.18_150)", popular: false },
-  { title: "Prompt Engineering Mastery", level: "Intermediate", duration: "4 weeks", modules: 6, category: "AI", color: "oklch(0.75_0.18_55)", popular: true },
-  { title: "Ethics of Artificial Intelligence", level: "Beginner", duration: "5 weeks", modules: 7, category: "AI", color: "oklch(0.72_0.2_290)", popular: false },
-  { title: "Statistics & Probability", level: "Beginner", duration: "8 weeks", modules: 11, category: "Mathematics", color: "oklch(0.65_0.22_200)", popular: false },
-];
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 function LearnTabSkeleton() {

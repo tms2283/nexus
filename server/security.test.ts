@@ -174,6 +174,52 @@ describe('Session Cookie Options', () => {
     expect(opts.sameSite).toBe('lax');
     expect(opts.httpOnly).toBe(true);
   });
+
+  it('treats x-forwarded-proto=https as secure behind a proxy', async () => {
+    const { getSessionCookieOptions } = await import('./_core/cookies');
+    const mockReq = {
+      protocol: 'http',
+      headers: { 'x-forwarded-proto': 'https' },
+    } as unknown as Parameters<typeof getSessionCookieOptions>[0];
+    const opts = getSessionCookieOptions(mockReq);
+    expect(opts.secure).toBe(true);
+  });
+});
+
+describe('HTTP Guards', () => {
+  it('rate limiter returns 429 after the configured window budget', async () => {
+    const { rateLimit } = await import('./_core/httpGuards');
+    const middleware = rateLimit({ max: 2, windowMs: 60_000 });
+    const req = { ip: '203.0.113.10', path: '/api/trpc' } as any;
+    const res = {
+      setHeader: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    } as any;
+    const next = vi.fn();
+
+    middleware(req, res, next);
+    middleware(req, res, next);
+    middleware(req, res, next);
+
+    expect(next).toHaveBeenCalledTimes(2);
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Too many requests' }));
+  });
+
+  it('security headers set baseline browser protections', async () => {
+    const { securityHeaders } = await import('./_core/httpGuards');
+    const req = { protocol: 'https', headers: {} } as any;
+    const res = { setHeader: vi.fn() } as any;
+    const next = vi.fn();
+
+    securityHeaders(req, res, next);
+
+    expect(res.setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
+    expect(res.setHeader).toHaveBeenCalledWith('Referrer-Policy', 'strict-origin-when-cross-origin');
+    expect(res.setHeader).toHaveBeenCalledWith('Strict-Transport-Security', expect.any(String));
+    expect(next).toHaveBeenCalledOnce();
+  });
 });
 
 // ─── IDOR Ownership Check Tests (logic layer) ─────────────────────────────────

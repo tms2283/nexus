@@ -9,10 +9,10 @@ set -e
 DOMAIN="nexus.ai"
 DB_NAME="nexus"
 DB_USER="nexus_user"
-DB_PASS="@103BoscobelRoad"
 APP_DIR="/var/www/nexus"
-JWT_SECRET="7c3fcbecea5a517a4bd5c30301d66d38ffababe64091897f6eca38e7af76791d24966df23cedde5a858ee8326614c179c91b19c0f61c5a832bbd29d3ca50eeb2"
-ENCRYPTION_KEY="83634307f0283f520062f09a3b947eea88a6018400d0dde81dfd8787e4b56173"
+DB_PASS="${DB_PASS:-$(openssl rand -base64 24 | tr -d '\n')}"
+JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 64)}"
+ENCRYPTION_KEY="${ENCRYPTION_KEY:-$(openssl rand -hex 32)}"
 
 echo ""
 echo "================================================"

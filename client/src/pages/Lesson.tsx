@@ -72,6 +72,34 @@ const SECTION_BADGES: Record<string, { label: string; border: string; badge: str
   },
 };
 
+const SVG_DANGEROUS_ELEMENTS = "script, foreignObject, iframe, object, embed, style";
+
+function sanitizeSvg(svg: string): string | null {
+  if (!/^<svg[\s>]/i.test(svg.trimStart())) return null;
+  if (typeof window === "undefined" || typeof DOMParser === "undefined") return null;
+
+  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+  if (doc.querySelector("parsererror")) return null;
+
+  doc.querySelectorAll(SVG_DANGEROUS_ELEMENTS).forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase().replace(/\s+/g, "");
+      if (
+        name.startsWith("on") ||
+        name === "style" ||
+        value.startsWith("javascript:") ||
+        value.startsWith("data:text/html")
+      ) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  return new XMLSerializer().serializeToString(doc.documentElement);
+}
+
 export default function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const [, setLocation] = useLocation();
@@ -387,7 +415,7 @@ export default function LessonPage() {
 
         {!hasStructuredSections && (
           <div className="glass rounded-2xl border border-white/8 p-8 mb-8">
-            <div className="prose prose-invert max-w-none">
+            <div className="prose max-w-none dark:prose-invert">
               <Streamdown>{lesson.content}</Streamdown>
             </div>
           </div>
@@ -430,6 +458,7 @@ export default function LessonPage() {
                 const badge = SECTION_BADGES[section.type] ?? SECTION_BADGES.concept;
                 const currentAnswer = answers[section.id] ?? "";
                 const options = Array.isArray(section.questionOptions) ? section.questionOptions : [];
+                const safeSvgContent = section.svgContent ? sanitizeSvg(String(section.svgContent)) : null;
                 return (
                   <article
                     key={section.id}
@@ -450,8 +479,8 @@ export default function LessonPage() {
                       </div>
                     )}
 
-                    {section.svgContent && /^<svg[\s>]/i.test(section.svgContent.trimStart()) && (
-                      <div className="mb-4 rounded-xl overflow-hidden border border-white/8 bg-[oklch(0.23_0.02_250)] p-3" dangerouslySetInnerHTML={{ __html: section.svgContent }} />
+                    {safeSvgContent && (
+                      <div className="mb-4 rounded-xl overflow-hidden border border-white/8 bg-[oklch(0.23_0.02_250)] p-3" dangerouslySetInnerHTML={{ __html: safeSvgContent }} />
                     )}
 
                     {!section.imageUrl && section.visualAsset !== "none" && (
@@ -469,7 +498,7 @@ export default function LessonPage() {
                       </div>
                     )}
 
-                    <div className="prose prose-invert max-w-none mb-5">
+                    <div className="prose max-w-none mb-5 dark:prose-invert">
                       <Streamdown>{section.content}</Streamdown>
                     </div>
 
