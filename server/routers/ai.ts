@@ -8,8 +8,10 @@ import {
   markAnswerHelpful, incrementLessonViewCount, searchSharedLessons,
   getDb, getPsychProfile,
 } from "../db";
-import { type InsertLesson, backgroundJobs } from "../../drizzle/schema";
+import { type InsertLesson, backgroundJobs, generatedCurricula } from "../../drizzle/schema";
 import { callAI, callAIChat, NEXUS_SYSTEM_PROMPT } from "./shared";
+import { createHash } from "crypto";
+import { eq } from "drizzle-orm";
 
 // ─── Named constants (avoid 200-char lines) ───────────────────────────────────
 const CURRICULUM_FALLBACK = (goal: string) => ({
@@ -121,6 +123,38 @@ Topics: technical background, creative interests, learning goals, work style. Ex
         }
       }
       const allInterestsFallback = input.interests.join(", ") || "general";
+      const curriculumId = `curriculum-${Date.now()}`;
+      const cookieId = input.cookieId || "anonymous";
+      const db = await getDb();
+
+      // ── Cache lookup: same goal+level+time never generates twice ──────────────
+      const goalHash = createHash("sha256")
+        .update(`${input.goal.toLowerCase().trim()}|${input.currentLevel}|${input.timeAvailable}`)
+        .digest("hex").slice(0, 32);
+
+      if (db) {
+        const cached = await db.select().from(generatedCurricula)
+          .where(eq(generatedCurricula.goalHash, goalHash))
+          .limit(1);
+        if (cached[0]) {
+          // Update hit stats
+          await db.update(generatedCurricula)
+            .set({ hitCount: cached[0].hitCount + 1, lastHitAt: new Date() })
+            .where(eq(generatedCurricula.id, cached[0].id));
+          const curriculum = cached[0].curriculumJson as any;
+          // Still enqueue lessons so this user's lessons are generated (they may not exist)
+          for (let i = 0; i < curriculum.phases.length; i++) {
+            await db.insert(backgroundJobs).values({
+              type: "GENERATE_LESSON",
+              payload: { cookieId, curriculumId, phase: curriculum.phases[i], index: i, difficulty: input.currentLevel, interests: input.interests, learnStyle, background },
+              status: "pending",
+            });
+          }
+          return { ...curriculum, curriculumId, cached: true };
+        }
+      }
+
+      // ── Not cached — generate fresh ────────────────────────────────────────────
       const prompt = `Create a personalized learning curriculum for: "${input.goal}". Level: ${input.currentLevel}. Time: ${input.timeAvailable}. Interests: ${allInterestsFallback}.${profileContext}
 Return ONLY valid JSON: {"title":"...","description":"...","estimatedWeeks":4,"phases":[{"phase":1,"title":"...","duration":"Week 1-2","objectives":["..."],"resources":[{"title":"...","type":"article|video|book|practice","url":"...","description":"..."}],"milestone":"..."}]}
 Create 3-4 phases with real resources and actual URLs.`;
@@ -131,12 +165,20 @@ Create 3-4 phases with real resources and actual URLs.`;
         if (m) curriculum = JSON.parse(m[0]);
       } catch (_e) { /* fallback */ }
       if (!curriculum) curriculum = CURRICULUM_FALLBACK(input.goal);
-      const curriculumId = `curriculum-${Date.now()}`;
-      const cookieId = input.cookieId || "anonymous";
 
-      // Enqueue lesson generation as background jobs so the response is immediate
-      const db = await getDb();
+      // ── Save to cache ──────────────────────────────────────────────────────────
       if (db) {
+        try {
+          await db.insert(generatedCurricula).values({
+            goalHash,
+            goal: input.goal.slice(0, 500),
+            level: input.currentLevel,
+            timeAvailable: input.timeAvailable,
+            curriculumJson: curriculum,
+          });
+        } catch { /* concurrent insert race — already saved, fine */ }
+
+        // Enqueue lesson generation as background jobs so the response is immediate
         for (let i = 0; i < curriculum.phases.length; i++) {
           const phase = curriculum.phases[i];
           await db.insert(backgroundJobs).values({
@@ -152,6 +194,14 @@ Create 3-4 phases with real resources and actual URLs.`;
   generateLesson: publicProcedure
     .input(z.object({ cookieId: z.string(), curriculumId: z.string(), title: z.string(), objectives: z.array(z.string()), duration: z.string(), order: z.number() }))
     .mutation(async ({ input, ctx }) => {
+      // ── Check shared lesson cache first ────────────────────────────────────────
+      const existingLessons = await searchSharedLessons(input.title);
+      const exactMatch = existingLessons.find(l => l.title.toLowerCase() === input.title.toLowerCase());
+      if (exactMatch) {
+        await incrementLessonViewCount(exactMatch.id);
+        return exactMatch;
+      }
+
       try {
         let profileContext = "";
         const userId = ctx.user?.id;

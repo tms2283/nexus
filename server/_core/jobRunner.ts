@@ -6,7 +6,7 @@
  *
  * Called once from server/_core/index.ts at startup.
  */
-import { getDb, saveLesson } from "../db";
+import { getDb, saveLesson, searchSharedLessons } from "../db";
 import {
   backgroundJobs, concepts, conceptAssets, learningAssets,
   goalPaths, goalPathNodes, adaptiveLessonTemplates,
@@ -41,6 +41,15 @@ interface GenerateLessonPayload {
 async function processJob(job: { id: number; type: string; payload: unknown }): Promise<void> {
   if (job.type === "GENERATE_LESSON") {
     const p = job.payload as GenerateLessonPayload;
+
+    // ── Check shared lesson cache before generating ────────────────────────────
+    const existing = await searchSharedLessons(p.phase.title);
+    const exactMatch = existing.find(l => l.title.toLowerCase() === p.phase.title.toLowerCase());
+    if (exactMatch) {
+      console.log(`[jobRunner] Lesson cache hit — skipping generation for: "${p.phase.title}"`);
+      return;
+    }
+
     const styleDirective =
       p.learnStyle === "visual"         ? "Use diagrams, numbered steps, and visual metaphors throughout." :
       p.learnStyle === "socratic"       ? "Pose guiding questions before each answer to encourage discovery." :

@@ -1066,3 +1066,23 @@ export const clarityThoughtRecords = mysqlTable("clarity_thought_records", {
 }));
 export type ClarityThoughtRecord = typeof clarityThoughtRecords.$inferSelect;
 export type InsertClarityThoughtRecord = typeof clarityThoughtRecords.$inferInsert;
+
+// ─── Generated Curricula Cache ────────────────────────────────────────────────
+// Stores AI-generated curricula keyed by a hash of (goal, level, timeAvailable)
+// so the same curriculum is never generated twice for the same inputs.
+
+export const generatedCurricula = mysqlTable("generated_curricula", {
+  id: int("id").autoincrement().primaryKey(),
+  goalHash: varchar("goalHash", { length: 64 }).notNull(),
+  goal: varchar("goal", { length: 500 }).notNull(),
+  level: varchar("level", { length: 32 }).notNull(),
+  timeAvailable: varchar("timeAvailable", { length: 64 }).notNull(),
+  curriculumJson: json("curriculumJson").notNull(),
+  hitCount: int("hitCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  lastHitAt: timestamp("lastHitAt").defaultNow().notNull(),
+}, (t) => ({
+  goalHashIdx: index("gen_curricula_goal_hash_idx").on(t.goalHash),
+}));
+export type GeneratedCurriculum = typeof generatedCurricula.$inferSelect;
+export type InsertGeneratedCurriculum = typeof generatedCurricula.$inferInsert;
